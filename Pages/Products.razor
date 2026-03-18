@@ -1,0 +1,264 @@
+@page "/products"
+
+<PageTitle>Products | @Settings.CompanyName</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Products</h1>
+        <p class="text-muted">Bundles of ingredients ready for sale.</p>
+    </div>
+    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Product</button>
+</div>
+
+<div class="glass-panel">
+    <table>
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th>Cost</th>
+                <th>Profit Margin</th>
+                <th>Available</th>
+                <th class="text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Inventory.Products)
+            {
+                <tr>
+                    <td>
+                        <strong>@item.Name</strong><br />
+                        <span class="text-muted" style="font-size:0.8rem">
+                            @(string.Join(", ", item.RequiredIngredients.Where(ri => ri.Ingredient != null).Select(ri => $"{ri.QuantityRequired}{ri.Ingredient.Unit} {ri.Ingredient.Name}")))
+                        </span>
+                    </td>
+                    <td class="text-success">$@item.SellingPrice.ToString("0.00")</td>
+                    <td class="text-danger">$@item.TotalCost.ToString("0.00")</td>
+                    <td>
+                        <span class="@(item.ProfitMargin > 0 ? "text-success" : "text-danger")">
+                            $@item.ProfitMargin.ToString("0.00") (@((item.ProfitMarginPercentage * 100).ToString("0.0"))%)
+                        </span>
+                    </td>
+                    <td>
+                        @if (item.AvailableCount <= 0)
+                        {
+                            <span class="badge badge-danger">Out of Stock</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-success">@item.AvailableCount Available</span>
+                        }
+                    </td>
+                    <td class="text-right">
+                        <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-sm btn-danger margin-left-2" @onclick="() => Delete(item)"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            }
+            @if (!Inventory.Products.Any())
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted" style="padding: 3rem">No products configured yet.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" style="max-width: 800px" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h3>@(isEditing ? "Edit Product" : "New Product")</h3>
+                <button class="btn-close" @onclick="CloseModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="grid grid-cols-2">
+                    <!-- Basic Info -->
+                    <div>
+                        <h4>Product Details</h4>
+                        <div class="form-group">
+                            <label>Product Name</label>
+                            <input type="text" @bind="currentProduct.Name" placeholder="e.g. Hamburger" />
+                        </div>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <div class="form-group w-full">
+                                <label>Selling Price ($)</label>
+                                <input type="number" step="0.01" @bind="currentProduct.SellingPrice" />
+                            </div>
+                            <div class="form-group w-full">
+                                <label>Tax Rate (Decimal)</label>
+                                <input type="number" step="0.01" @bind="currentProduct.TaxRate" placeholder="0.05 for 5%" />
+                            </div>
+                        </div>
+
+                        <div class="glass-card mb-4">
+                            <h5>Summary</h5>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-muted">Cost</span>
+                                <span class="text-danger">$@currentProduct.TotalCost.ToString("0.00")</span>
+                            </div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-muted">Selling Price</span>
+                                <span class="text-success">$@currentProduct.SellingPrice.ToString("0.00")</span>
+                            </div>
+                            <div class="flex justify-between" style="border-top: 1px solid var(--border); padding-top: 0.5rem">
+                                <strong>Profit Margin</strong>
+                                <strong class="text-success">$@currentProduct.ProfitMargin.ToString("0.00")</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ingredients -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h4>Required Ingredients</h4>
+                        </div>
+                        
+                        <!-- Add ingredient row -->
+                        <div class="flex gap-2 mb-4">
+                            <select @bind="selectedIngredientId" class="w-full">
+                                <option value="">-- Select Ingredient --</option>
+                                @foreach(var ing in Inventory.Ingredients)
+                                {
+                                    <option value="@ing.Id">@ing.Name (@ing.Stock @ing.Unit)</option>
+                                }
+                            </select>
+                            <input type="number" step="0.1" @bind="newQuantity" placeholder="Qty" style="width: 80px" />
+                            <button class="btn btn-secondary" @onclick="AddRequirement"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+
+                        <div style="max-height: 250px; overflow-y: auto;">
+                            @foreach(var req in currentProduct.RequiredIngredients)
+                            {
+                                <div class="glass-card flex justify-between items-center mb-2" style="padding: 0.5rem 1rem">
+                                    <div>
+                                        <strong>@req.Ingredient?.Name</strong>
+                                        <div class="text-muted" style="font-size:0.8rem">
+                                            @req.QuantityRequired @req.Ingredient?.Unit  
+                                            <span class="text-danger">($@((req.QuantityRequired * req.Ingredient?.CostPerUnit ?? 0).ToString("0.00")))</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-close" style="font-size: 1rem" @onclick="() => RemoveRequirement(req)"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            }
+                            @if(currentProduct.RequiredIngredients.Count == 0)
+                            {
+                                <p class="text-muted text-center" style="font-size: 0.9rem">No ingredients added yet.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-primary" @onclick="Save">Save Product</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    bool showModal;
+    bool isEditing;
+    Product currentProduct = new();
+    
+    // For adding new ingredients
+    Guid? selectedIngredientId;
+    double newQuantity;
+
+    protected override void OnInitialized()
+        => Inventory.OnStateChanged += StateHasChanged;
+
+    public void Dispose()
+        => Inventory.OnStateChanged -= StateHasChanged;
+
+    void OpenAddModal()
+    {
+        currentProduct = new Product();
+        isEditing = false;
+        showModal = true;
+    }
+
+    void Edit(Product item)
+    {
+        currentProduct = new Product 
+        {
+            Id = item.Id,
+            Name = item.Name,
+            SellingPrice = item.SellingPrice,
+            TaxRate = item.TaxRate,
+            RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
+            {
+                IngredientId = r.IngredientId,
+                QuantityRequired = r.QuantityRequired,
+                Ingredient = r.Ingredient
+            }).ToList()
+        };
+        isEditing = true;
+        showModal = true;
+    }
+
+    void Delete(Product item)
+    {
+        Inventory.DeleteProduct(item);
+    }
+
+    void AddRequirement()
+    {
+        if (selectedIngredientId == null || selectedIngredientId == Guid.Empty || newQuantity <= 0) return;
+
+        var ing = Inventory.Ingredients.FirstOrDefault(i => i.Id == selectedIngredientId);
+        if (ing == null) return;
+
+        var existing = currentProduct.RequiredIngredients.FirstOrDefault(r => r.IngredientId == selectedIngredientId);
+        if (existing != null)
+        {
+            existing.QuantityRequired += newQuantity;
+        }
+        else
+        {
+            currentProduct.RequiredIngredients.Add(new ProductIngredient
+            {
+                IngredientId = selectedIngredientId.Value,
+                QuantityRequired = newQuantity,
+                Ingredient = ing
+            });
+        }
+        
+        selectedIngredientId = null;
+        newQuantity = 0;
+    }
+
+    void RemoveRequirement(ProductIngredient req)
+    {
+        currentProduct.RequiredIngredients.Remove(req);
+    }
+
+    void Save()
+    {
+        if (string.IsNullOrWhiteSpace(currentProduct.Name)) return;
+
+        if (isEditing)
+        {
+            var existing = Inventory.Products.FirstOrDefault(p => p.Id == currentProduct.Id);
+            if (existing != null)
+            {
+                existing.Name = currentProduct.Name;
+                existing.SellingPrice = currentProduct.SellingPrice;
+                existing.TaxRate = currentProduct.TaxRate;
+                existing.RequiredIngredients = currentProduct.RequiredIngredients;
+                Inventory.UpdateProduct(existing);
+            }
+        }
+        else
+        {
+            currentProduct.Id = Guid.NewGuid();
+            Inventory.AddProduct(currentProduct);
+        }
+        CloseModal();
+    }
+
+    void CloseModal() => showModal = false;
+}

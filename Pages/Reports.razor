@@ -1,0 +1,119 @@
+@page "/reports"
+
+<PageTitle>Reports | @Settings.CompanyName</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Reports</h1>
+        <p class="text-muted">Analyze sales performance and inventory valuation.</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-3 mb-4">
+    <div class="glass-panel">
+        <div class="flex items-center gap-3">
+            <div class="stat-icon stat-warning" style="width: 50px; height: 50px">
+                <i class="fa-solid fa-boxes-packing"></i>
+            </div>
+            <div>
+                <h3>$@InventoryValue.ToString("0.00")</h3>
+                <p class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Inventory Value (Cost)</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-panel">
+        <div class="flex items-center gap-3">
+            <div class="stat-icon stat-success" style="width: 50px; height: 50px">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <div>
+                <h3>@TotalSalesCount</h3>
+                <p class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Total Sales</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="glass-panel">
+        <div class="flex items-center gap-3">
+            <div class="stat-icon stat-accent" style="width: 50px; height: 50px">
+                <i class="fa-solid fa-money-bill-trend-up"></i>
+            </div>
+            <div>
+                <h3>@AverageProfitMargin.ToString("0.0")%</h3>
+                <p class="text-muted" style="font-size: 0.8rem; text-transform: uppercase;">Avg Profit Margin</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-panel">
+    <h2 class="mb-4">Sales History</h2>
+    
+    @if (Inventory.Sales.Any())
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Report ID</th>
+                    <th>Date</th>
+                    <th>Product</th>
+                    <th>Qty</th>
+                    <th>Amount</th>
+                    <th>Tax Collected</th>
+                    <th>Net Profit</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sale in Inventory.Sales.OrderByDescending(s => s.Date))
+                {
+                    <tr>
+                        <td class="text-muted" style="font-family: monospace; font-size: 0.85rem">
+                            @sale.Id.ToString().Substring(0, 8)
+                        </td>
+                        <td>@sale.Date.ToString("g")</td>
+                        <td><strong>@sale.ProductName</strong></td>
+                        <td>@sale.QuantitySold</td>
+                        <td class="text-primary">$@sale.TotalAmount.ToString("0.00")</td>
+                        <td class="text-muted">
+                            $@sale.TaxAmount.ToString("0.00")
+                        </td>
+                        <td class="text-success">
+                            $@sale.ProfitAmount.ToString("0.00")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="text-center text-muted" style="padding: 3rem">
+            <i class="fa-solid fa-receipt fa-4x mb-4 text-primary" style="opacity: 0.3"></i>
+            <p>No sales history yet.</p>
+        </div>
+    }
+</div>
+
+@code {
+    protected override void OnInitialized()
+        => Inventory.OnStateChanged += StateHasChanged;
+
+    public void Dispose()
+        => Inventory.OnStateChanged -= StateHasChanged;
+
+    double InventoryValue => Inventory.Ingredients.Sum(i => i.Stock * i.CostPerUnit);
+    int TotalSalesCount => Inventory.Sales.Count;
+    
+    double AverageProfitMargin 
+    {
+        get 
+        {
+            var totalSales = Inventory.Sales.Sum(s => s.TotalAmount - s.TaxAmount); // Subtotal
+            var totalProfit = Inventory.Sales.Sum(s => s.ProfitAmount);
+            
+            if (totalSales == 0) return 0;
+            return (totalProfit / totalSales) * 100;
+        }
+    }
+}

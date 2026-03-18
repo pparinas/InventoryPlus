@@ -1,0 +1,76 @@
+@page "/login"
+@layout InventoryPlus.Layout.AuthLayout
+@attribute [AllowAnonymous]
+@using Supabase
+@inject Supabase.Client Supabase
+@inject NavigationManager NavigationManager
+
+<div class="login-container">
+    <div class="login-card">
+        <h2>Login to @Settings.CompanyName</h2>
+        
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-error">@ErrorMessage</div>
+        }
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" @bind="Email" class="form-control" placeholder="Enter your email" />
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" @bind="Password" class="form-control" placeholder="Enter your password" />
+        </div>
+
+        <button @onclick="HandleLogin" class="btn btn-primary" disabled="@IsLoading">
+            @if (IsLoading)
+            {
+                <span class="spinner"></span> <span>Logging in...</span>
+            }
+            else
+            {
+                <span>Login</span>
+            }
+        </button>
+        
+        <div class="login-links">
+            <p>Don't have an account? <a href="/register">Register here</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string Email { get; set; } = string.Empty;
+    private string Password { get; set; } = string.Empty;
+    private string ErrorMessage { get; set; } = string.Empty;
+    private bool IsLoading { get; set; } = false;
+
+    private async Task HandleLogin()
+    {
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+
+        try
+        {
+            var session = await Supabase.Auth.SignIn(Email, Password);
+            if (session != null && session.User != null)
+            {
+                NavigationManager.NavigateTo("/dashboard");
+            }
+            else
+            {
+                ErrorMessage = "Invalid credentials. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Login failed: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

@@ -1,0 +1,160 @@
+@page "/sales"
+
+<PageTitle>Point of Sale | @Settings.CompanyName</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Point of Sale</h1>
+        <p class="text-muted">Record new sales and manage checkout.</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2">
+    <!-- Product Grid -->
+    <div>
+        <h3 class="mb-4">Select Products</h3>
+        <div class="grid grid-cols-2 gap-3">
+            @foreach (var prod in Inventory.Products)
+            {
+                bool isAvailable = prod.AvailableCount > 0;
+                <div class="glass-card @(isAvailable ? "cursor-pointer" : "")" 
+                     style="@(isAvailable ? "" : "opacity: 0.5")"
+                     @onclick="() => { if (isAvailable) AddToCart(prod); }">
+                    <div class="flex justify-between mb-2">
+                        <strong>@prod.Name</strong>
+                        <span class="text-success">$@prod.SellingPrice.ToString("0.00")</span>
+                    </div>
+                    <div class="flex justify-between items-center text-muted" style="font-size: 0.85rem">
+                        <span>Available: @prod.AvailableCount</span>
+                        @if(!isAvailable) { <span class="badge badge-danger">Out of Stock</span> }
+                    </div>
+                </div>
+            }
+            @if(!Inventory.Products.Any())
+            {
+                <div class="glass-card text-center" style="grid-column: span 2; padding: 2rem;">
+                    <p class="text-muted">No products available. Add products first.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Cart -->
+    <div class="glass-panel" style="position: sticky; top: 2rem;">
+        <h3 class="mb-4">Current Sale</h3>
+        
+        <div style="min-height: 200px; max-height: 400px; overflow-y: auto; margin-bottom: 1.5rem">
+            @foreach (var item in Cart)
+            {
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <strong>@item.Product.Name</strong>
+                        <div class="text-muted" style="font-size: 0.85rem">
+                            $@item.Product.SellingPrice.ToString("0.00") x @item.Quantity
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <strong class="text-success mr-4">$@((item.Product.SellingPrice * item.Quantity).ToString("0.00"))</strong>
+                        <button class="btn btn-sm btn-danger" @onclick="() => RemoveFromCart(item)"><i class="fa-solid fa-minus"></i></button>
+                    </div>
+                </div>
+            }
+            @if(Cart.Count == 0)
+            {
+                <p class="text-center text-muted m-4">Cart is empty.</p>
+            }
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem">
+            <div class="flex justify-between mb-2 text-muted">
+                <span>Subtotal</span>
+                <span>$@Subtotal.ToString("0.00")</span>
+            </div>
+            <div class="flex justify-between mb-2 text-muted">
+                <span>Tax</span>
+                <span>$@TaxTotal.ToString("0.00")</span>
+            </div>
+            <div class="flex justify-between text-success mt-4 mb-4" style="font-size: 1.5rem">
+                <strong>Total</strong>
+                <strong>$@Total.ToString("0.00")</strong>
+            </div>
+            
+            <button class="btn btn-primary w-full" style="padding: 1rem; font-size: 1.1rem" disabled="@(!Cart.Any())" @onclick="CompleteSale">
+                <i class="fa-solid fa-check"></i> Complete Sale
+            </button>
+        </div>
+    </div>
+</div>
+
+@if (showSuccessModal)
+{
+    <div class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px; text-align: center">
+            <div class="modal-body" style="padding: 3rem 2rem">
+                <div class="text-success mb-4" style="font-size: 4rem">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h2 class="mb-2">Sale Completed!</h2>
+                <p class="text-muted mb-4">Inventory has been updated successfully.</p>
+                <button class="btn btn-primary w-full" @onclick="() => showSuccessModal = false">New Sale</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    bool showSuccessModal;
+
+    class CartItem
+    {
+        public Product Product { get; set; } = new();
+        public int Quantity { get; set; }
+    }
+
+    List<CartItem> Cart = new();
+
+    protected override void OnInitialized()
+        => Inventory.OnStateChanged += StateHasChanged;
+
+    public void Dispose()
+        => Inventory.OnStateChanged -= StateHasChanged;
+
+    double Subtotal => Cart.Sum(c => c.Product.SellingPrice * c.Quantity);
+    double TaxTotal => Cart.Sum(c => c.Product.SellingPrice * c.Product.TaxRate * c.Quantity);
+    double Total => Subtotal + TaxTotal;
+
+    void AddToCart(Product p)
+    {
+        var existing = Cart.FirstOrDefault(c => c.Product.Id == p.Id);
+        if (existing != null)
+        {
+            if (existing.Quantity < p.AvailableCount)
+            {
+                existing.Quantity++;
+            }
+        }
+        else
+        {
+            Cart.Add(new CartItem { Product = p, Quantity = 1 });
+        }
+    }
+
+    void RemoveFromCart(CartItem item)
+    {
+        if (item.Quantity > 1) item.Quantity--;
+        else Cart.Remove(item);
+    }
+
+    void CompleteSale()
+    {
+        if (!Cart.Any()) return;
+
+        foreach (var item in Cart)
+        {
+            Inventory.RecordSale(item.Product, item.Quantity);
+        }
+
+        Cart.Clear();
+        showSuccessModal = true;
+    }
+}

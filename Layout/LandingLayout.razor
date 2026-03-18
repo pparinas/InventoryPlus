@@ -1,0 +1,22 @@
+@inherits LayoutComponentBase
+
+<div class="landing-layout">
+    <header class="landing-header">
+        <div class="landing-brand">
+            <i class="fa-solid fa-cube"></i> @Settings.CompanyName
+        </div>
+        <nav class="landing-nav">
+            <a href="/">Home</a>
+            <a href="/contact">Contact Us</a>
+            <a href="/login" class="btn btn-primary btn-sm">Sign In / App</a>
+        </nav>
+    </header>
+    
+    <main class="landing-main">
+        @Body
+    </main>
+    
+    <footer class="landing-footer">
+        <p>&copy; @DateTime.Now.Year @Settings.CompanyName. All rights reserved.</p>
+    </footer>
+</div>

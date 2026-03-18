@@ -1,0 +1,17 @@
+﻿  Determining projects to restore...
+  All projects are up-to-date for restore.
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Sales.razor(22,52): error CS0029: Cannot implicitly convert type 'void' to 'System.Threading.Tasks.Task' [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Sales.razor(22,38): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Sales.razor(22,38): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Products.razor(32,146): warning CS8602: Dereference of a possibly null reference. [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+
+Build FAILED.
+
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Products.razor(32,146): warning CS8602: Dereference of a possibly null reference. [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Sales.razor(22,52): error CS0029: Cannot implicitly convert type 'void' to 'System.Threading.Tasks.Task' [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Sales.razor(22,38): error CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Sales.razor(22,38): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+    1 Warning(s)
+    3 Error(s)
+
+Time Elapsed 00:00:01.18
