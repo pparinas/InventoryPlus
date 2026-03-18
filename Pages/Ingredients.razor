@@ -1,0 +1,162 @@
+@page "/ingredients"
+
+<PageTitle>Ingredients | @Settings.CompanyName</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Ingredients</h1>
+        <p class="text-muted">Manage your stock, adding new raw materials and updating costs.</p>
+    </div>
+    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Ingredient</button>
+</div>
+
+<div class="glass-panel">
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Unit</th>
+                <th>Cost/Unit</th>
+                <th>Stock Level</th>
+                <th>Status</th>
+                <th class="text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Inventory.Ingredients)
+            {
+                <tr>
+                    <td><strong>@item.Name</strong></td>
+                    <td class="text-muted">@item.Unit</td>
+                    <td class="text-success">$@item.CostPerUnit.ToString("0.00")</td>
+                    <td>@item.Stock</td>
+                    <td>
+                        @if (item.Stock == 0)
+                        {
+                            <span class="badge badge-danger">Out of Stock</span>
+                        }
+                        else if (item.Stock < 5)
+                        {
+                            <span class="badge badge-warning">Low</span>
+                        }
+                        else
+                        {
+                            <span class="badge badge-success">Good</span>
+                        }
+                    </td>
+                    <td class="text-right">
+                        <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-sm btn-danger margin-left-2" @onclick="() => Delete(item)"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            }
+            @if (!Inventory.Ingredients.Any())
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted" style="padding: 3rem">No ingredients found. Start by adding one.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h3>@(isEditing ? "Edit Ingredient" : "Add Ingredient")</h3>
+                <button class="btn-close" @onclick="CloseModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Ingredient Name</label>
+                    <input type="text" @bind="currentIngredient.Name" placeholder="e.g. Tomato" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="form-group w-full">
+                        <label>Unit of Measurement</label>
+                        <input type="text" @bind="currentIngredient.Unit" placeholder="e.g. kg, pcs, ml" />
+                    </div>
+                    <div class="form-group w-full">
+                        <label>Current Stock</label>
+                        <input type="number" step="0.1" @bind="currentIngredient.Stock" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Cost per Unit ($)</label>
+                    <input type="number" step="0.01" @bind="currentIngredient.CostPerUnit" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-primary" @onclick="Save">Save Ingredient</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    bool showModal;
+    bool isEditing;
+    Ingredient currentIngredient = new();
+
+    protected override void OnInitialized()
+        => Inventory.OnStateChanged += StateHasChanged;
+
+    public void Dispose()
+        => Inventory.OnStateChanged -= StateHasChanged;
+
+    void OpenAddModal()
+    {
+        currentIngredient = new Ingredient();
+        isEditing = false;
+        showModal = true;
+    }
+
+    void Edit(Ingredient item)
+    {
+        currentIngredient = new Ingredient 
+        {
+            Id = item.Id,
+            Name = item.Name,
+            Unit = item.Unit,
+            Stock = item.Stock,
+            CostPerUnit = item.CostPerUnit
+        };
+        isEditing = true;
+        showModal = true;
+    }
+
+    void Delete(Ingredient item)
+    {
+        Inventory.DeleteIngredient(item);
+    }
+
+    void Save()
+    {
+        if (string.IsNullOrWhiteSpace(currentIngredient.Name)) return;
+
+        if (isEditing)
+        {
+            var existing = Inventory.Ingredients.FirstOrDefault(i => i.Id == currentIngredient.Id);
+            if (existing != null)
+            {
+                existing.Name = currentIngredient.Name;
+                existing.Unit = currentIngredient.Unit;
+                existing.Stock = currentIngredient.Stock;
+                existing.CostPerUnit = currentIngredient.CostPerUnit;
+                Inventory.UpdateIngredient(existing);
+            }
+        }
+        else
+        {
+            currentIngredient.Id = Guid.NewGuid();
+            Inventory.AddIngredient(currentIngredient);
+        }
+        
+        CloseModal();
+    }
+
+    void CloseModal() => showModal = false;
+}

@@ -1,0 +1,75 @@
+@page "/admin"
+@attribute [Authorize(Roles = "Admin")]
+
+<PageTitle>Admin Dashboard | @Settings.CompanyName</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Admin Dashboard</h1>
+        <p class="text-muted">Manage system settings and configurations.</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2">
+    <div class="glass-panel">
+        <div class="mb-4">
+            <h2>Brand Settings</h2>
+            <p class="text-muted text-sm">Update how your app brand appears.</p>
+        </div>
+
+        <div class="form-group">
+            <label for="companyName">Company Name</label>
+            <input id="companyName" class="form-control" @bind="newCompanyName" placeholder="e.g. My Cafe" />
+        </div>
+
+        <button class="btn btn-primary mt-2" @onclick="SaveSettings">
+            <i class="fa-solid fa-save"></i> Save Changes
+        </button>
+
+        @if (showSuccess)
+        {
+            <div class="alert alert-success mt-2">
+                Settings saved successfully!
+            </div>
+        }
+    </div>
+
+    <!-- Future admin modules could go here -->
+    <div class="glass-panel">
+        <div class="mb-4">
+            <h2>System Status</h2>
+            <p class="text-muted text-sm">System resources and info.</p>
+        </div>
+        
+        <div class="alert alert-success">
+            <i class="fa-solid fa-check-circle"></i> System is running smoothly.
+        </div>
+        
+        <p class="mt-4">
+            <strong>Current Database:</strong> In-Memory <br />
+            <strong>Authentication:</strong> Supabase <br />
+            <strong>Role System:</strong> Active
+        </p>
+    </div>
+</div>
+
+@code {
+    private string newCompanyName = string.Empty;
+    private bool showSuccess = false;
+
+    protected override void OnInitialized()
+    {
+        newCompanyName = Settings.CompanyName;
+    }
+
+    private async Task SaveSettings()
+    {
+        Settings.CompanyName = newCompanyName;
+        showSuccess = true;
+        
+        // Wait a bit and hide the message
+        await Task.Delay(3000);
+        showSuccess = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,83 @@
+@page "/register"
+@layout InventoryPlus.Layout.AuthLayout
+@attribute [AllowAnonymous]
+@using Supabase
+@inject Supabase.Client Supabase
+@inject NavigationManager NavigationManager
+
+<div class="login-container">
+    <div class="login-card">
+        <h2>Register for @Settings.CompanyName</h2>
+        
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="alert alert-error">@ErrorMessage</div>
+        }
+        @if (!string.IsNullOrEmpty(SuccessMessage))
+        {
+            <div class="alert alert-success">@SuccessMessage</div>
+        }
+
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input id="email" type="email" @bind="Email" class="form-control" placeholder="Enter your email" />
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input id="password" type="password" @bind="Password" class="form-control" placeholder="Enter your password" />
+        </div>
+
+        <button @onclick="HandleRegister" class="btn btn-primary" disabled="@IsLoading">
+            @if (IsLoading)
+            {
+                <span class="spinner"></span> <span>Registering...</span>
+            }
+            else
+            {
+                <span>Register</span>
+            }
+        </button>
+        
+        <div class="login-links">
+            <p>Already have an account? <a href="/login">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string Email { get; set; } = string.Empty;
+    private string Password { get; set; } = string.Empty;
+    private string ErrorMessage { get; set; } = string.Empty;
+    private string SuccessMessage { get; set; } = string.Empty;
+    private bool IsLoading { get; set; } = false;
+
+    private async Task HandleRegister()
+    {
+        IsLoading = true;
+        ErrorMessage = string.Empty;
+        SuccessMessage = string.Empty;
+
+        try
+        {
+            var session = await Supabase.Auth.SignUp(Email, Password);
+            if (session != null && session.User != null)
+            {
+                SuccessMessage = "Registration successful! You can now log in.";
+                // You could also auto-login the user or navigate here.
+            }
+            else
+            {
+                SuccessMessage = "Please check your email to confirm registration.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Registration failed: {ex.Message}";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+}

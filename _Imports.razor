@@ -1,0 +1,18 @@
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.AspNetCore.Components.WebAssembly.Http
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.JSInterop
+@using InventoryPlus
+@using InventoryPlus.Layout
+@using InventoryPlus.Pages
+@using InventoryPlus.Models
+@using InventoryPlus.Services
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+@inject InventoryService Inventory
+@inject SettingsService Settings

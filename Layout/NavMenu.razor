@@ -1,0 +1,93 @@
+<div class="brand">
+    <i class="fa-solid fa-cube"></i> @Settings.CompanyName
+</div>
+
+<nav>
+    <NavLink class="nav-item" href="dashboard" Match="NavLinkMatch.All">
+        <i class="fa-solid fa-chart-line fa-fw"></i>
+        <span>Dashboard</span>
+    </NavLink>
+    
+    <AuthorizeView Roles="Admin">
+        <Authorized>
+            <div class="nav-section-title">
+                Administration
+            </div>
+            <NavLink class="nav-item" href="admin">
+                <i class="fa-solid fa-shield-halved fa-fw"></i>
+                <span>Admin Settings</span>
+            </NavLink>
+        </Authorized>
+    </AuthorizeView>
+    
+    <div class="nav-section-title">
+        Inventory
+    </div>
+
+    <NavLink class="nav-item" href="ingredients">
+        <i class="fa-solid fa-leaf fa-fw"></i>
+        <span>Ingredients</span>
+    </NavLink>
+    
+    <NavLink class="nav-item" href="products">
+        <i class="fa-solid fa-boxes-stacked fa-fw"></i>
+        <span>Products</span>
+    </NavLink>
+    
+    <div class="nav-section-title">
+        Business
+    </div>
+    
+    <NavLink class="nav-item" href="sales">
+        <i class="fa-solid fa-cash-register fa-fw"></i>
+        <span>Point of Sale</span>
+    </NavLink>
+    
+    <NavLink class="nav-item" href="reports">
+        <i class="fa-solid fa-file-invoice-dollar fa-fw"></i>
+        <span>Reports</span>
+    </NavLink>
+    
+    <div style="flex: 1"></div>
+    
+    <button class="nav-item theme-toggle-btn" @onclick="ToggleTheme">
+        @if(isLightMode) {
+            <i class="fa-solid fa-moon fa-fw"></i>
+            <span>Dark Mode</span>
+        } else {
+            <i class="fa-solid fa-sun fa-fw"></i>
+            <span>Light Mode</span>
+        }
+    </button>
+</nav>
+
+@implements IDisposable
+@code {
+    @inject IJSRuntime JS
+    bool isLightMode;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isLightMode = await JS.InvokeAsync<bool>("themeInterop.isLight");
+            StateHasChanged();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Settings.OnStateChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        Settings.OnStateChanged -= StateHasChanged;
+    }
+
+    async Task ToggleTheme()
+    {
+        isLightMode = !isLightMode;
+        await JS.InvokeVoidAsync("themeInterop.toggle", isLightMode);
+    }
+}

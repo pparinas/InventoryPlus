@@ -1,0 +1,29 @@
+@page "/contact"
+@layout InventoryPlus.Layout.LandingLayout
+@attribute [AllowAnonymous]
+
+<PageTitle>Contact Us | @Settings.CompanyName</PageTitle>
+
+<div class="contact-container">
+    <div class="glass-panel contact-panel">
+        <h2 style="font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Get in touch</h2>
+        <p class="text-muted" style="margin-bottom: 2rem">We'd love to hear from you. Fill out the form below and we'll reply ASAP!</p>
+        
+        <div class="form-group">
+            <label>Name</label>
+            <input type="text" class="form-control" placeholder="Your Name" />
+        </div>
+        
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" class="form-control" placeholder="your@email.com" />
+        </div>
+        
+        <div class="form-group">
+            <label>Message</label>
+            <textarea class="form-control" rows="5" placeholder="How can we help?"></textarea>
+        </div>
+        
+        <button class="btn btn-primary btn-lg mt-2" style="width: 100%">Send Message</button>
+    </div>
+</div>

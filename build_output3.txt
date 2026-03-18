@@ -1,0 +1,17 @@
+﻿  Determining projects to restore...
+  Restored C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj (in 212 ms).
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Services\SupabaseAuthenticationStateProvider.cs(14,26): error CS1061: 'IGotrueClient<User, Session>' does not contain a definition for 'AuthStateChanged' and no accessible extension method 'AuthStateChanged' accepting a first argument of type 'IGotrueClient<User, Session>' could be found (are you missing a using directive or an assembly reference?) [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Services\SupabaseAuthenticationStateProvider.cs(34,54): warning CS8604: Possible null reference argument for parameter 'value' in 'Claim.Claim(string type, string value)'. [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Services\SupabaseAuthenticationStateProvider.cs(48,30): error CS1061: 'IGotrueClient<User, Session>' does not contain a definition for 'AuthStateChanged' and no accessible extension method 'AuthStateChanged' accepting a first argument of type 'IGotrueClient<User, Session>' could be found (are you missing a using directive or an assembly reference?) [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Products.razor(32,146): warning CS8602: Dereference of a possibly null reference. [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+
+Build FAILED.
+
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Services\SupabaseAuthenticationStateProvider.cs(34,54): warning CS8604: Possible null reference argument for parameter 'value' in 'Claim.Claim(string type, string value)'. [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Pages\Products.razor(32,146): warning CS8602: Dereference of a possibly null reference. [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Services\SupabaseAuthenticationStateProvider.cs(14,26): error CS1061: 'IGotrueClient<User, Session>' does not contain a definition for 'AuthStateChanged' and no accessible extension method 'AuthStateChanged' accepting a first argument of type 'IGotrueClient<User, Session>' could be found (are you missing a using directive or an assembly reference?) [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Services\SupabaseAuthenticationStateProvider.cs(48,30): error CS1061: 'IGotrueClient<User, Session>' does not contain a definition for 'AuthStateChanged' and no accessible extension method 'AuthStateChanged' accepting a first argument of type 'IGotrueClient<User, Session>' could be found (are you missing a using directive or an assembly reference?) [C:\Users\Pparinas\.gemini\antigravity\scratch\Sephy\Sephy.csproj]
+    2 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:01.16
