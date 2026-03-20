@@ -1,0 +1,29 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+D:\GitHub\InventoryPlus\Pages\Dashboard.razor.cs(7,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Dashboard.razor.cs(7,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Products.razor.cs(8,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Products.razor.cs(8,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Reports.razor.cs(7,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Reports.razor.cs(7,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Sales.razor.cs(7,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Sales.razor.cs(7,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Stocks.razor.cs(7,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Stocks.razor.cs(7,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+
+Build FAILED.
+
+D:\GitHub\InventoryPlus\Pages\Dashboard.razor.cs(7,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Dashboard.razor.cs(7,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Products.razor.cs(8,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Products.razor.cs(8,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Reports.razor.cs(7,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Reports.razor.cs(7,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Sales.razor.cs(7,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Sales.razor.cs(7,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Stocks.razor.cs(7,6): error CS0246: The type or namespace name 'AuthorizeAttribute' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+D:\GitHub\InventoryPlus\Pages\Stocks.razor.cs(7,6): error CS0246: The type or namespace name 'Authorize' could not be found (are you missing a using directive or an assembly reference?) [D:\GitHub\InventoryPlus\InventoryPlus.csproj]
+    0 Warning(s)
+    10 Error(s)
+
+Time Elapsed 00:00:03.02

@@ -1,0 +1,152 @@
+@page "/settings"
+
+<PageTitle>Settings | @AppSettings.CompanyName</PageTitle>
+
+
+<div class="page-header">
+    <div>
+        <h1>System Settings</h1>
+        <p class="text-muted">Manage your application branding and global configurations.</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-2">
+    <div class="glass-panel">
+        <div class="mb-4">
+            <h2>Brand Settings</h2>
+            <p class="text-muted text-sm">Update how your app brand appears to all users.</p>
+        </div>
+
+        <div class="form-group">
+            <label for="companyName">Company Name</label>
+            <input id="companyName" class="form-control" @bind="newCompanyName" placeholder="e.g. My Cafe" />
+        </div>
+
+        <div class="form-group">
+            <label>Brand Logo</label>
+            <div class="flex items-center gap-4 mb-2">
+                @if (!string.IsNullOrEmpty(newLogoUrl))
+                {
+                    <img src="@newLogoUrl" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border)" />
+                }
+                else
+                {
+                    <div style="width: 48px; height: 48px; border-radius: 8px; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border)">
+                        <i class="fa-solid fa-cube text-muted"></i>
+                    </div>
+                }
+                <div class="flex-1">
+                    <InputFile OnChange="HandleLogoUpload" class="form-control" accept="image/*" />
+                    @if (isUploading)
+                    {
+                        <p class="text-sm text-muted mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Processing...</p>
+                    }
+                </div>
+            </div>
+            @if (!string.IsNullOrEmpty(newLogoUrl))
+            {
+                <button class="btn btn-sm btn-danger mt-1" style="padding: 0.25rem 0.75rem" @onclick="() => newLogoUrl = null">
+                    <i class="fa-solid fa-trash"></i> Remove Logo
+                </button>
+            }
+        </div>
+
+        <div class="form-group">
+            <label>Brand Display Mode</label>
+            <div class="flex gap-2">
+                <button class="btn btn-sm @(!useLogo ? "btn-primary" : "btn-secondary") w-full" @onclick="() => useLogo = false">
+                    <i class="fa-solid fa-font"></i> Show Name
+                </button>
+                <button class="btn btn-sm @(useLogo ? "btn-primary" : "btn-secondary") w-full" @onclick="() => useLogo = true">
+                    <i class="fa-solid fa-image"></i> Show Logo
+                </button>
+            </div>
+        </div>
+
+        <button class="btn btn-primary mt-2" @onclick="SaveSettings">
+            <i class="fa-solid fa-save"></i> Save Changes
+        </button>
+
+        @if (showSuccess)
+        {
+            <div class="alert alert-success mt-2">
+                Settings saved successfully!
+            </div>
+        }
+    </div>
+
+    <div class="glass-panel">
+        <div class="mb-4">
+            <h2>Account Information</h2>
+            <p class="text-muted text-sm">Your dynamic account details from the system.</p>
+        </div>
+        
+        @if (currentUser != null)
+        {
+            <div class="alert alert-primary mb-4">
+                <i class="fa-solid fa-circle-user"></i> Signed in as <strong>@currentUser.Email</strong>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-3">
+                <div class="flex justify-between items-center py-2 border-b border-border">
+                    <span class="text-muted">User ID</span>
+                    <span class="text-xs font-mono">@currentUser.Id</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-border">
+                    <span class="text-muted">Created At</span>
+                    <span>@currentUser.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-border">
+                    <span class="text-muted">Last Sign In</span>
+                    <span>@(currentUser.LastSignInAt?.ToLocalTime().ToString("MMM dd, yyyy HH:mm") ?? "N/A")</span>
+                </div>
+                <div class="flex justify-between items-center py-2 border-b border-border">
+                    <span class="text-muted">Role</span>
+                    <span class="badge badge-primary">Administrator</span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="flex flex-col items-center justify-center p-8 text-muted">
+                <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
+                <p>Loading account details...</p>
+            </div>
+        }
+
+        <div class="mt-8 pt-6 border-t border-border">
+            <h2 class="mb-4">Security</h2>
+            <p class="text-muted text-sm mb-4">Update your account password. Must be at least 6 characters.</p>
+
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="password" class="form-control" @bind="newPassword" placeholder="Minimum 6 characters" />
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" class="form-control" @bind="confirmPassword" placeholder="Repeat new password" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(passErrorMessage))
+            {
+                <div class="alert alert-danger mt-2">@passErrorMessage</div>
+            }
+            @if (showPassSuccess)
+            {
+                <div class="alert alert-success mt-2">Password updated successfully!</div>
+            }
+
+            <button class="btn btn-secondary mt-2 w-full" @onclick="HandleChangePassword" disabled="@isChangingPass">
+                @if (isChangingPass)
+                {
+                    <i class="fa-solid fa-spinner fa-spin"></i> <span>Updating...</span>
+                }
+                else
+                {
+                    <i class="fa-solid fa-lock"></i> <span>Update Password</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+

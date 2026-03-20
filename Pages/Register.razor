@@ -1,13 +1,11 @@
 @page "/register"
 @layout InventoryPlus.Layout.AuthLayout
 @attribute [AllowAnonymous]
-@using Supabase
-@inject Supabase.Client Supabase
-@inject NavigationManager NavigationManager
+
 
 <div class="login-container">
     <div class="login-card">
-        <h2>Register for @Settings.CompanyName</h2>
+        <h2>Register for @AppSettings.CompanyName</h2>
         
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
@@ -45,39 +43,3 @@
     </div>
 </div>
 
-@code {
-    private string Email { get; set; } = string.Empty;
-    private string Password { get; set; } = string.Empty;
-    private string ErrorMessage { get; set; } = string.Empty;
-    private string SuccessMessage { get; set; } = string.Empty;
-    private bool IsLoading { get; set; } = false;
-
-    private async Task HandleRegister()
-    {
-        IsLoading = true;
-        ErrorMessage = string.Empty;
-        SuccessMessage = string.Empty;
-
-        try
-        {
-            var session = await Supabase.Auth.SignUp(Email, Password);
-            if (session != null && session.User != null)
-            {
-                SuccessMessage = "Registration successful! You can now log in.";
-                // You could also auto-login the user or navigate here.
-            }
-            else
-            {
-                SuccessMessage = "Please check your email to confirm registration.";
-            }
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Registration failed: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-}
