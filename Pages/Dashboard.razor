@@ -1,6 +1,6 @@
 @page "/dashboard"
 
-<PageTitle>Dashboard | @Settings.CompanyName</PageTitle>
+<PageTitle>Dashboard | @AppSettings.CompanyName</PageTitle>
 
 <div class="page-header">
     <div>
@@ -29,7 +29,7 @@
             <i class="fa-solid fa-wallet"></i>
         </div>
         <div class="stat-content">
-            <h3>$@TotalRevenue.ToString("0.00")</h3>
+            <h3>₱@TotalRevenue.ToString("0.00")</h3>
             <p>Revenue</p>
         </div>
     </div>
@@ -39,7 +39,7 @@
             <i class="fa-solid fa-chart-pie"></i>
         </div>
         <div class="stat-content">
-            <h3>$@TotalProfit.ToString("0.00")</h3>
+            <h3>₱@TotalProfit.ToString("0.00")</h3>
             <p>Profit</p>
         </div>
     </div>
@@ -79,7 +79,7 @@
                         <tr>
                             <td>@sale.ProductName</td>
                             <td>@sale.QuantitySold</td>
-                            <td class="text-success">$@sale.TotalAmount.ToString("0.00")</td>
+                            <td class="text-success">₱@sale.TotalAmount.ToString("0.00")</td>
                             <td class="text-muted">@sale.Date.ToShortTimeString()</td>
                         </tr>
                     }
@@ -140,26 +140,3 @@
     </div>
 </div>
 
-@code {
-    @inject NavigationManager Nav
-
-    protected override void OnInitialized()
-    {
-        Inventory.OnStateChanged += StateHasChanged;
-    }
-
-    public void Dispose()
-    {
-        Inventory.OnStateChanged -= StateHasChanged;
-    }
-
-    void Refresh() => StateHasChanged();
-
-    double TotalRevenue => Inventory.Sales.Sum(s => s.TotalAmount);
-    double TotalProfit => Inventory.Sales.Sum(s => s.ProfitAmount);
-    
-    // Low stock = arbitrarily < 5 here for demo
-    List<Ingredient> LowStockIngredients => Inventory.Ingredients.Where(i => i.Stock < 5).ToList();
-    
-    List<Sale> RecentSales => Inventory.Sales.OrderByDescending(s => s.Date).Take(5).ToList();
-}

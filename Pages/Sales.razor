@@ -1,6 +1,6 @@
 @page "/sales"
 
-<PageTitle>Point of Sale | @Settings.CompanyName</PageTitle>
+<PageTitle>Point of Sale | @AppSettings.CompanyName</PageTitle>
 
 <div class="page-header">
     <div>
@@ -18,15 +18,29 @@
             {
                 bool isAvailable = prod.AvailableCount > 0;
                 <div class="glass-card @(isAvailable ? "cursor-pointer" : "")" 
-                     style="@(isAvailable ? "" : "opacity: 0.5")"
+                     style="@(isAvailable ? "" : "opacity: 0.5"); padding: 0.75rem;"
                      @onclick="() => { if (isAvailable) AddToCart(prod); }">
-                    <div class="flex justify-between mb-2">
-                        <strong>@prod.Name</strong>
-                        <span class="text-success">$@prod.SellingPrice.ToString("0.00")</span>
-                    </div>
-                    <div class="flex justify-between items-center text-muted" style="font-size: 0.85rem">
-                        <span>Available: @prod.AvailableCount</span>
-                        @if(!isAvailable) { <span class="badge badge-danger">Out of Stock</span> }
+                    <div class="flex items-center gap-3 mb-2">
+                        @if (!string.IsNullOrEmpty(prod.ImageUrl))
+                        {
+                            <img src="@prod.ImageUrl" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div style="width: 50px; height: 50px; border-radius: 8px; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border)">
+                                <i class="fa-solid fa-image text-muted"></i>
+                            </div>
+                        }
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <strong style="font-size: 0.95rem">@prod.Name</strong>
+                                <span class="text-success">₱@prod.SellingPrice.ToString("0.00")</span>
+                            </div>
+                            <div class="text-muted" style="font-size: 0.8rem">
+                                Available: @prod.AvailableCount
+                                @if(!isAvailable) { <span class="text-danger ml-2">• Out of Stock</span> }
+                            </div>
+                        </div>
                     </div>
                 </div>
             }
@@ -43,18 +57,24 @@
     <div class="glass-panel" style="position: sticky; top: 2rem;">
         <h3 class="mb-4">Current Sale</h3>
         
-        <div style="min-height: 200px; max-height: 400px; overflow-y: auto; margin-bottom: 1.5rem">
+        <div style="min-height: 150px; max-height: 300px; overflow-y: auto; margin-bottom: 1rem">
             @foreach (var item in Cart)
             {
                 <div class="flex justify-between items-center mb-3">
-                    <div>
-                        <strong>@item.Product.Name</strong>
-                        <div class="text-muted" style="font-size: 0.85rem">
-                            $@item.Product.SellingPrice.ToString("0.00") x @item.Quantity
+                    <div class="flex items-center gap-2">
+                         @if (!string.IsNullOrEmpty(item.Product.ImageUrl))
+                        {
+                            <img src="@item.Product.ImageUrl" style="width: 32px; height: 32px; border-radius: 4px; object-fit: cover;" />
+                        }
+                        <div>
+                            <strong style="font-size: 0.9rem">@item.Product.Name</strong>
+                            <div class="text-muted" style="font-size: 0.8rem">
+                                ₱@item.Product.SellingPrice.ToString("0.00") x @item.Quantity
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <strong class="text-success mr-4">$@((item.Product.SellingPrice * item.Quantity).ToString("0.00"))</strong>
+                        <strong class="text-success mr-4" style="font-size: 0.9rem">₱@((item.Product.SellingPrice * item.Quantity).ToString("0.00"))</strong>
                         <button class="btn btn-sm btn-danger" @onclick="() => RemoveFromCart(item)"><i class="fa-solid fa-minus"></i></button>
                     </div>
                 </div>
@@ -65,22 +85,40 @@
             }
         </div>
 
-        <div style="border-top: 1px solid var(--border); padding-top: 1rem">
-            <div class="flex justify-between mb-2 text-muted">
+        <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+            <div class="form-group mb-4">
+                <label>Sale Note</label>
+                <textarea @bind="saleNote" placeholder="Add a note to this sale..." rows="2" style="font-size: 0.9rem;"></textarea>
+            </div>
+
+            <div class="form-group mb-4">
+                <label>Payment Method</label>
+                <div class="flex gap-2">
+                    <button class="btn @(paymentMethod == "Cash" ? "btn-primary" : "btn-secondary") w-full" @onclick='() => paymentMethod = "Cash"'>
+                        <i class="fa-solid fa-money-bill-wave"></i> Cash
+                    </button>
+                    <button class="btn @(paymentMethod == "GCash" ? "btn-primary" : "btn-secondary") w-full" @onclick='() => paymentMethod = "GCash"'>
+                        <i class="fa-solid fa-mobile-screen-button"></i> 
+                        <span style="font-weight: 700; margin-left: 4px;">G</span>Cash
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between mb-2 text-muted" style="font-size: 0.9rem">
                 <span>Subtotal</span>
-                <span>$@Subtotal.ToString("0.00")</span>
+                <span>₱@Subtotal.ToString("0.00")</span>
             </div>
-            <div class="flex justify-between mb-2 text-muted">
+            <div class="flex justify-between mb-2 text-muted" style="font-size: 0.9rem">
                 <span>Tax</span>
-                <span>$@TaxTotal.ToString("0.00")</span>
+                <span>₱@TaxTotal.ToString("0.00")</span>
             </div>
-            <div class="flex justify-between text-success mt-4 mb-4" style="font-size: 1.5rem">
+            <div class="flex justify-between text-success mt-2 mb-4" style="font-size: 1.5rem">
                 <strong>Total</strong>
-                <strong>$@Total.ToString("0.00")</strong>
+                <strong>₱@Total.ToString("0.00")</strong>
             </div>
             
             <button class="btn btn-primary w-full" style="padding: 1rem; font-size: 1.1rem" disabled="@(!Cart.Any())" @onclick="CompleteSale">
-                <i class="fa-solid fa-check"></i> Complete Sale
+                <i class="fa-solid fa-check"></i> Complete Sale (@paymentMethod)
             </button>
         </div>
     </div>
@@ -95,7 +133,7 @@
                     <i class="fa-solid fa-circle-check"></i>
                 </div>
                 <h2 class="mb-2">Sale Completed!</h2>
-                <p class="text-muted mb-4">Inventory has been updated successfully.</p>
+                <p class="text-muted mb-4">Processed via @paymentMethod. Inventory has been updated.</p>
                 <button class="btn btn-primary w-full" @onclick="() => showSuccessModal = false">New Sale</button>
             </div>
         </div>
@@ -103,58 +141,4 @@
 }
 
 @code {
-    bool showSuccessModal;
-
-    class CartItem
-    {
-        public Product Product { get; set; } = new();
-        public int Quantity { get; set; }
-    }
-
-    List<CartItem> Cart = new();
-
-    protected override void OnInitialized()
-        => Inventory.OnStateChanged += StateHasChanged;
-
-    public void Dispose()
-        => Inventory.OnStateChanged -= StateHasChanged;
-
-    double Subtotal => Cart.Sum(c => c.Product.SellingPrice * c.Quantity);
-    double TaxTotal => Cart.Sum(c => c.Product.SellingPrice * c.Product.TaxRate * c.Quantity);
-    double Total => Subtotal + TaxTotal;
-
-    void AddToCart(Product p)
-    {
-        var existing = Cart.FirstOrDefault(c => c.Product.Id == p.Id);
-        if (existing != null)
-        {
-            if (existing.Quantity < p.AvailableCount)
-            {
-                existing.Quantity++;
-            }
-        }
-        else
-        {
-            Cart.Add(new CartItem { Product = p, Quantity = 1 });
-        }
-    }
-
-    void RemoveFromCart(CartItem item)
-    {
-        if (item.Quantity > 1) item.Quantity--;
-        else Cart.Remove(item);
-    }
-
-    void CompleteSale()
-    {
-        if (!Cart.Any()) return;
-
-        foreach (var item in Cart)
-        {
-            Inventory.RecordSale(item.Product, item.Quantity);
-        }
-
-        Cart.Clear();
-        showSuccessModal = true;
-    }
 }

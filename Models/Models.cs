@@ -27,6 +27,9 @@ namespace InventoryPlus.Models
 
         [Column("cost_per_unit")]
         public double CostPerUnit { get; set; }
+
+        [Column("type")]
+        public string Type { get; set; } = "Ingredient"; // "Ingredient" or "Necessity"
     }
 
     [Table("product_ingredients")]
@@ -68,6 +71,9 @@ namespace InventoryPlus.Models
 
         [Column("tax_rate")]
         public double TaxRate { get; set; }
+
+        [Column("image_url")]
+        public string ImageUrl { get; set; } = string.Empty;
         
         [Reference(typeof(ProductIngredient))]
         public List<ProductIngredient> RequiredIngredients { get; set; } = new();
@@ -121,5 +127,21 @@ namespace InventoryPlus.Models
 
         [Column("date")]
         public DateTime Date { get; set; } = DateTime.Now;
+
+        [Column("note")]
+        public string Note { get; set; } = string.Empty;
+
+        [Column("payment_method")]
+        public string PaymentMethod { get; set; } = "Cash"; // "Cash" or "GCash"
+    }
+
+    public class SystemUser
+    {
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Email { get; set; } = string.Empty;
+        public string Role { get; set; } = "User";
+        public bool IsActive { get; set; } = true;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? SubscriptionExpiresAt { get; set; }
     }
 }
