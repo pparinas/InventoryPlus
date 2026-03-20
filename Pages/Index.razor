@@ -1,8 +1,9 @@
 @page "/"
 @layout InventoryPlus.Layout.LandingLayout
+@inject SettingsService AppSettings
 @attribute [AllowAnonymous]
 
-<PageTitle>@Settings.CompanyName - Smart Inventory Management</PageTitle>
+<PageTitle>@AppSettings.CompanyName - Smart Inventory Management</PageTitle>
 
 <section class="hero-section">
     <div class="hero-content">
@@ -60,10 +61,51 @@
     </div>
 </section>
 
+<section id="pricing" class="pricing-section">
+    <div class="section-title">
+        <h2>Simple, Transparent Pricing</h2>
+        <p class="text-muted text-lg mt-2">Choose the plan that fits your business scale.</p>
+    </div>
+    
+    <div class="pricing-grid">
+        <!-- Monthly Plan -->
+        <div class="pricing-card glass-panel">
+            <div class="pricing-header">
+                <h3>Monthly</h3>
+                <div class="pricing-price">₱488<span>/mo</span></div>
+            </div>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check"></i> Full Inventory Access</li>
+                <li><i class="fa-solid fa-check"></i> Unlimited Products</li>
+                <li><i class="fa-solid fa-check"></i> Real-time Sales Tracking</li>
+                <li><i class="fa-solid fa-check"></i> Basic Analytics</li>
+                <li><i class="fa-solid fa-check"></i> 1 Admin Account</li>
+            </ul>
+            <a href="/register" class="btn btn-secondary w-full">Start Monthly</a>
+        </div>
+
+        <!-- Annual Plan -->
+        <div class="pricing-card glass-panel popular">
+            <div class="pricing-header">
+                <h3>Annual</h3>
+                <div class="pricing-price">₱4,880<span>/yr</span></div>
+            </div>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check"></i> Everything in Monthly</li>
+                <li><i class="fa-solid fa-check"></i> 2 Months Free</li>
+                <li><i class="fa-solid fa-check"></i> Advanced Reports</li>
+                <li><i class="fa-solid fa-check"></i> Priority Support</li>
+                <li><i class="fa-solid fa-check"></i> Multi-device sync</li>
+            </ul>
+            <a href="/register" class="btn btn-primary w-full">Get Best Value</a>
+        </div>
+    </div>
+</section>
+
 <section class="cta-section">
     <div class="glass-panel cta-panel">
         <h2>Ready to upgrade your business?</h2>
-        <p>Join thousands of businesses managing their workflow with @Settings.CompanyName.</p>
+        <p>Join thousands of businesses managing their workflow with @AppSettings.CompanyName.</p>
         <a href="/register" class="btn btn-primary btn-lg mt-4">Create Your Account</a>
     </div>
 </section>
