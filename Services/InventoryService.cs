@@ -47,7 +47,7 @@ namespace InventoryPlus.Services
         public void UpdateProduct(Product product) { NotifyStateChanged(); }
         public void DeleteProduct(Product product) { Products.Remove(product); NotifyStateChanged(); }
 
-        public bool RecordSale(Product product, int quantity)
+        public bool RecordSale(Product product, int quantity, string note = "", string paymentMethod = "Cash")
         {
             if (product.AvailableCount < quantity) return false;
 
@@ -74,7 +74,9 @@ namespace InventoryPlus.Services
                 TotalAmount = total,
                 TaxAmount = tax,
                 ProfitAmount = profit,
-                Date = DateTime.Now
+                Date = DateTime.Now,
+                Note = note,
+                PaymentMethod = paymentMethod
             };
 
             Sales.Add(sale);

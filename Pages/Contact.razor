@@ -1,8 +1,9 @@
 @page "/contact"
 @layout InventoryPlus.Layout.LandingLayout
+@inject SettingsService AppSettings
 @attribute [AllowAnonymous]
 
-<PageTitle>Contact Us | @Settings.CompanyName</PageTitle>
+<PageTitle>Contact Us | @AppSettings.CompanyName</PageTitle>
 
 <div class="contact-container">
     <div class="glass-panel contact-panel">

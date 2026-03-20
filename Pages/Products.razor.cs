@@ -1,0 +1,148 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
+using InventoryPlus.Services;
+using InventoryPlus.Models;
+
+namespace InventoryPlus.Pages
+{
+    [Authorize]
+    public partial class Products : ComponentBase, IDisposable
+    {
+        [Inject] public InventoryService Inventory { get; set; } = default!;
+        [Inject] public SettingsService AppSettings { get; set; } = default!;
+        protected bool showModal;
+        protected bool isEditing;
+        protected bool isUploading;
+        protected Product currentProduct = new();
+        
+        protected Guid? selectedIngredientId;
+        protected double newQuantity;
+
+        protected override void OnInitialized()
+        {
+            Inventory.OnStateChanged += HandleStateChanged;
+        }
+
+        private void HandleStateChanged() => StateHasChanged();
+
+        public void Dispose()
+        {
+            Inventory.OnStateChanged -= HandleStateChanged;
+        }
+
+        protected void OpenAddModal()
+        {
+            currentProduct = new Product();
+            isEditing = false;
+            showModal = true;
+        }
+
+        protected void Edit(Product item)
+        {
+            currentProduct = new Product 
+            {
+                Id = item.Id,
+                Name = item.Name,
+                SellingPrice = item.SellingPrice,
+                TaxRate = item.TaxRate,
+                ImageUrl = item.ImageUrl,
+                RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
+                {
+                    IngredientId = r.IngredientId,
+                    QuantityRequired = r.QuantityRequired,
+                    Ingredient = r.Ingredient
+                }).ToList()
+            };
+            isEditing = true;
+            showModal = true;
+        }
+
+        protected void Delete(Product item)
+        {
+            Inventory.DeleteProduct(item);
+        }
+
+        protected async Task HandleFileSelected(InputFileChangeEventArgs e)
+        {
+            var file = e.File;
+            if (file == null) return;
+
+            isUploading = true;
+            try 
+            {
+                var format = "image/png";
+                var resizedImage = await file.RequestImageFileAsync(format, 300, 300);
+                var buffer = new byte[resizedImage.Size];
+                await resizedImage.OpenReadStream().ReadAsync(buffer);
+                currentProduct.ImageUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Image upload error: {ex.Message}");
+            }
+            finally
+            {
+                isUploading = false;
+            }
+        }
+
+        protected void AddRequirement()
+        {
+            if (selectedIngredientId == null || selectedIngredientId == Guid.Empty || newQuantity <= 0) return;
+
+            var ing = Inventory.Ingredients.FirstOrDefault(i => i.Id == selectedIngredientId);
+            if (ing == null) return;
+
+            var existing = currentProduct.RequiredIngredients.FirstOrDefault(r => r.IngredientId == selectedIngredientId);
+            if (existing != null)
+            {
+                existing.QuantityRequired += newQuantity;
+            }
+            else
+            {
+                currentProduct.RequiredIngredients.Add(new ProductIngredient
+                {
+                    IngredientId = selectedIngredientId.Value,
+                    QuantityRequired = newQuantity,
+                    Ingredient = ing
+                });
+            }
+            
+            selectedIngredientId = null;
+            newQuantity = 0;
+        }
+
+        protected void RemoveRequirement(ProductIngredient req)
+        {
+            currentProduct.RequiredIngredients.Remove(req);
+        }
+
+        protected void Save()
+        {
+            if (string.IsNullOrWhiteSpace(currentProduct.Name)) return;
+
+            if (isEditing)
+            {
+                var existing = Inventory.Products.FirstOrDefault(p => p.Id == currentProduct.Id);
+                if (existing != null)
+                {
+                    existing.Name = currentProduct.Name;
+                    existing.SellingPrice = currentProduct.SellingPrice;
+                    existing.TaxRate = currentProduct.TaxRate;
+                    existing.ImageUrl = currentProduct.ImageUrl;
+                    existing.RequiredIngredients = currentProduct.RequiredIngredients;
+                    Inventory.UpdateProduct(existing);
+                }
+            }
+            else
+            {
+                currentProduct.Id = Guid.NewGuid();
+                Inventory.AddProduct(currentProduct);
+            }
+            CloseModal();
+        }
+
+        protected void CloseModal() => showModal = false;
+    }
+}

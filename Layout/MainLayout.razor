@@ -1,6 +1,77 @@
 @inherits LayoutComponentBase
 
-<div class="app-container">
+<div class="app-container" @onclick="() => showDropdown = false">
+    <header class="top-nav">
+        <div class="flex items-center gap-4">
+            <div class="brand" style="margin-bottom: 0;">
+                @if(AppSettings.UseLogoForBranding)
+                {
+                    @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
+                    {
+                        <img src="@AppSettings.CustomLogoUrl" style="height: 32px; width: auto; max-width: 120px; object-fit: contain;" alt="@AppSettings.CompanyName" />
+                    }
+                    else
+                    {
+                        <i class="fa-solid fa-cube fa-lg"></i>
+                    }
+                }
+                else
+                {
+                    <i class="fa-solid fa-cube"></i> <span style="font-size: 1.2rem;">@AppSettings.CompanyName</span>
+                }
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <button class="btn btn-secondary btn-sm" @onclick="ToggleTheme" @onclick:stopPropagation style="border-radius: 50%; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Toggle Dark/Light Mode">
+                @if (isLightMode)
+                {
+                    <i class="fa-solid fa-moon"></i>
+                }
+                else
+                {
+                    <i class="fa-solid fa-sun"></i>
+                }
+            </button>
+
+            <div class="account-dropdown" style="position: relative;" @onclick:stopPropagation>
+                <button class="btn btn-secondary btn-sm" @onclick="ToggleDropdown" style="border-radius: 50px; padding: 0.5rem 1rem;">
+                    <i class="fa-solid fa-circle-user fa-lg" style="margin-right: 0.5rem"></i> Account <i class="fa-solid fa-chevron-down" style="margin-left: 0.5rem; font-size: 0.7rem"></i>
+                </button>
+                
+                @if (showDropdown)
+                {
+                    <div class="dropdown-menu glass-panel" style="position: absolute; top: calc(100% + 0.5rem); right: 0; min-width: 260px; z-index: 1000; padding: 1rem; border-radius: 12px;">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white;">
+                                <i class="fa-solid fa-user"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">System Admin</div>
+                                <div class="text-muted" style="font-size: 0.8rem;">admin@inventoryplus.com</div>
+                            </div>
+                        </div>
+                        
+                        <div style="border-bottom: 1px solid var(--border); margin-bottom: 0.8rem;"></div>
+                        
+                        <AuthorizeView>
+                            <Authorized>
+                                <NavLink class="nav-item" href="settings" @onclick="() => showDropdown = false" style="margin-bottom: 0.5rem;">
+                                    <i class="fa-solid fa-gear fa-fw"></i>
+                                    <span>Brand Settings</span>
+                                </NavLink>
+                            </Authorized>
+                        </AuthorizeView>
+                        
+                        <button class="btn btn-danger btn-sm w-full mt-2" @onclick="SignOut" style="justify-content: flex-start; padding-left: 1rem;">
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> <span style="margin-left: 0.5rem">Sign Out</span>
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </header>
+
     <aside class="sidebar">
         <NavMenu />
     </aside>
@@ -9,3 +80,4 @@
         @Body
     </main>
 </div>
+

@@ -140,12 +140,40 @@ h3 { font-size: 1.5rem; color: var(--text-primary); }
 .text-warning { color: var(--warning); }
 .text-primary { color: var(--primary); }
 
-/* Layouts (Mobile First) */
+/* Layouts (Facebook Style) */
 .app-container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
+
+.top-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    z-index: 1000;
+    box-shadow: var(--shadow);
+    gap: 1rem;
+}
+
+.top-nav .brand {
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
 
 .sidebar {
     width: 100%;
@@ -156,6 +184,7 @@ h3 { font-size: 1.5rem; color: var(--text-primary); }
     display: flex;
     flex-direction: column;
     z-index: 100;
+    margin-top: 64px; /* Space for top-nav */
 }
 
 .sidebar nav {
@@ -167,20 +196,33 @@ h3 { font-size: 1.5rem; color: var(--text-primary); }
     padding-bottom: 0.5rem;
 }
 
-.sidebar nav::-webkit-scrollbar {
-    height: 4px;
-}
-.sidebar nav::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-}
-
 .main-content {
     flex: 1;
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .sidebar { 
+        width: 280px; 
+        position: fixed; 
+        top: 64px; 
+        left: 0; 
+        height: calc(100vh - 64px); 
+        padding: 2rem 1.5rem; 
+        flex-direction: column; 
+        border-right: var(--glass-border); 
+        border-bottom: none;
+        margin-top: 0;
+    }
+    .main-content { 
+        margin-left: 280px; 
+        margin-top: 64px; 
+        padding: 2rem 3rem; 
+        gap: 2rem; 
+    }
 }
 
 /* Nav Menu */
@@ -570,3 +612,35 @@ tr:hover td { background: var(--table-hover); }
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
+
+/* Landing Page Specifics */
+.hero-section { padding: 6rem 2rem; display: flex; align-items: center; gap: 4rem; max-width: 1200px; margin: 0 auto; }
+.hero-title { font-size: 3.5rem; line-height: 1.1; margin-bottom: 1.5rem; }
+.hero-subtitle { font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 2rem; max-width: 600px; }
+.text-gradient { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+.pricing-section { padding: 4rem 2rem; max-width: 1000px; margin: 0 auto; text-align: center; }
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-top: 3rem; }
+.pricing-card { position: relative; border: 1px solid var(--border); transition: all 0.3s ease; }
+.pricing-card.popular { border-color: var(--primary); transform: scale(1.05); }
+.pricing-card.popular::after {
+    content: "BEST VALUE";
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary);
+    color: white;
+    padding: 0.2rem 1rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+}
+.pricing-header { margin-bottom: 2rem; }
+.pricing-header h3 { font-size: 1.25rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; }
+.pricing-price { font-size: 3rem; font-weight: 700; color: var(--text-primary); }
+.pricing-price span { font-size: 1rem; color: var(--text-secondary); font-weight: 400; }
+
+.pricing-features { list-style: none; padding: 0; margin: 2rem 0; text-align: left; }
+.pricing-features li { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; color: var(--text-primary); font-size: 0.95rem; }
+.pricing-features li i { color: var(--success); font-size: 0.85rem; }

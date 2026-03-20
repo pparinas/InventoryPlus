@@ -1,0 +1,107 @@
+@page "/stocks"
+<PageTitle>Stocks | @AppSettings.CompanyName</PageTitle>
+
+<div class="page-header">
+    <div>
+        <h1>Stocks</h1>
+        <p class="text-muted">Manage your raw materials and shop necessities.</p>
+    </div>
+    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Stock Item</button>
+</div>
+
+<div class="glass-panel">
+    <table>
+        <thead>
+            <tr>
+                <th>Item Name</th>
+                <th>Type</th>
+                <th>Current Stock</th>
+                <th>Cost/Unit</th>
+                <th>Total Value</th>
+                <th class="text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Inventory.Ingredients)
+            {
+                <tr>
+                    <td><strong>@item.Name</strong></td>
+                    <td>
+                        <span class="badge @(item.Type == "Ingredient" ? "badge-primary" : "badge-secondary")">
+                            @item.Type
+                        </span>
+                    </td>
+                    <td>
+                        @if (item.Stock < 5)
+                        {
+                            <span class="text-warning font-bold">@item.Stock @item.Unit (Low)</span>
+                        }
+                        else
+                        {
+                            <span>@item.Stock @item.Unit</span>
+                        }
+                    </td>
+                    <td>₱@item.CostPerUnit.ToString("0.00")</td>
+                    <td class="text-primary">₱@((item.Stock * item.CostPerUnit).ToString("0.00"))</td>
+                    <td class="text-right">
+                        <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-sm btn-danger margin-left-2" @onclick="() => Delete(item)"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            }
+            @if (!Inventory.Ingredients.Any())
+            {
+                <tr>
+                    <td colspan="6" class="text-center text-muted" style="padding: 3rem">No stock items found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (showModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h3>@(isEditing ? "Edit Stock Item" : "New Stock Item")</h3>
+                <button class="btn-close" @onclick="CloseModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Item Name</label>
+                    <input type="text" @bind="currentIngredient.Name" placeholder="e.g. Coffee Beans" />
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label>Unit</label>
+                        <input type="text" @bind="currentIngredient.Unit" placeholder="e.g. kg, pcs" />
+                    </div>
+                     <div class="form-group">
+                        <label>Item Type</label>
+                        <select @bind="currentIngredient.Type">
+                            <option value="Ingredient">Ingredient (for products)</option>
+                            <option value="Necessity">Necessity (shop utility)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label>Current Stock</label>
+                        <input type="number" step="0.1" @bind="currentIngredient.Stock" />
+                    </div>
+                    <div class="form-group">
+                        <label>Cost per Unit (₱)</label>
+                        <input type="number" step="0.01" @bind="currentIngredient.CostPerUnit" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-primary" @onclick="Save">Save Item</button>
+            </div>
+        </div>
+    </div>
+}

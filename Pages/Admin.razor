@@ -1,75 +1,143 @@
 @page "/admin"
-@attribute [Authorize(Roles = "Admin")]
 
-<PageTitle>Admin Dashboard | @Settings.CompanyName</PageTitle>
+
+<PageTitle>Admin Dashboard | @AppSettings.CompanyName</PageTitle>
 
 <div class="page-header">
     <div>
         <h1>Admin Dashboard</h1>
-        <p class="text-muted">Manage system settings and configurations.</p>
+        <p class="text-muted">Manage system users and subscription statuses.</p>
     </div>
 </div>
 
-<div class="grid grid-cols-2">
+<div class="grid grid-cols-1 gap-6">
+    <!-- User Management Table -->
     <div class="glass-panel">
-        <div class="mb-4">
-            <h2>Brand Settings</h2>
-            <p class="text-muted text-sm">Update how your app brand appears.</p>
+        <div class="flex justify-between items-center mb-4">
+            <h2>Account Management</h2>
+            <div class="text-sm text-muted">Total Accounts: @Users.Count</div>
         </div>
-
-        <div class="form-group">
-            <label for="companyName">Company Name</label>
-            <input id="companyName" class="form-control" @bind="newCompanyName" placeholder="e.g. My Cafe" />
-        </div>
-
-        <button class="btn btn-primary mt-2" @onclick="SaveSettings">
-            <i class="fa-solid fa-save"></i> Save Changes
-        </button>
-
-        @if (showSuccess)
-        {
-            <div class="alert alert-success mt-2">
-                Settings saved successfully!
-            </div>
-        }
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Email Address</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Created Date</th>
+                    <th>Subscription Expiry</th>
+                    <th class="text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Users)
+                {
+                    <tr style="@(!user.IsActive ? "opacity: 0.6" : "")">
+                        <td>
+                            <strong>@user.Email</strong>
+                        </td>
+                        <td>
+                            <span class="badge @(user.Role == "Admin" ? "badge-primary" : "badge-secondary")">
+                                @user.Role
+                            </span>
+                        </td>
+                        <td>
+                            @if (user.IsActive)
+                            {
+                                <span class="badge badge-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-danger">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-muted">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            @(user.SubscriptionExpiresAt?.ToString("MMM dd, yyyy") ?? "N/A")
+                        </td>
+                        <td class="text-right">
+                            <button class="btn btn-sm btn-secondary" @onclick="() => EditUser(user)">
+                                <i class="fa-solid fa-user-pen"></i> Edit
+                            </button>
+                            <button class="btn btn-sm @(user.IsActive ? "btn-danger" : "btn-success") ml-2" @onclick="() => ToggleUserStatus(user)">
+                                <i class="fa-solid @(user.IsActive ? "fa-user-slash" : "fa-user-check")"></i>
+                                @(user.IsActive ? " Deactivate" : " Activate")
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 
-    <!-- Future admin modules could go here -->
+    <!-- System Status -->
     <div class="glass-panel">
         <div class="mb-4">
             <h2>System Status</h2>
-            <p class="text-muted text-sm">System resources and info.</p>
+            <p class="text-muted text-sm">Real-time system health and configuration.</p>
         </div>
         
         <div class="alert alert-success">
-            <i class="fa-solid fa-check-circle"></i> System is running smoothly.
+            <i class="fa-solid fa-check-circle"></i> All services are online (Supabase, Database, Hosting).
         </div>
         
-        <p class="mt-4">
-            <strong>Current Database:</strong> In-Memory <br />
-            <strong>Authentication:</strong> Supabase <br />
-            <strong>Role System:</strong> Active
-        </p>
+        <div class="grid grid-cols-3 gap-4 mt-4">
+            <div class="stat-mini">
+                <span class="text-muted text-xs">Total Products</span>
+                <div class="font-bold">@AppSettings.CompanyName System</div>
+            </div>
+            <div class="stat-mini">
+                <span class="text-muted text-xs">Auth Provider</span>
+                <div class="font-bold">Supabase</div>
+            </div>
+            <div class="stat-mini">
+                <span class="text-muted text-xs">Currency</span>
+                <div class="font-bold">₱ (Philippine Peso)</div>
+            </div>
+        </div>
     </div>
 </div>
 
-@code {
-    private string newCompanyName = string.Empty;
-    private bool showSuccess = false;
+@if (showEditModal)
+{
+    <div class="modal-overlay" @onclick="CloseModal">
+        <div class="modal-content" @onclick:stopPropagation>
+            <div class="modal-header">
+                <h3>Edit User Credentials</h3>
+                <button class="btn-close" @onclick="CloseModal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" @bind="selectedUser.Email" class="form-control" />
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label>User Role</label>
+                        <select @bind="selectedUser.Role" class="form-control">
+                            <option value="User">User</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Subscription Expiry</label>
+                        <input type="date" @bind="selectedUser.SubscriptionExpiresAt" class="form-control" />
+                    </div>
+                </div>
 
-    protected override void OnInitialized()
-    {
-        newCompanyName = Settings.CompanyName;
-    }
-
-    private async Task SaveSettings()
-    {
-        Settings.CompanyName = newCompanyName;
-        showSuccess = true;
-        
-        // Wait a bit and hide the message
-        await Task.Delay(3000);
-        showSuccess = false;
-        StateHasChanged();
-    }
+                <div class="flex items-center gap-2 mt-4">
+                    <input type="checkbox" id="isActive" @bind="selectedUser.IsActive" />
+                    <label for="isActive">Account is Active</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-primary" @onclick="SaveUser" disabled="@isSaving">
+                    @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> }
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
 }

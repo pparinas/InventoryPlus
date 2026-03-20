@@ -1,9 +1,17 @@
 @inherits LayoutComponentBase
+@inject SettingsService AppSettings
 
 <div class="landing-layout">
     <header class="landing-header">
         <div class="landing-brand">
-            <i class="fa-solid fa-cube"></i> @Settings.CompanyName
+            @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
+            {
+                <img src="@AppSettings.CustomLogoUrl" style="height: 32px; width: auto; max-width: 120px; object-fit: contain;" alt="@AppSettings.CompanyName" />
+            }
+            else
+            {
+                <i class="fa-solid fa-cube"></i> @AppSettings.CompanyName
+            }
         </div>
         <nav class="landing-nav">
             <a href="/">Home</a>
@@ -17,6 +25,6 @@
     </main>
     
     <footer class="landing-footer">
-        <p>&copy; @DateTime.Now.Year @Settings.CompanyName. All rights reserved.</p>
+        <p>&copy; @DateTime.Now.Year @AppSettings.CompanyName. All rights reserved.</p>
     </footer>
 </div>
