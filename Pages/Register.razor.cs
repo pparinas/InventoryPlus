@@ -17,7 +17,7 @@ namespace InventoryPlus.Pages
         protected string ErrorMessage { get; set; } = string.Empty;
         protected bool IsLoading { get; set; } = false;
         protected bool IsRegistered { get; set; } = false;
-        protected int RedirectCountdown { get; set; } = 5;
+        protected int RedirectCountdown { get; set; } = 10;
 
         protected async Task HandleRegister()
         {
@@ -64,12 +64,16 @@ namespace InventoryPlus.Pages
                 };
                 await Supabase.Auth.SignUp(Email, Password, signUpOptions);
 
+                // Sign out immediately — email confirmation is disabled so Supabase
+                // auto-signs in after SignUp, which would redirect to dashboard.
+                await Supabase.Auth.SignOut();
+
                 IsLoading = false;
                 IsRegistered = true;
                 StateHasChanged();
 
                 // Countdown then redirect to login
-                for (int i = 5; i > 0; i--)
+                for (int i = 10; i > 0; i--)
                 {
                     RedirectCountdown = i;
                     StateHasChanged();
