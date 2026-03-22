@@ -27,16 +27,25 @@ namespace InventoryPlus.Services
         }
 
         private string? _customLogoUrl = null;
+        private string? _customLogoPath = null;
+
         public string? CustomLogoUrl
         {
             get => _customLogoUrl;
             set
             {
-                if (_customLogoUrl != value)
-                {
-                    _customLogoUrl = value;
-                    NotifyStateChanged();
-                }
+                if (_customLogoUrl == value) return;
+                _customLogoUrl = value;
+                // Also track the raw storage path for saving back to the DB.
+                // If it's a full URL (public or signed), extract just the path segment.
+                // If it's null/empty, clear the path. If it's already a path, keep as-is.
+                if (string.IsNullOrEmpty(value))
+                    _customLogoPath = null;
+                else if (!value.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                    _customLogoPath = value; // already a plain path
+                else
+                    _customLogoPath = ExtractStoragePath(value, "branding") ?? _customLogoPath;
+                NotifyStateChanged();
             }
         }
 
@@ -54,6 +63,24 @@ namespace InventoryPlus.Services
             }
         }
 
+        // Extracts just the object path from any URL format or returns value as-is if it's already a path
+        private static string? ExtractStoragePath(string? urlOrPath, string bucket)
+        {
+            if (string.IsNullOrEmpty(urlOrPath)) return null;
+            if (!urlOrPath.StartsWith("https://")) return urlOrPath; // already a relative path
+            foreach (var marker in new[] { $"/object/public/{bucket}/", $"/object/sign/{bucket}/" })
+            {
+                var idx = urlOrPath.IndexOf(marker, StringComparison.Ordinal);
+                if (idx >= 0)
+                {
+                    var p = urlOrPath.Substring(idx + marker.Length);
+                    var q = p.IndexOf('?');
+                    return q >= 0 ? p.Substring(0, q) : p;
+                }
+            }
+            return null;
+        }
+
         public async Task LoadAsync(string userId)
         {
             if (!Guid.TryParse(userId, out var ownerGuid)) return;
@@ -66,8 +93,28 @@ namespace InventoryPlus.Services
                 if (result != null)
                 {
                     _companyName = result.CompanyName;
-                    _customLogoUrl = string.IsNullOrEmpty(result.LogoUrl) ? null : result.LogoUrl;
                     _useLogoForBranding = result.UseLogoForBranding;
+
+                    var path = ExtractStoragePath(result.LogoUrl, "branding");
+                    _customLogoPath = path;
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        try
+                        {
+                            _customLogoUrl = await _supabase.Storage
+                                .From("branding")
+                                .CreateSignedUrl(path, 60 * 60 * 24 * 7); // 7-day signed URL
+                        }
+                        catch
+                        {
+                            _customLogoUrl = null;
+                        }
+                    }
+                    else
+                    {
+                        _customLogoUrl = null;
+                    }
+
                     NotifyStateChanged();
                 }
             }
@@ -82,11 +129,12 @@ namespace InventoryPlus.Services
             if (!Guid.TryParse(userId, out var ownerGuid)) return;
             try
             {
+                // Always save the storage PATH (not a full URL) so records stay valid long-term
                 var settings = new AccountSettings
                 {
                     OwnerGuid = ownerGuid,
                     CompanyName = _companyName,
-                    LogoUrl = _customLogoUrl ?? string.Empty,
+                    LogoUrl = _customLogoPath ?? string.Empty,
                     UseLogoForBranding = _useLogoForBranding
                 };
                 await _supabase.From<AccountSettings>().Upsert(settings);
