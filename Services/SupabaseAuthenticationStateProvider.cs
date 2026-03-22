@@ -21,14 +21,28 @@ namespace InventoryPlus.Services
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
-        public override Task<AuthenticationState> GetAuthenticationStateAsync()
+        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             var session = _client.Auth.CurrentSession;
             var user = _client.Auth.CurrentUser;
 
+            // On hard refresh the WASM client starts fresh — try to restore session from localStorage
             if (session == null || user == null)
             {
-                return Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+                try
+                {
+                    session = await _client.Auth.RetrieveSessionAsync();
+                    user = session?.User;
+                }
+                catch
+                {
+                    // Session not available or expired
+                }
+            }
+
+            if (session == null || user == null)
+            {
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
             }
 
             var claims = new List<Claim>
@@ -45,7 +59,7 @@ namespace InventoryPlus.Services
             var identity = new ClaimsIdentity(claims, "Supabase");
             var principal = new ClaimsPrincipal(identity);
 
-            return Task.FromResult(new AuthenticationState(principal));
+            return new AuthenticationState(principal);
         }
 
         public void Dispose()

@@ -15,6 +15,14 @@ namespace InventoryPlus.Pages
         protected string ErrorMessage { get; set; } = string.Empty;
         protected bool IsLoading { get; set; } = false;
 
+        protected override void OnInitialized()
+        {
+            var uri = new Uri(NavigationManager.Uri);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            if (query["expired"] == "true")
+                ErrorMessage = "Your session has expired. Please log in again.";
+        }
+
         protected async Task HandleLogin()
         {
             IsLoading = true;

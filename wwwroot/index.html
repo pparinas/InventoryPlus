@@ -57,8 +57,9 @@
         (function () {
             var redirect = sessionStorage.redirect;
             delete sessionStorage.redirect;
-            if (redirect && redirect !== window.location.href) {
-                history.replaceState(null, null, redirect);
+            if (redirect && redirect !== '/') {
+                // 404.html strips the /InventoryPlus prefix, so add it back before replaceState
+                history.replaceState(null, null, '/InventoryPlus' + redirect);
             }
         })();
     </script>
