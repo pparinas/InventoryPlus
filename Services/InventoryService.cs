@@ -18,28 +18,6 @@ namespace InventoryPlus.Services
 
         public InventoryService()
         {
-            // Seed Data
-            var tomato = new Ingredient { Guid = Guid.NewGuid(), Name = "Tomato", Unit = "pcs", Stock = 100, CostPerUnit = 0.5 };
-            var pasta = new Ingredient { Guid = Guid.NewGuid(), Name = "Pasta", Unit = "kg", Stock = 10.5, CostPerUnit = 2.0 };
-            var cheese = new Ingredient { Guid = Guid.NewGuid(), Name = "Cheese", Unit = "kg", Stock = 5, CostPerUnit = 10.0 };
-            
-            Ingredients.AddRange(new[] { tomato, pasta, cheese });
-
-            var product1 = new Product
-            {
-                Guid = Guid.NewGuid(),
-                Name = "Tomato Pasta",
-                SellingPrice = 15.0,
-                TaxRate = 0.05,
-                RequiredIngredients = new List<ProductIngredient>
-                {
-                    new ProductIngredient { IngredientId = pasta.Guid, Ingredient = pasta, QuantityRequired = 0.2 },
-                    new ProductIngredient { IngredientId = tomato.Guid, Ingredient = tomato, QuantityRequired = 4 },
-                    new ProductIngredient { IngredientId = cheese.Guid, Ingredient = cheese, QuantityRequired = 0.1 }
-                }
-            };
-
-            Products.Add(product1);
         }
 
         public void AddIngredient(Ingredient ingredient) { Ingredients.Add(ingredient); NotifyStateChanged(); }

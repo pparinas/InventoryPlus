@@ -82,7 +82,7 @@ namespace InventoryPlus.Pages
                     .Upload(buffer, path, new Supabase.Storage.FileOptions { ContentType = format, Upsert = true });
                 newLogoUrl = SupabaseClient.Storage
                     .From("branding")
-                    .GetPublicUrl(path);
+                    .GetPublicUrl(path) + $"?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
 
                 pendingLogoFile = null;
                 Toast.Show("Logo uploaded successfully!");
@@ -95,9 +95,9 @@ namespace InventoryPlus.Pages
             finally
             {
                 isUploading = false;
+                StateHasChanged();
             }
         }
-
         protected async Task SaveSettings()
         {
             AppSettings.CompanyName = newCompanyName;

@@ -107,6 +107,12 @@
                                 }
                                 <InputFile OnChange="HandleFileSelected" class="form-control" accept="image/*" />
                             </div>
+                            @if (pendingImageFile != null && !isUploading)
+                            {
+                                <button class="btn btn-sm btn-primary mt-2" @onclick="UploadImage">
+                                    <i class="fa-solid fa-upload"></i> Upload Image
+                                </button>
+                            }
                             @if (isUploading)
                             {
                                 <p class="text-muted text-sm mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Uploading...</p>

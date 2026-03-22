@@ -12,14 +12,6 @@ namespace InventoryPlus.Services
 
         public UserManagementService()
         {
-            // Seed Data
-            Users.AddRange(new[]
-            {
-                new SystemUser { Email = "admin@example.com", IsAdmin = true, IsActive = true },
-                new SystemUser { Email = "user1@example.com", IsAdmin = false, IsActive = true, SubscriptionExpiresAt = DateTime.Now.AddMonths(1) },
-                new SystemUser { Email = "user2@example.com", IsAdmin = false, IsActive = false },
-                new SystemUser { Email = "pparinas@ucpm.com", IsAdmin = true, IsActive = true }
-            });
         }
 
         public void AddUser(SystemUser user) { Users.Add(user); NotifyStateChanged(); }

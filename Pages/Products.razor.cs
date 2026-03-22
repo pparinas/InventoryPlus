@@ -16,6 +16,7 @@ namespace InventoryPlus.Pages
         protected bool showModal;
         protected bool isEditing;
         protected bool isUploading;
+        protected IBrowserFile? pendingImageFile;
         protected Product currentProduct = new();
         
         protected Guid? selectedIngredientId;
@@ -35,7 +36,7 @@ namespace InventoryPlus.Pages
 
         protected void OpenAddModal()
         {
-            currentProduct = new Product();
+            currentProduct = new Product { Guid = Guid.NewGuid() };
             isEditing = false;
             showModal = true;
         }
@@ -68,8 +69,12 @@ namespace InventoryPlus.Pages
 
         protected async Task HandleFileSelected(InputFileChangeEventArgs e)
         {
-            var file = e.File;
-            if (file == null) return;
+            pendingImageFile = e.File;
+        }
+
+        protected async Task UploadImage()
+        {
+            if (pendingImageFile == null) return;
 
             isUploading = true;
             try
@@ -78,7 +83,7 @@ namespace InventoryPlus.Pages
                 if (string.IsNullOrEmpty(userId)) return;
 
                 var format = "image/png";
-                var resizedImage = await file.RequestImageFileAsync(format, 300, 300);
+                var resizedImage = await pendingImageFile.RequestImageFileAsync(format, 300, 300);
                 var buffer = new byte[resizedImage.Size];
                 await resizedImage.OpenReadStream().ReadAsync(buffer);
 
@@ -88,7 +93,10 @@ namespace InventoryPlus.Pages
                     .Upload(buffer, path, new Supabase.Storage.FileOptions { ContentType = format, Upsert = true });
                 currentProduct.ImageUrl = SupabaseClient.Storage
                     .From("product-images")
-                    .GetPublicUrl(path);
+                    .GetPublicUrl(path) + $"?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+
+                pendingImageFile = null;
+                Toast.Show("Product image uploaded!");
             }
             catch (Exception ex)
             {
@@ -98,6 +106,7 @@ namespace InventoryPlus.Pages
             finally
             {
                 isUploading = false;
+                StateHasChanged();
             }
         }
 
@@ -152,7 +161,6 @@ namespace InventoryPlus.Pages
             }
             else
             {
-                currentProduct.Guid = Guid.NewGuid();
                 Inventory.AddProduct(currentProduct);
                 Toast.Show($"\"{currentProduct.Name}\" added to products!");
             }
