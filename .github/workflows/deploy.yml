@@ -34,6 +34,10 @@ jobs:
           sed -i 's|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g' publish/wwwroot/appsettings.json
           sed -i 's|__SUPABASE_KEY__|${{ secrets.SUPABASE_KEY }}|g' publish/wwwroot/appsettings.json
 
+      - name: Fix base href for GitHub Pages
+        run: |
+          sed -i 's|<base href="/" />|<base href="/InventoryPlus/" />|g' publish/wwwroot/index.html
+
       - name: Disable Jekyll (allow _framework folder to be served)
         run: touch publish/wwwroot/.nojekyll
 

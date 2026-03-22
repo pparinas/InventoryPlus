@@ -18,9 +18,11 @@ namespace InventoryPlus.Pages
         protected bool isUploading;
         protected IBrowserFile? pendingImageFile;
         protected Product currentProduct = new();
-        
         protected Guid? selectedIngredientId;
         protected double newQuantity;
+        protected int _page = 1;
+        protected const int PageSize = 10;
+        protected void SetPage(int p) { _page = p; StateHasChanged(); }
 
         protected override void OnInitialized()
         {

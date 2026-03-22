@@ -33,6 +33,9 @@ namespace InventoryPlus.Models
 
         [Column("is_archived")]
         public bool IsArchived { get; set; } = false;
+
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 
     [Table("product_ingredients")]

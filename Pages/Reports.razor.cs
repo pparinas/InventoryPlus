@@ -12,6 +12,15 @@ namespace InventoryPlus.Pages
         [Inject] public SettingsService AppSettings { get; set; } = default!;
 
         protected string selectedFilter = "All";
+        protected DateTime? stockDateFilter = null;
+
+        // Pagination
+        protected int salesPage = 1;
+        protected int stockPage = 1;
+        protected const int PageSize = 10;
+
+        protected void SetSalesPage(int p) { salesPage = p; StateHasChanged(); }
+        protected void SetStockPage(int p) { stockPage = p; StateHasChanged(); }
 
         protected override void OnInitialized()
         {
@@ -26,6 +35,16 @@ namespace InventoryPlus.Pages
         }
 
         protected double InventoryValue => Inventory.ActiveIngredients.Sum(i => i.Stock * i.CostPerUnit);
+
+        protected IEnumerable<Ingredient> FilteredStockItems
+        {
+            get
+            {
+                if (!stockDateFilter.HasValue)
+                    return Inventory.ActiveIngredients;
+                return Inventory.ActiveIngredients.Where(i => i.CreatedAt.ToLocalTime().Date == stockDateFilter.Value.Date);
+            }
+        }
         
         protected IEnumerable<Sale> FilteredSales
         {
@@ -37,6 +56,7 @@ namespace InventoryPlus.Pages
                     "Daily" => Inventory.Sales.Where(s => s.Date.Date == now.Date),
                     "Weekly" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-7)),
                     "Monthly" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-30)),
+                    "Yearly"  => Inventory.Sales.Where(s => s.Date >= now.AddDays(-365)),
                     _ => Inventory.Sales
                 };
             }

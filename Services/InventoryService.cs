@@ -274,7 +274,7 @@ namespace InventoryPlus.Services
                     {
                         guid = i.Guid, ownerGuid = i.OwnerGuid, name = i.Name,
                         unit = i.Unit, stock = i.Stock, costPerUnit = i.CostPerUnit,
-                        type = i.Type, isArchived = i.IsArchived
+                        type = i.Type, isArchived = i.IsArchived, createdAt = i.CreatedAt
                     }),
                     products = Products.Select(p => new
                     {
@@ -321,7 +321,8 @@ namespace InventoryPlus.Services
                     Stock = e.GetProperty("stock").GetDouble(),
                     CostPerUnit = e.GetProperty("costPerUnit").GetDouble(),
                     Type = e.GetProperty("type").GetString() ?? "Ingredient",
-                    IsArchived = e.GetProperty("isArchived").GetBoolean()
+                    IsArchived = e.GetProperty("isArchived").GetBoolean(),
+                    CreatedAt = e.TryGetProperty("createdAt", out var ca) ? ca.GetDateTime() : DateTime.MinValue
                 }).ToList();
 
                 var piList = root.GetProperty("productIngredients").EnumerateArray().Select(e => new ProductIngredient

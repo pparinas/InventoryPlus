@@ -14,6 +14,9 @@ namespace InventoryPlus.Pages
         protected bool showModal;
         protected bool isEditing;
         protected Ingredient currentIngredient = new();
+        protected int _page = 1;
+        protected const int PageSize = 10;
+        protected void SetPage(int p) { _page = p; StateHasChanged(); }
 
         protected override void OnInitialized()
         {
