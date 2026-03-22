@@ -41,7 +41,7 @@ namespace InventoryPlus.Models
         [PrimaryKey("guid", false)]
         public Guid Guid { get; set; } = Guid.NewGuid();
 
-        [Column("owner_id")]
+        [Column("owner_guid")]
         public Guid OwnerId { get; set; }
 
         [Column("product_id")]
@@ -110,7 +110,7 @@ namespace InventoryPlus.Models
         [PrimaryKey("guid", false)]
         public Guid Guid { get; set; } = Guid.NewGuid();
 
-        [Column("owner_id")]
+        [Column("owner_guid")]
         public Guid OwnerId { get; set; }
 
         [Column("product_id")]
