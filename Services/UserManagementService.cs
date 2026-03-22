@@ -41,7 +41,7 @@ namespace InventoryPlus.Services
                 .Where(p => p.Guid == user.Id)
                 .Set(p => p.IsActive, user.IsActive)
                 .Set(p => p.IsAdmin, user.IsAdmin)
-                .Set(p => (DateTime?)p.SubscriptionExpiry, user.SubscriptionExpiresAt)
+                .Set(p => p.SubscriptionExpiry, user.SubscriptionExpiresAt)
                 .Update();
 
             var existing = Users.FirstOrDefault(u => u.Id == user.Id);
