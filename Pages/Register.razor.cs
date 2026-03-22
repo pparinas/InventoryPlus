@@ -64,7 +64,7 @@ namespace InventoryPlus.Pages
                     {
                         var profile = new UserProfile
                         {
-                            UserId = userGuid,
+                            Guid = userGuid,
                             Username = username,
                             Email = Email.Trim().ToLower()
                         };
