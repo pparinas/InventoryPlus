@@ -93,7 +93,21 @@ namespace InventoryPlus.Services
                 new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
             };
 
-            if (user.Email?.ToLower() == "pparinas@ucpm.com")
+            // Check is_admin from user_profiles table
+            try
+            {
+                if (Guid.TryParse(user.Id, out var userGuid))
+                {
+                    var profileResp = await _client.From<InventoryPlus.Models.UserProfile>()
+                        .Where(p => p.Guid == userGuid)
+                        .Single();
+                    if (profileResp?.IsAdmin == true)
+                        claims.Add(new Claim(ClaimTypes.Role, "Admin"));
+                }
+            }
+            catch { }
+            // Fallback: hardcoded super-admin email
+            if (user.Email?.ToLower() == "pparinas@ucpm.com" && !claims.Any(c => c.Type == ClaimTypes.Role))
             {
                 claims.Add(new Claim(ClaimTypes.Role, "Admin"));
             }
