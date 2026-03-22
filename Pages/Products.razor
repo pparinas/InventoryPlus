@@ -3,6 +3,16 @@
 
 <PageTitle>Products | @AppSettings.CompanyName</PageTitle>
 
+@if (Inventory.IsLoading)
+{
+    <div class="glass-panel text-center" style="padding: 3rem">
+        <i class="fa-solid fa-spinner fa-spin fa-2x text-muted"></i>
+        <p class="text-muted mt-4">Loading products...</p>
+    </div>
+}
+else
+{
+
 <div class="page-header">
     <div>
         <h1>Products</h1>
@@ -194,6 +204,7 @@
             </div>
         </div>
     </div>
+}
 }
 
 @code {

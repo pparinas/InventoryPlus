@@ -11,6 +11,7 @@ namespace InventoryPlus.Layout
         [Inject] public NavigationManager NavManager { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
+        [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public Client Supabase { get; set; } = default!;
 
         protected bool showDropdown = false;
@@ -52,12 +53,36 @@ namespace InventoryPlus.Layout
                 try
                 {
                     isLightMode = await JSRuntime.InvokeAsync<bool>("themeInterop.isLight");
-                    StateHasChanged();
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error initializing theme: {ex.Message}");
                 }
+
+                await LoadDataAsync();
+                StateHasChanged();
+            }
+        }
+
+        private async Task LoadDataAsync()
+        {
+            if (Inventory.IsLoaded || Inventory.IsLoading) return;
+            try
+            {
+                var user = Supabase.Auth.CurrentUser;
+                if (user == null)
+                {
+                    var session = await Supabase.Auth.RetrieveSessionAsync();
+                    user = session?.User;
+                }
+                if (user == null) return;
+
+                await AppSettings.LoadAsync(user.Id);
+                await Inventory.LoadAsync(user.Id);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LoadDataAsync error: {ex.Message}");
             }
         }
 
@@ -76,6 +101,11 @@ namespace InventoryPlus.Layout
         protected async Task SignOut()
         {
             await Supabase.Auth.SignOut();
+            // Reset service state so next login reloads fresh data
+            Inventory.IsLoaded = false;
+            Inventory.Ingredients = new();
+            Inventory.Products = new();
+            Inventory.Sales = new();
             NavManager.NavigateTo("login");
         }
     }

@@ -61,9 +61,9 @@ namespace InventoryPlus.Pages
             showModal = true;
         }
 
-        protected void Delete(Product item)
+        protected async Task Delete(Product item)
         {
-            Inventory.DeleteProduct(item);
+            await Inventory.DeleteProductAsync(item);
             Toast.Show($"\"{item.Name}\" removed.", "info");
         }
 
@@ -141,7 +141,7 @@ namespace InventoryPlus.Pages
             currentProduct.RequiredIngredients.Remove(req);
         }
 
-        protected void Save()
+        protected async Task Save()
         {
             if (string.IsNullOrWhiteSpace(currentProduct.Name)) return;
 
@@ -155,13 +155,13 @@ namespace InventoryPlus.Pages
                     existing.TaxRate = currentProduct.TaxRate;
                     existing.ImageUrl = currentProduct.ImageUrl;
                     existing.RequiredIngredients = currentProduct.RequiredIngredients;
-                    Inventory.UpdateProduct(existing);
+                    await Inventory.UpdateProductAsync(existing);
                     Toast.Show($"\"{existing.Name}\" updated successfully!");
                 }
             }
             else
             {
-                Inventory.AddProduct(currentProduct);
+                await Inventory.AddProductAsync(currentProduct);
                 Toast.Show($"\"{currentProduct.Name}\" added to products!");
             }
             CloseModal();

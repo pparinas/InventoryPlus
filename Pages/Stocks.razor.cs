@@ -49,13 +49,13 @@ namespace InventoryPlus.Pages
             showModal = true;
         }
 
-        protected void Delete(Ingredient item)
+        protected async Task Delete(Ingredient item)
         {
-            Inventory.DeleteIngredient(item);
+            await Inventory.DeleteIngredientAsync(item);
             Toast.Show($"\"{item.Name}\" removed.", "info");
         }
 
-        protected void Save()
+        protected async Task Save()
         {
             if (string.IsNullOrWhiteSpace(currentIngredient.Name)) return;
 
@@ -69,14 +69,14 @@ namespace InventoryPlus.Pages
                     existing.Stock = currentIngredient.Stock;
                     existing.CostPerUnit = currentIngredient.CostPerUnit;
                     existing.Type = currentIngredient.Type;
-                    Inventory.UpdateIngredient(existing);
+                    await Inventory.UpdateIngredientAsync(existing);
                     Toast.Show($"\"{existing.Name}\" updated successfully!");
                 }
             }
             else
             {
                 currentIngredient.Guid = Guid.NewGuid();
-                Inventory.AddIngredient(currentIngredient);
+                await Inventory.AddIngredientAsync(currentIngredient);
                 Toast.Show($"\"{currentIngredient.Name}\" added to stock!");
             }
             CloseModal();

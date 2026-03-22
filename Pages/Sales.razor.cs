@@ -61,14 +61,14 @@ namespace InventoryPlus.Pages
             else Cart.Remove(item);
         }
 
-        protected void CompleteSale()
+        protected async Task CompleteSale()
         {
             if (!Cart.Any()) return;
 
             var itemCount = Cart.Sum(c => c.Quantity);
             foreach (var item in Cart)
             {
-                Inventory.RecordSale(item.Product, item.Quantity, saleNote, paymentMethod);
+                await Inventory.RecordSaleAsync(item.Product, item.Quantity, saleNote, paymentMethod);
             }
 
             Cart.Clear();
