@@ -7,44 +7,52 @@
     <div class="login-card">
         <h2>Register for @AppSettings.CompanyName</h2>
         
-        @if (!string.IsNullOrEmpty(ErrorMessage))
+        @if (IsRegistered)
         {
-            <div class="alert alert-error">@ErrorMessage</div>
+            <div class="alert alert-success">
+                <p><strong>Registration Successful</strong></p>
+                <p>Thank you for registering. A verification email has been sent to <strong>@Email</strong>.</p>
+                <p>Please verify your email address before logging in. You will be redirected to the login page in <strong>@RedirectCountdown</strong> second(s).</p>
+            </div>
+            <a href="login" class="btn btn-primary w-full">Proceed to Login</a>
         }
-        @if (!string.IsNullOrEmpty(SuccessMessage))
+        else
         {
-            <div class="alert alert-success">@SuccessMessage</div>
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-error">@ErrorMessage</div>
+            }
+
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input id="username" type="text" @bind="Username" class="form-control" placeholder="Choose a username (letters, numbers, _)" />
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" @bind="Email" class="form-control" placeholder="Enter your email" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input id="password" type="password" @bind="Password" class="form-control" placeholder="Enter your password" />
+            </div>
+
+            <button @onclick="HandleRegister" class="btn btn-primary w-full" disabled="@IsLoading">
+                @if (IsLoading)
+                {
+                    <span class="spinner"></span> <span>Registering...</span>
+                }
+                else
+                {
+                    <span>Register</span>
+                }
+            </button>
+
+            <div class="login-links">
+                <p>Already have an account? <a href="login">Login here</a></p>
+            </div>
         }
-
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input id="username" type="text" @bind="Username" class="form-control" placeholder="Choose a username (letters, numbers, _)" />
-        </div>
-
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input id="email" type="email" @bind="Email" class="form-control" placeholder="Enter your email" />
-        </div>
-
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input id="password" type="password" @bind="Password" class="form-control" placeholder="Enter your password" />
-        </div>
-
-        <button @onclick="HandleRegister" class="btn btn-primary w-full" disabled="@IsLoading">
-            @if (IsLoading)
-            {
-                <span class="spinner"></span> <span>Registering...</span>
-            }
-            else
-            {
-                <span>Register</span>
-            }
-        </button>
-        
-        <div class="login-links">
-            <p>Already have an account? <a href="login">Login here</a></p>
-        </div>
     </div>
 </div>
 

@@ -15,14 +15,14 @@ namespace InventoryPlus.Pages
         protected string Email { get; set; } = string.Empty;
         protected string Password { get; set; } = string.Empty;
         protected string ErrorMessage { get; set; } = string.Empty;
-        protected string SuccessMessage { get; set; } = string.Empty;
         protected bool IsLoading { get; set; } = false;
+        protected bool IsRegistered { get; set; } = false;
+        protected int RedirectCountdown { get; set; } = 5;
 
         protected async Task HandleRegister()
         {
             IsLoading = true;
             ErrorMessage = string.Empty;
-            SuccessMessage = string.Empty;
 
             var username = Username.Trim().ToLower();
             if (string.IsNullOrWhiteSpace(username))
@@ -53,37 +53,33 @@ namespace InventoryPlus.Pages
                 if (existing.Models.Any())
                 {
                     ErrorMessage = "That username is already taken. Please choose another.";
+                    IsLoading = false;
                     return;
                 }
 
-                var session = await Supabase.Auth.SignUp(Email, Password);
-                if (session?.User != null)
+                // Pass username as metadata — the DB trigger reads it and stores it in user_profiles
+                var signUpOptions = new Supabase.Gotrue.SignUpOptions
                 {
-                    // Save username + email to profiles table for username login lookups
-                    if (Guid.TryParse(session.User.Id, out var userGuid))
-                    {
-                        var profile = new UserProfile
-                        {
-                            Guid = userGuid,
-                            Username = username,
-                            Email = Email.Trim().ToLower()
-                        };
-                        try { await Supabase.From<UserProfile>().Upsert(profile); }
-                        catch (Exception ex) { Console.WriteLine($"Profile upsert error: {ex.Message}"); }
-                    }
-                    SuccessMessage = "Registration successful! You can now log in.";
-                }
-                else
+                    Data = new Dictionary<string, object> { { "username", username } }
+                };
+                await Supabase.Auth.SignUp(Email, Password, signUpOptions);
+
+                IsLoading = false;
+                IsRegistered = true;
+                StateHasChanged();
+
+                // Countdown then redirect to login
+                for (int i = 5; i > 0; i--)
                 {
-                    SuccessMessage = "Please check your email to confirm your registration.";
+                    RedirectCountdown = i;
+                    StateHasChanged();
+                    await Task.Delay(1000);
                 }
+                NavigationManager.NavigateTo("login");
             }
             catch (Exception ex)
             {
                 ErrorMessage = $"Registration failed: {ex.Message}";
-            }
-            finally
-            {
                 IsLoading = false;
             }
         }
