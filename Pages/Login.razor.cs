@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.JSInterop;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
 
@@ -10,18 +11,31 @@ namespace InventoryPlus.Pages
         [Inject] public Supabase.Client Supabase { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
+        [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
 
         protected string Email { get; set; } = string.Empty;
         protected string Password { get; set; } = string.Empty;
         protected string ErrorMessage { get; set; } = string.Empty;
         protected bool IsLoading { get; set; } = false;
+        protected bool RememberMe { get; set; } = false;
 
-        protected override void OnInitialized()
+        protected override async Task OnInitializedAsync()
         {
             var uri = new Uri(NavigationManager.Uri);
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
             if (query["expired"] == "true")
                 ErrorMessage = "Your session has expired. Please log in again.";
+
+            try
+            {
+                var remembered = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", "sb_remembered_email");
+                if (!string.IsNullOrEmpty(remembered))
+                {
+                    Email = remembered;
+                    RememberMe = true;
+                }
+            }
+            catch { }
         }
 
         protected async Task HandleLogin()
@@ -34,6 +48,12 @@ namespace InventoryPlus.Pages
                 var session = await Supabase.Auth.SignIn(Email.Trim(), Password);
                 if (session != null && session.User != null)
                 {
+                    // Save/clear remembered email
+                    if (RememberMe)
+                        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "sb_remembered_email", Email.Trim());
+                    else
+                        await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_remembered_email");
+
                     // Check subscription status
                     if (Guid.TryParse(session.User.Id, out var userId))
                     {
