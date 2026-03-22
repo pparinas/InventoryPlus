@@ -37,6 +37,13 @@ jobs:
       - name: Disable Jekyll (allow _framework folder to be served)
         run: touch publish/wwwroot/.nojekyll
 
+      - name: Create non-fingerprinted entry file for static hosting
+        run: |
+          find publish/wwwroot/_framework -maxdepth 1 \
+            -name 'blazor.webassembly.*.js' \
+            ! -name '*.gz' ! -name '*.br' \
+            -exec cp {} publish/wwwroot/_framework/blazor.webassembly.js \;
+
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
