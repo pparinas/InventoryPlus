@@ -17,6 +17,11 @@
         }
 
         <div class="form-group">
+            <label for="username">Username</label>
+            <input id="username" type="text" @bind="Username" class="form-control" placeholder="Choose a username (letters, numbers, _)" />
+        </div>
+
+        <div class="form-group">
             <label for="email">Email</label>
             <input id="email" type="email" @bind="Email" class="form-control" placeholder="Enter your email" />
         </div>
@@ -26,7 +31,7 @@
             <input id="password" type="password" @bind="Password" class="form-control" placeholder="Enter your password" />
         </div>
 
-        <button @onclick="HandleRegister" class="btn btn-primary" disabled="@IsLoading">
+        <button @onclick="HandleRegister" class="btn btn-primary w-full" disabled="@IsLoading">
             @if (IsLoading)
             {
                 <span class="spinner"></span> <span>Registering...</span>
