@@ -29,10 +29,10 @@ jobs:
       - name: Publish
         run: dotnet publish InventoryPlus.csproj -c Release -o publish
 
-      - name: Fix base path & copy 404.html
+      - name: Inject Supabase secrets
         run: |
-          # Ensure 404.html is present in the published wwwroot
-          cp publish/wwwroot/404.html publish/wwwroot/404.html 2>/dev/null || true
+          sed -i 's|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g' publish/wwwroot/appsettings.json
+          sed -i 's|__SUPABASE_KEY__|${{ secrets.SUPABASE_KEY }}|g' publish/wwwroot/appsettings.json
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
