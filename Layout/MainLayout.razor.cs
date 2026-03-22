@@ -15,6 +15,17 @@ namespace InventoryPlus.Layout
 
         protected bool showDropdown = false;
         protected bool isLightMode = false;
+        protected bool showMobileNav = false;
+
+        protected void ToggleMobileNav()
+        {
+            showMobileNav = !showMobileNav;
+        }
+
+        protected void CloseMobileNav()
+        {
+            showMobileNav = false;
+        }
 
         protected void ToggleDropdown()
         {

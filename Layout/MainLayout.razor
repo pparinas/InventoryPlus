@@ -1,8 +1,12 @@
 @inherits LayoutComponentBase
 
-<div class="app-container" @onclick="() => showDropdown = false">
+<div class="app-container @(showMobileNav ? "mobile-nav-open" : "")" @onclick="() => { showDropdown = false; }">
     <header class="top-nav">
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+            <button class="hamburger-btn btn btn-secondary btn-sm" @onclick="ToggleMobileNav" @onclick:stopPropagation title="Menu"
+                    style="border-radius: 8px; width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid @(showMobileNav ? "fa-xmark" : "fa-bars")"></i>
+            </button>
             <div class="brand" style="margin-bottom: 0;">
                 @if(AppSettings.UseLogoForBranding)
                 {
@@ -72,11 +76,13 @@
         </div>
     </header>
 
-    <aside class="sidebar">
+    <div class="sidebar-overlay" @onclick="CloseMobileNav"></div>
+
+    <aside class="sidebar" @onclick:stopPropagation>
         <NavMenu />
     </aside>
 
-    <main class="main-content">
+    <main class="main-content" @onclick="CloseMobileNav">
         @Body
     </main>
     <ToastContainer />
