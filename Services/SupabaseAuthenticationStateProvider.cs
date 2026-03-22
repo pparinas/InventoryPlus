@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.JSInterop;
 using System.Security.Claims;
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
@@ -9,15 +10,29 @@ namespace InventoryPlus.Services
     public class SupabaseAuthenticationStateProvider : AuthenticationStateProvider, IDisposable
     {
         private readonly Supabase.Client _client;
+        private readonly IJSRuntime _jsRuntime;
+        private const string AccessTokenKey = "sb_access_token";
+        private const string RefreshTokenKey = "sb_refresh_token";
 
-        public SupabaseAuthenticationStateProvider(Supabase.Client client)
+        public SupabaseAuthenticationStateProvider(Supabase.Client client, IJSRuntime jsRuntime)
         {
             _client = client;
+            _jsRuntime = jsRuntime;
             _client.Auth.AddStateChangedListener(OnAuthStateChanged);
         }
 
         private void OnAuthStateChanged(IGotrueClient<User, Session> sender, Supabase.Gotrue.Constants.AuthState e)
         {
+            var session = _client.Auth.CurrentSession;
+            if (session != null && !string.IsNullOrEmpty(session.AccessToken))
+            {
+                // Fire-and-forget: persist the latest tokens so hard refresh can restore them
+                _ = SaveTokensAsync(session.AccessToken!, session.RefreshToken!);
+            }
+            else
+            {
+                _ = ClearTokensAsync();
+            }
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
@@ -26,7 +41,7 @@ namespace InventoryPlus.Services
             var session = _client.Auth.CurrentSession;
             var user = _client.Auth.CurrentUser;
 
-            // On hard refresh the WASM client starts fresh — try to restore session from localStorage
+            // 1. Try to restore from Supabase's in-memory session
             if (session == null || user == null)
             {
                 try
@@ -34,16 +49,33 @@ namespace InventoryPlus.Services
                     session = await _client.Auth.RetrieveSessionAsync();
                     user = session?.User;
                 }
-                catch
+                catch { }
+            }
+
+            // 2. If still no session, load tokens from localStorage and call SetSession
+            //    This handles hard refresh where in-memory state is lost but tokens are in storage
+            if (session == null || user == null)
+            {
+                try
                 {
-                    // Session not available or expired
+                    var accessToken = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", AccessTokenKey);
+                    var refreshToken = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", RefreshTokenKey);
+
+                    if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
+                    {
+                        // SetSession validates the access token and refreshes using the refresh token if expired
+                        session = await _client.Auth.SetSession(accessToken, refreshToken);
+                        user = session?.User;
+                        // Persist the (potentially refreshed) new tokens
+                        if (session != null && !string.IsNullOrEmpty(session.AccessToken))
+                            await SaveTokensAsync(session.AccessToken!, session.RefreshToken!);
+                    }
                 }
+                catch { }
             }
 
             if (session == null || user == null)
-            {
                 return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
-            }
 
             var claims = new List<Claim>
             {
@@ -57,17 +89,34 @@ namespace InventoryPlus.Services
             }
 
             var identity = new ClaimsIdentity(claims, "Supabase");
-            var principal = new ClaimsPrincipal(identity);
+            return new AuthenticationState(new ClaimsPrincipal(identity));
+        }
 
-            return new AuthenticationState(principal);
+        private async Task SaveTokensAsync(string accessToken, string refreshToken)
+        {
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync("localStorage.setItem", AccessTokenKey, accessToken);
+                await _jsRuntime.InvokeVoidAsync("localStorage.setItem", RefreshTokenKey, refreshToken);
+            }
+            catch { }
+        }
+
+        private async Task ClearTokensAsync()
+        {
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", AccessTokenKey);
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", RefreshTokenKey);
+            }
+            catch { }
         }
 
         public void Dispose()
         {
             if (_client?.Auth != null)
-            {
                 _client.Auth.RemoveStateChangedListener(OnAuthStateChanged);
-            }
         }
     }
 }
+

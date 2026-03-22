@@ -100,6 +100,14 @@ namespace InventoryPlus.Layout
 
         protected async Task SignOut()
         {
+            // Clear persisted tokens from localStorage before signing out
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_access_token");
+                await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_refresh_token");
+            }
+            catch { }
+
             await Supabase.Auth.SignOut();
             // Reset service state so next login reloads fresh data
             Inventory.IsLoaded = false;
