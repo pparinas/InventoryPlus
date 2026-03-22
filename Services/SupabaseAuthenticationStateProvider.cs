@@ -21,15 +21,20 @@ namespace InventoryPlus.Services
             _client.Auth.AddStateChangedListener(OnAuthStateChanged);
         }
 
+        private bool _isRestoringSession = false;
+
         private void OnAuthStateChanged(IGotrueClient<User, Session> sender, Supabase.Gotrue.Constants.AuthState e)
         {
+            // During session restore (SetSession), Supabase briefly fires a null-session event.
+            // Guard against clearing tokens in that window.
+            if (_isRestoringSession) return;
+
             var session = _client.Auth.CurrentSession;
             if (session != null && !string.IsNullOrEmpty(session.AccessToken))
             {
-                // Fire-and-forget: persist the latest tokens so hard refresh can restore them
                 _ = SaveTokensAsync(session.AccessToken!, session.RefreshToken!);
             }
-            else
+            else if (e == Supabase.Gotrue.Constants.AuthState.SignedOut)
             {
                 _ = ClearTokensAsync();
             }
@@ -53,7 +58,6 @@ namespace InventoryPlus.Services
             }
 
             // 2. If still no session, load tokens from localStorage and call SetSession
-            //    This handles hard refresh where in-memory state is lost but tokens are in storage
             if (session == null || user == null)
             {
                 try
@@ -63,15 +67,21 @@ namespace InventoryPlus.Services
 
                     if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
                     {
-                        // SetSession validates the access token and refreshes using the refresh token if expired
-                        session = await _client.Auth.SetSession(accessToken, refreshToken);
-                        user = session?.User;
-                        // Persist the (potentially refreshed) new tokens
-                        if (session != null && !string.IsNullOrEmpty(session.AccessToken))
-                            await SaveTokensAsync(session.AccessToken!, session.RefreshToken!);
+                        _isRestoringSession = true;
+                        try
+                        {
+                            session = await _client.Auth.SetSession(accessToken, refreshToken);
+                            user = session?.User;
+                            if (session != null && !string.IsNullOrEmpty(session.AccessToken))
+                                await SaveTokensAsync(session.AccessToken!, session.RefreshToken!);
+                        }
+                        finally
+                        {
+                            _isRestoringSession = false;
+                        }
                     }
                 }
-                catch { }
+                catch { _isRestoringSession = false; }
             }
 
             if (session == null || user == null)
