@@ -173,10 +173,22 @@ namespace InventoryPlus.Models
         [PrimaryKey("guid", false)]
         public Guid Guid { get; set; }
 
-        [Column("username")]
-        public string Username { get; set; } = string.Empty;
-
         [Column("email")]
         public string Email { get; set; } = string.Empty;
+
+        [Column("username")]
+        public string? Username { get; set; }
+
+        [Column("is_admin")]
+        public bool IsAdmin { get; set; } = false;
+
+        [Column("is_active")]
+        public bool IsActive { get; set; } = true;
+
+        [Column("subscription_expiry")]
+        public DateTime? SubscriptionExpiry { get; set; }
+
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; }
     }
 }
