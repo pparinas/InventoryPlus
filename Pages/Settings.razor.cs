@@ -16,12 +16,14 @@ namespace InventoryPlus.Pages
     {
         [Inject] public Supabase.Client SupabaseClient { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
+        [Inject] public ToastService Toast { get; set; } = default!;
 
         protected string newCompanyName = string.Empty;
         protected bool useLogo;
         protected string? newLogoUrl;
         protected bool showSuccess = false;
         protected bool isUploading = false;
+        protected IBrowserFile? pendingLogoFile;
 
         // Account data
         protected User? currentUser;
@@ -59,14 +61,18 @@ namespace InventoryPlus.Pages
 
         protected async Task HandleLogoUpload(InputFileChangeEventArgs e)
         {
-            var file = e.File;
-            if (file == null || currentUser == null) return;
+            pendingLogoFile = e.File;
+        }
+
+        protected async Task UploadLogo()
+        {
+            if (pendingLogoFile == null || currentUser == null) return;
 
             isUploading = true;
-            try 
+            try
             {
                 var format = "image/png";
-                var resizedImage = await file.RequestImageFileAsync(format, 200, 200);
+                var resizedImage = await pendingLogoFile.RequestImageFileAsync(format, 200, 200);
                 var buffer = new byte[resizedImage.Size];
                 await resizedImage.OpenReadStream().ReadAsync(buffer);
 
@@ -77,10 +83,14 @@ namespace InventoryPlus.Pages
                 newLogoUrl = SupabaseClient.Storage
                     .From("branding")
                     .GetPublicUrl(path);
+
+                pendingLogoFile = null;
+                Toast.Show("Logo uploaded successfully!");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Logo upload error: {ex.Message}");
+                Toast.Show("Failed to upload logo.", "error");
             }
             finally
             {
@@ -97,6 +107,7 @@ namespace InventoryPlus.Pages
             if (currentUser != null)
                 await AppSettings.SaveAsync(currentUser.Id);
 
+            Toast.Show("Settings saved successfully!");
             showSuccess = true;
             await Task.Delay(3000);
             showSuccess = false;

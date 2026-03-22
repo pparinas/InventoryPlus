@@ -34,5 +34,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton<InventoryPlus.Services.InventoryService>();
 builder.Services.AddSingleton<InventoryPlus.Services.SettingsService>();
 builder.Services.AddSingleton<InventoryPlus.Services.UserManagementService>();
+builder.Services.AddSingleton<InventoryPlus.Services.ToastService>();
 
 await builder.Build().RunAsync();

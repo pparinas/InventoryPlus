@@ -10,6 +10,7 @@ namespace InventoryPlus.Pages
     {
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
+        [Inject] public ToastService Toast { get; set; } = default!;
         protected bool showSuccessModal;
         protected string saleNote = "";
         protected string paymentMethod = "Cash";
@@ -64,6 +65,7 @@ namespace InventoryPlus.Pages
         {
             if (!Cart.Any()) return;
 
+            var itemCount = Cart.Sum(c => c.Quantity);
             foreach (var item in Cart)
             {
                 Inventory.RecordSale(item.Product, item.Quantity, saleNote, paymentMethod);
@@ -73,6 +75,7 @@ namespace InventoryPlus.Pages
             saleNote = "";
             paymentMethod = "Cash";
             showSuccessModal = true;
+            Toast.Show($"Sale completed — {itemCount} item(s) sold!");
         }
     }
 }

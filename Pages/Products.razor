@@ -153,7 +153,7 @@
                                 <option value="">-- Select Ingredient --</option>
                                 @foreach(var ing in Inventory.ActiveIngredients.Where(i => i.Type == "Ingredient"))
                                 {
-                                    <option value="@ing.Id">@ing.Name (@ing.Stock @ing.Unit)</option>
+                                    <option value="@ing.Guid">@ing.Name (@ing.Stock @ing.Unit)</option>
                                 }
                             </select>
                             <input type="number" step="0.1" @bind="newQuantity" placeholder="Qty" style="width: 80px" />
