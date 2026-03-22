@@ -784,6 +784,21 @@ tr:hover td { background: var(--table-hover); }
 .pricing-features li { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; color: var(--text-primary); font-size: 0.95rem; }
 .pricing-features li i { color: var(--success); font-size: 0.85rem; }
 
+/* ===== Offline Banner ===== */
+.offline-banner {
+    background: #f97316;
+    color: white;
+    text-align: center;
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    z-index: 900;
+}
+
 /* ===== Toast Notifications ===== */
 .toast-container {
     position: fixed;
