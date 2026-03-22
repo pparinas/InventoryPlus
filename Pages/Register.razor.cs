@@ -68,8 +68,8 @@ namespace InventoryPlus.Pages
                             Username = username,
                             Email = Email.Trim().ToLower()
                         };
-                        try { await Supabase.From<UserProfile>().Insert(profile); }
-                        catch (Exception ex) { Console.WriteLine($"Profile insert error: {ex.Message}"); }
+                        try { await Supabase.From<UserProfile>().Upsert(profile); }
+                        catch (Exception ex) { Console.WriteLine($"Profile upsert error: {ex.Message}"); }
                     }
                     SuccessMessage = "Registration successful! You can now log in.";
                 }
