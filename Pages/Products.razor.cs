@@ -12,6 +12,7 @@ namespace InventoryPlus.Pages
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public Supabase.Client SupabaseClient { get; set; } = default!;
+        [Inject] public ToastService Toast { get; set; } = default!;
         protected bool showModal;
         protected bool isEditing;
         protected bool isUploading;
@@ -62,6 +63,7 @@ namespace InventoryPlus.Pages
         protected void Delete(Product item)
         {
             Inventory.DeleteProduct(item);
+            Toast.Show($"\"{item.Name}\" removed.", "info");
         }
 
         protected async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -91,6 +93,7 @@ namespace InventoryPlus.Pages
             catch (Exception ex)
             {
                 Console.WriteLine($"Image upload error: {ex.Message}");
+                Toast.Show("Image upload failed.", "error");
             }
             finally
             {
@@ -144,12 +147,14 @@ namespace InventoryPlus.Pages
                     existing.ImageUrl = currentProduct.ImageUrl;
                     existing.RequiredIngredients = currentProduct.RequiredIngredients;
                     Inventory.UpdateProduct(existing);
+                    Toast.Show($"\"{existing.Name}\" updated successfully!");
                 }
             }
             else
             {
                 currentProduct.Guid = Guid.NewGuid();
                 Inventory.AddProduct(currentProduct);
+                Toast.Show($"\"{currentProduct.Name}\" added to products!");
             }
             CloseModal();
         }

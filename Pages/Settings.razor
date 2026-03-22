@@ -37,9 +37,15 @@
                 }
                 <div class="flex-1">
                     <InputFile OnChange="HandleLogoUpload" class="form-control" accept="image/*" />
+                    @if (pendingLogoFile != null && !isUploading)
+                    {
+                        <button class="btn btn-sm btn-primary mt-2" @onclick="UploadLogo">
+                            <i class="fa-solid fa-upload"></i> Upload Logo
+                        </button>
+                    }
                     @if (isUploading)
                     {
-                        <p class="text-sm text-muted mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Processing...</p>
+                        <p class="text-sm text-muted mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Uploading...</p>
                     }
                 </div>
             </div>

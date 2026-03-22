@@ -10,6 +10,7 @@ namespace InventoryPlus.Pages
     {
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
+        [Inject] public ToastService Toast { get; set; } = default!;
         protected bool showModal;
         protected bool isEditing;
         protected Ingredient currentIngredient = new();
@@ -51,6 +52,7 @@ namespace InventoryPlus.Pages
         protected void Delete(Ingredient item)
         {
             Inventory.DeleteIngredient(item);
+            Toast.Show($"\"{item.Name}\" removed.", "info");
         }
 
         protected void Save()
@@ -68,12 +70,14 @@ namespace InventoryPlus.Pages
                     existing.CostPerUnit = currentIngredient.CostPerUnit;
                     existing.Type = currentIngredient.Type;
                     Inventory.UpdateIngredient(existing);
+                    Toast.Show($"\"{existing.Name}\" updated successfully!");
                 }
             }
             else
             {
                 currentIngredient.Guid = Guid.NewGuid();
                 Inventory.AddIngredient(currentIngredient);
+                Toast.Show($"\"{currentIngredient.Name}\" added to stock!");
             }
             CloseModal();
         }
