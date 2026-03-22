@@ -167,14 +167,11 @@ namespace InventoryPlus.Models
         public bool UseLogoForBranding { get; set; } = false;
     }
 
-    [Table("profiles")]
+    [Table("user_profiles")]
     public class UserProfile : BaseModel
     {
-        [PrimaryKey("id", false)]
-        public Guid Id { get; set; } = Guid.NewGuid();
-
-        [Column("user_id")]
-        public Guid UserId { get; set; }
+        [PrimaryKey("guid", false)]
+        public Guid Guid { get; set; }
 
         [Column("username")]
         public string Username { get; set; } = string.Empty;
