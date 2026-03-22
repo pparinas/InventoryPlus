@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.JSInterop;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
 
@@ -11,32 +10,18 @@ namespace InventoryPlus.Pages
         [Inject] public Supabase.Client Supabase { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
-        [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
 
         protected string Email { get; set; } = string.Empty;
         protected string Password { get; set; } = string.Empty;
         protected string ErrorMessage { get; set; } = string.Empty;
         protected bool IsLoading { get; set; } = false;
-        protected bool RememberMe { get; set; } = false;
 
-        protected override async Task OnInitializedAsync()
+        protected override void OnInitialized()
         {
             var uri = new Uri(NavigationManager.Uri);
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
             if (query["expired"] == "true")
                 ErrorMessage = "Your session has expired. Please log in again.";
-
-            // Pre-fill remembered email/username
-            try
-            {
-                var remembered = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", "sb_remembered_login");
-                if (!string.IsNullOrEmpty(remembered))
-                {
-                    Email = remembered;
-                    RememberMe = true;
-                }
-            }
-            catch { }
         }
 
         protected async Task HandleLogin()
@@ -46,43 +31,42 @@ namespace InventoryPlus.Pages
 
             try
             {
-                string loginEmail = Email.Trim();
-
-                // Username login: look up email from profiles table
-                if (!loginEmail.Contains('@'))
-                {
-                    var profileResp = await Supabase.From<UserProfile>()
-                        .Where(p => p.Username == loginEmail.ToLower())
-                        .Get();
-                    var profile = profileResp.Models.FirstOrDefault();
-                    if (profile == null)
-                    {
-                        ErrorMessage = "No account found with that username.";
-                        return;
-                    }
-                    loginEmail = profile.Email;
-                }
-
-                var session = await Supabase.Auth.SignIn(loginEmail, Password);
+                var session = await Supabase.Auth.SignIn(Email.Trim(), Password);
                 if (session != null && session.User != null)
                 {
-                    // Handle Remember Me
-                    if (RememberMe)
-                        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "sb_remembered_login", Email.Trim());
-                    else
-                        await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_remembered_login");
-
+                    // Check subscription status
+                    if (Guid.TryParse(session.User.Id, out var userId))
+                    {
+                        var profileResp = await Supabase.From<UserProfile>()
+                            .Where(p => p.Guid == userId).Get();
+                        var profile = profileResp.Models.FirstOrDefault();
+                        if (profile != null)
+                        {
+                            if (!profile.IsActive)
+                            {
+                                await Supabase.Auth.SignOut();
+                                ErrorMessage = "Your account has been deactivated. Please contact an administrator.";
+                                return;
+                            }
+                            if (profile.SubscriptionExpiry.HasValue && profile.SubscriptionExpiry.Value.ToUniversalTime() < DateTime.UtcNow)
+                            {
+                                await Supabase.Auth.SignOut();
+                                ErrorMessage = "Your subscription has expired. Please contact an administrator to renew your plan.";
+                                return;
+                            }
+                        }
+                    }
                     NavigationManager.NavigateTo("dashboard");
                 }
                 else
                 {
-                    ErrorMessage = "Invalid credentials. Please try again.";
+                    ErrorMessage = "Invalid email or password.";
                 }
             }
             catch (Exception ex)
             {
                 ErrorMessage = ex.Message.Contains("Invalid") || ex.Message.Contains("credentials")
-                    ? "Invalid email/username or password."
+                    ? "Invalid email or password."
                     : $"Login failed: {ex.Message}";
             }
             finally

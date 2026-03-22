@@ -10,15 +10,29 @@ namespace InventoryPlus.Pages
     {
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public UserManagementService UserManagement { get; set; } = default!;
-        
+
         protected List<SystemUser> Users => UserManagement.Users;
         protected bool showEditModal;
         protected SystemUser selectedUser = new();
         protected bool isSaving;
+        protected bool isLoading;
+        protected string selectedPlan = "1month";
 
         protected override void OnInitialized()
         {
             UserManagement.OnStateChanged += HandleStateChanged;
+        }
+
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            if (firstRender)
+            {
+                isLoading = true;
+                StateHasChanged();
+                await UserManagement.LoadAsync();
+                isLoading = false;
+                StateHasChanged();
+            }
         }
 
         private void HandleStateChanged() => StateHasChanged();
@@ -39,32 +53,36 @@ namespace InventoryPlus.Pages
                 CreatedAt = user.CreatedAt,
                 SubscriptionExpiresAt = user.SubscriptionExpiresAt
             };
+            selectedPlan = "1month";
             showEditModal = true;
         }
 
-        protected void SaveUser()
+        protected void ApplyPlan()
+        {
+            var from = selectedUser.SubscriptionExpiresAt.HasValue && selectedUser.SubscriptionExpiresAt.Value > DateTime.UtcNow
+                ? selectedUser.SubscriptionExpiresAt.Value
+                : DateTime.UtcNow;
+
+            selectedUser.SubscriptionExpiresAt = selectedPlan == "1year"
+                ? from.AddYears(1)
+                : from.AddMonths(1);
+            selectedUser.IsActive = true;
+        }
+
+        protected async Task SaveUserAsync()
         {
             isSaving = true;
-            var original = Users.FirstOrDefault(u => u.Id == selectedUser.Id);
-            if (original != null)
-            {
-                original.Email = selectedUser.Email;
-                original.IsAdmin = selectedUser.IsAdmin;
-                original.IsActive = selectedUser.IsActive;
-                original.SubscriptionExpiresAt = selectedUser.SubscriptionExpiresAt;
-                UserManagement.UpdateUser(original);
-            }
-            
+            await UserManagement.UpdateUserAsync(selectedUser);
             showEditModal = false;
             isSaving = false;
         }
 
         protected void CloseModal() => showEditModal = false;
 
-        protected void ToggleUserStatus(SystemUser user)
+        protected async Task ToggleUserStatusAsync(SystemUser user)
         {
             user.IsActive = !user.IsActive;
-            UserManagement.UpdateUser(user);
+            await UserManagement.UpdateUserAsync(user);
         }
     }
 }

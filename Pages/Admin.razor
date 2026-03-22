@@ -17,7 +17,13 @@
             <h2>Account Management</h2>
             <div class="text-sm text-muted">Total Accounts: @Users.Count</div>
         </div>
-        
+
+        @if (isLoading)
+        {
+            <div class="text-center py-4"><span class="spinner"></span> Loading accounts...</div>
+        }
+        else
+        {
         <table>
             <thead>
                 <tr>
@@ -32,34 +38,44 @@
             <tbody>
                 @foreach (var user in Users)
                 {
-                    <tr style="@(!user.IsActive ? "opacity: 0.6" : "")">
-                        <td>
-                            <strong>@user.Email</strong>
-                        </td>
+                    var isExpired = user.SubscriptionExpiresAt.HasValue && user.SubscriptionExpiresAt.Value < DateTime.UtcNow;
+                    <tr style="@(!user.IsActive || isExpired ? "opacity: 0.6" : "")">
+                        <td><strong>@user.Email</strong></td>
                         <td>
                             <span class="badge @(user.IsAdmin ? "badge-primary" : "badge-secondary")">
                                 @(user.IsAdmin ? "Admin" : "User")
                             </span>
                         </td>
                         <td>
-                            @if (user.IsActive)
+                            @if (!user.IsActive)
                             {
-                                <span class="badge badge-success">Active</span>
+                                <span class="badge badge-danger">Deactivated</span>
+                            }
+                            else if (isExpired)
+                            {
+                                <span class="badge badge-danger">Expired</span>
                             }
                             else
                             {
-                                <span class="badge badge-danger">Inactive</span>
+                                <span class="badge badge-success">Active</span>
                             }
                         </td>
                         <td class="text-muted">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
                         <td>
-                            @(user.SubscriptionExpiresAt?.ToString("MMM dd, yyyy") ?? "N/A")
+                            @if (user.SubscriptionExpiresAt.HasValue)
+                            {
+                                <span class="@(isExpired ? "text-danger" : "")">@user.SubscriptionExpiresAt.Value.ToString("MMM dd, yyyy")</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">N/A</span>
+                            }
                         </td>
                         <td class="text-right">
                             <button class="btn btn-sm btn-secondary" @onclick="() => EditUser(user)">
-                                <i class="fa-solid fa-user-pen"></i> Edit
+                                <i class="fa-solid fa-user-pen"></i> Manage
                             </button>
-                            <button class="btn btn-sm @(user.IsActive ? "btn-danger" : "btn-success") ml-2" @onclick="() => ToggleUserStatus(user)">
+                            <button class="btn btn-sm @(user.IsActive ? "btn-danger" : "btn-success") ml-2" @onclick="() => ToggleUserStatusAsync(user)">
                                 <i class="fa-solid @(user.IsActive ? "fa-user-slash" : "fa-user-check")"></i>
                                 @(user.IsActive ? " Deactivate" : " Activate")
                             </button>
@@ -68,6 +84,7 @@
                 }
             </tbody>
         </table>
+        }
     </div>
 
     <!-- System Status -->
@@ -103,16 +120,50 @@
     <div class="modal-overlay">
         <div class="modal-content" @onclick:stopPropagation>
             <div class="modal-header">
-                <h3>Edit User Credentials</h3>
+                <h3>Manage Account</h3>
                 <button class="btn-close" @onclick="CloseModal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body">
+                <p class="text-muted mb-4"><strong>@selectedUser.Email</strong></p>
+
                 <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" @bind="selectedUser.Email" class="form-control" />
+                    <label>Current Subscription Expiry</label>
+                    <div class="mt-1">
+                        @if (selectedUser.SubscriptionExpiresAt.HasValue)
+                        {
+                            var expired = selectedUser.SubscriptionExpiresAt.Value < DateTime.UtcNow;
+                            <span class="badge @(expired ? "badge-danger" : "badge-success")">
+                                @selectedUser.SubscriptionExpiresAt.Value.ToString("MMM dd, yyyy")
+                                @(expired ? " (Expired)" : "")
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No subscription set</span>
+                        }
+                    </div>
                 </div>
-                
-                <div class="grid grid-cols-2 gap-4">
+
+                <div class="form-group mt-4">
+                    <label>Renewal Plan</label>
+                    <div class="flex gap-2 mt-2">
+                        <button class="btn @(selectedPlan == "1month" ? "btn-primary" : "btn-secondary")" @onclick='() => selectedPlan = "1month"'>
+                            1 Month
+                        </button>
+                        <button class="btn @(selectedPlan == "1year" ? "btn-primary" : "btn-secondary")" @onclick='() => selectedPlan = "1year"'>
+                            1 Year
+                        </button>
+                    </div>
+                    <button class="btn btn-secondary mt-2" @onclick="ApplyPlan">
+                        <i class="fa-solid fa-calendar-plus"></i> Apply Plan
+                    </button>
+                    @if (selectedUser.SubscriptionExpiresAt.HasValue)
+                    {
+                        <p class="text-muted text-xs mt-1">New expiry: <strong>@selectedUser.SubscriptionExpiresAt.Value.ToString("MMM dd, yyyy")</strong></p>
+                    }
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mt-4">
                     <div class="form-group">
                         <label>User Role</label>
                         <div class="flex items-center gap-2 mt-2">
@@ -121,19 +172,17 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Subscription Expiry</label>
-                        <input type="date" @bind="selectedUser.SubscriptionExpiresAt" class="form-control" />
+                        <label>Account Status</label>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="isActive" @bind="selectedUser.IsActive" />
+                            <label for="isActive">Account is Active</label>
+                        </div>
                     </div>
-                </div>
-
-                <div class="flex items-center gap-2 mt-4">
-                    <input type="checkbox" id="isActive" @bind="selectedUser.IsActive" />
-                    <label for="isActive">Account is Active</label>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
-                <button class="btn btn-primary" @onclick="SaveUser" disabled="@isSaving">
+                <button class="btn btn-primary" @onclick="SaveUserAsync" disabled="@isSaving">
                     @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> }
                     Save Changes
                 </button>
