@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using InventoryPlus.Services;
 using Microsoft.AspNetCore.Components.Web;
+using Supabase;
 
 namespace InventoryPlus.Layout
 {
@@ -10,6 +11,7 @@ namespace InventoryPlus.Layout
         [Inject] public NavigationManager NavManager { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
+        [Inject] public Client Supabase { get; set; } = default!;
 
         protected bool showDropdown = false;
         protected bool isLightMode = false;
@@ -60,9 +62,10 @@ namespace InventoryPlus.Layout
             AppSettings.OnStateChanged -= HandleStateChanged;
         }
 
-        protected void SignOut()
+        protected async Task SignOut()
         {
-            NavManager.NavigateTo("login", true);
+            await Supabase.Auth.SignOut();
+            NavManager.NavigateTo("login");
         }
     }
 }
