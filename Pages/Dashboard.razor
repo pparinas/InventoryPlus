@@ -64,7 +64,7 @@
         </div>
         @if (RecentSales.Any())
         {
-            <div class="table-responsive">
+            <div class="table-responsive table-view">
             <table>
                 <thead>
                     <tr>
@@ -87,6 +87,27 @@
                 </tbody>
             </table>
             </div>
+            <div class="card-view">
+                @foreach (var sale in RecentSales)
+                {
+                    <div class="stock-card">
+                        <div class="stock-card-header">
+                            <span class="stock-card-name">@sale.ProductName</span>
+                            <span class="text-success font-bold">₱@sale.TotalAmount.ToString("0.00")</span>
+                        </div>
+                        <div class="stock-card-body">
+                            <div class="stock-card-row">
+                                <span class="stock-card-label">Qty</span>
+                                <span>@sale.QuantitySold</span>
+                            </div>
+                            <div class="stock-card-row">
+                                <span class="stock-card-label">Time</span>
+                                <span class="text-muted">@sale.Date.ToShortTimeString()</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
         }
         else
         {
@@ -106,7 +127,7 @@
         
         @if (LowStockIngredients.Any())
         {
-            <div class="table-responsive">
+            <div class="table-responsive table-view">
             <table>
                 <thead>
                     <tr>
@@ -132,6 +153,30 @@
                     }
                 </tbody>
             </table>
+            </div>
+            <div class="card-view">
+                @foreach (var ing in LowStockIngredients)
+                {
+                    <div class="stock-card">
+                        <div class="stock-card-header">
+                            <span class="stock-card-name">@ing.Name</span>
+                            @if (ing.Stock <= 0)
+                            {
+                                <span class="badge badge-danger">Out of Stock</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-warning">Low</span>
+                            }
+                        </div>
+                        <div class="stock-card-body">
+                            <div class="stock-card-row">
+                                <span class="stock-card-label">Stock</span>
+                                <span>@ing.Stock @ing.Unit</span>
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         }
         else

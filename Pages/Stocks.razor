@@ -20,7 +20,9 @@ else
 </div>
 
 <div class="glass-panel">
-    <div class="table-responsive">
+
+    @* Desktop table *@
+    <div class="table-responsive table-view">
     <table>
         <thead>
             <tr>
@@ -33,7 +35,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Inventory.ActiveIngredients)
+            @foreach (var item in Inventory.ActiveIngredients.Skip((_page - 1) * PageSize).Take(PageSize))
             {
                 <tr>
                     <td><strong>@item.Name</strong></td>
@@ -69,6 +71,51 @@ else
         </tbody>
     </table>
     </div>
+
+    @* Mobile card list *@
+    <div class="card-view">
+        @if (!Inventory.ActiveIngredients.Any())
+        {
+            <p class="text-center text-muted" style="padding: 2rem 0">No stock items found.</p>
+        }
+        @foreach (var item in Inventory.ActiveIngredients.Skip((_page - 1) * PageSize).Take(PageSize))
+        {
+            <div class="stock-card">
+                <div class="stock-card-header">
+                    <span class="stock-card-name">@item.Name</span>
+                    <span class="badge @(item.Type == "Ingredient" ? "badge-primary" : "badge-secondary")">@item.Type</span>
+                </div>
+                <div class="stock-card-body">
+                    <div class="stock-card-row">
+                        <span class="stock-card-label">Stock</span>
+                        @if (item.Stock < 5 && item.Type == "Ingredient")
+                        {
+                            <span class="text-warning font-bold">@item.Stock @item.Unit <small>(Low)</small></span>
+                        }
+                        else
+                        {
+                            <span>@item.Stock @item.Unit</span>
+                        }
+                    </div>
+                    <div class="stock-card-row">
+                        <span class="stock-card-label">Cost / Unit</span>
+                        <span>₱@item.CostPerUnit.ToString("0.00")</span>
+                    </div>
+                    <div class="stock-card-row">
+                        <span class="stock-card-label">Total Value</span>
+                        <span class="text-primary font-bold">₱@((item.Stock * item.CostPerUnit).ToString("0.00"))</span>
+                    </div>
+                </div>
+                <div class="stock-card-actions">
+                    <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <PaginationBar Page="_page" PageSize="PageSize" TotalItems="Inventory.ActiveIngredients.Count()" OnPageChange="SetPage" />
+
 </div>
 
 @if (showModal)

@@ -9,13 +9,13 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 var supabaseUrl = builder.Configuration["Supabase:Url"];
-if (string.IsNullOrEmpty(supabaseUrl)) 
+if (string.IsNullOrEmpty(supabaseUrl) || supabaseUrl.StartsWith("__")) 
 {
     supabaseUrl = "https://boixagidpfuyemzvmeva.supabase.co";
 }
 
 var supabaseKey = builder.Configuration["Supabase:Key"];
-if (string.IsNullOrEmpty(supabaseKey)) 
+if (string.IsNullOrEmpty(supabaseKey) || supabaseKey.StartsWith("__"))
 {
     supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvaXhhZ2lkcGZ1eWVtenZtZXZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDg3NjAsImV4cCI6MjA4OTQyNDc2MH0.HemZ7yVnkcceTDNPrAaFlUm6ktRaifZuw7APO70uHm4";
 }

@@ -1,0 +1,32 @@
+@if (TotalPages > 1)
+{
+    <div class="pagination-bar">
+        <span class="pagination-info">@((Page - 1) * PageSize + 1)–@(Math.Min(Page * PageSize, TotalItems)) of @TotalItems</span>
+        <div class="pagination-controls">
+            <button class="pag-btn" disabled="@(Page == 1)" @onclick="() => OnPageChange.InvokeAsync(Page - 1)" title="Previous">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            @for (int i = StartPage; i <= EndPage; i++)
+            {
+                var p = i;
+                <button class="pag-btn @(Page == p ? "active" : "")" @onclick="() => OnPageChange.InvokeAsync(p)">@p</button>
+            }
+            <button class="pag-btn" disabled="@(Page == TotalPages)" @onclick="() => OnPageChange.InvokeAsync(Page + 1)" title="Next">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Page { get; set; } = 1;
+    [Parameter] public int PageSize { get; set; } = 10;
+    [Parameter] public int TotalItems { get; set; }
+    [Parameter] public EventCallback<int> OnPageChange { get; set; }
+
+    private int TotalPages => (int)Math.Ceiling((double)TotalItems / PageSize);
+
+    // Show at most 5 page numbers centered on current page
+    private int StartPage => Math.Max(1, Math.Min(Page - 2, TotalPages - 4));
+    private int EndPage   => Math.Min(TotalPages, StartPage + 4);
+}

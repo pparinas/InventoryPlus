@@ -1,6 +1,5 @@
 @page "/admin"
 
-
 <PageTitle>Admin Dashboard | @AppSettings.CompanyName</PageTitle>
 
 <div class="page-header">
@@ -24,7 +23,7 @@
         }
         else
         {
-        <div class="table-responsive">
+        <div class="table-responsive table-view">
         <table>
             <thead>
                 <tr>
@@ -37,7 +36,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var user in Users)
+                @foreach (var user in Users.Skip((_page - 1) * PageSize).Take(PageSize))
                 {
                     var isExpired = user.SubscriptionExpiresAt.HasValue && user.SubscriptionExpiresAt.Value < DateTime.UtcNow;
                     <tr style="@(!user.IsActive || isExpired ? "opacity: 0.6" : "")">
@@ -86,6 +85,58 @@
             </tbody>
         </table>
         </div>
+        <div class="card-view">
+            @foreach (var user in Users.Skip((_page - 1) * PageSize).Take(PageSize))
+            {
+                var isExpiredCard = user.SubscriptionExpiresAt.HasValue && user.SubscriptionExpiresAt.Value < DateTime.UtcNow;
+                <div class="stock-card" style="@(!user.IsActive || isExpiredCard ? "opacity: 0.7" : "")">
+                    <div class="stock-card-header">
+                        <span class="stock-card-name">@user.Email</span>
+                        <span class="badge @(user.IsAdmin ? "badge-primary" : "badge-secondary")">@(user.IsAdmin ? "Admin" : "User")</span>
+                    </div>
+                    <div class="stock-card-body">
+                        <div class="stock-card-row">
+                            <span class="stock-card-label">Status</span>
+                            @if (!user.IsActive)
+                            {
+                                <span class="badge badge-danger">Deactivated</span>
+                            }
+                            else if (isExpiredCard)
+                            {
+                                <span class="badge badge-danger">Expired</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-success">Active</span>
+                            }
+                        </div>
+                        <div class="stock-card-row">
+                            <span class="stock-card-label">Created</span>
+                            <span>@user.CreatedAt.ToString("MMM dd, yyyy")</span>
+                        </div>
+                        <div class="stock-card-row">
+                            <span class="stock-card-label">Subscription</span>
+                            @if (user.SubscriptionExpiresAt.HasValue)
+                            {
+                                <span class="@(isExpiredCard ? "text-danger" : "")">@user.SubscriptionExpiresAt.Value.ToString("MMM dd, yyyy")</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">N/A</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="stock-card-actions">
+                        <button class="btn btn-sm btn-secondary" @onclick="() => EditUser(user)"><i class="fa-solid fa-user-pen"></i> Manage</button>
+                        <button class="btn btn-sm @(user.IsActive ? "btn-danger" : "btn-success")" @onclick="() => ToggleUserStatusAsync(user)">
+                            <i class="fa-solid @(user.IsActive ? "fa-user-slash" : "fa-user-check")"></i>
+                            @(user.IsActive ? "Deactivate" : "Activate")
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+        <PaginationBar Page="_page" PageSize="PageSize" TotalItems="Users.Count" OnPageChange="SetPage" />
         }
     </div>
 

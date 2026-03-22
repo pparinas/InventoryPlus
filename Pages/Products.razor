@@ -22,7 +22,8 @@ else
 </div>
 
 <div class="glass-panel">
-    <div class="table-responsive">
+    @* Desktop table *@
+    <div class="table-responsive table-view">
     <table>
         <thead>
             <tr>
@@ -35,7 +36,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Inventory.ActiveProducts)
+            @foreach (var item in Inventory.ActiveProducts.Skip((_page - 1) * PageSize).Take(PageSize))
             {
                 <tr>
                     <td>
@@ -90,6 +91,73 @@ else
         </tbody>
     </table>
     </div>
+
+    @* Mobile card list *@
+    <div class="card-view">
+        @if (!Inventory.ActiveProducts.Any())
+        {
+            <p class="text-center text-muted" style="padding: 2rem 0">No products configured yet.</p>
+        }
+            @foreach (var item in Inventory.ActiveProducts.Skip((_page - 1) * PageSize).Take(PageSize))
+        {
+            <div class="stock-card">
+                <div class="stock-card-header">
+                    <div class="flex items-center gap-2" style="flex: 1; min-width: 0; overflow: hidden;">
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl" style="width: 36px; height: 36px; border-radius: 6px; object-fit: cover; flex-shrink: 0;" />
+                        }
+                        else
+                        {
+                            <div style="width: 36px; height: 36px; border-radius: 6px; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); flex-shrink: 0;">
+                                <i class="fa-solid fa-image text-muted" style="font-size: 0.75rem;"></i>
+                            </div>
+                        }
+                        <span class="stock-card-name">@item.Name</span>
+                    </div>
+                    @if (item.AvailableCount <= 0)
+                    {
+                        <span class="badge badge-danger">Out of Stock</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-success">@item.AvailableCount avail.</span>
+                    }
+                </div>
+                <div class="stock-card-body">
+                    <div class="stock-card-row">
+                        <span class="stock-card-label">Price</span>
+                        <span class="text-success">₱@item.SellingPrice.ToString("0.00")</span>
+                    </div>
+                    <div class="stock-card-row">
+                        <span class="stock-card-label">Cost</span>
+                        <span class="text-danger">₱@item.TotalCost.ToString("0.00")</span>
+                    </div>
+                    <div class="stock-card-row">
+                        <span class="stock-card-label">Profit</span>
+                        <span class="@(item.ProfitMargin > 0 ? "text-success" : "text-danger")">
+                            ₱@item.ProfitMargin.ToString("0.00") (@((item.ProfitMarginPercentage * 100).ToString("0.0"))%)
+                        </span>
+                    </div>
+                    @if (item.RequiredIngredients.Any(ri => ri.Ingredient != null))
+                    {
+                        <div class="stock-card-row" style="align-items: flex-start;">
+                            <span class="stock-card-label" style="flex-shrink: 0;">Ingredients</span>
+                            <span class="text-muted" style="font-size: 0.78rem; text-align: right;">
+                                @string.Join(", ", item.RequiredIngredients.Where(ri => ri.Ingredient != null).Select(ri => $"{ri.QuantityRequired}{ri.Ingredient!.Unit} {ri.Ingredient!.Name}"))
+                            </span>
+                        </div>
+                    }
+                </div>
+                <div class="stock-card-actions">
+                    <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <PaginationBar Page="_page" PageSize="PageSize" TotalItems="Inventory.ActiveProducts.Count()" OnPageChange="SetPage" />
 </div>
 
 @if (showModal)
