@@ -62,7 +62,7 @@ namespace InventoryPlus.Layout
 
         protected void SignOut()
         {
-            NavManager.NavigateTo("/login", true);
+            NavManager.NavigateTo("login", true);
         }
     }
 }

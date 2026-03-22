@@ -25,7 +25,7 @@ namespace InventoryPlus.Pages
                 var session = await Supabase.Auth.SignIn(Email, Password);
                 if (session != null && session.User != null)
                 {
-                    NavigationManager.NavigateTo("/dashboard");
+                    NavigationManager.NavigateTo("dashboard");
                 }
                 else
                 {
