@@ -80,9 +80,9 @@ namespace InventoryPlus.Pages
                 await SupabaseClient.Storage
                     .From("branding")
                     .Upload(buffer, path, new Supabase.Storage.FileOptions { ContentType = format, Upsert = true });
-                newLogoUrl = SupabaseClient.Storage
+                newLogoUrl = await SupabaseClient.Storage
                     .From("branding")
-                    .GetPublicUrl(path) + $"?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                    .CreateSignedUrl(path, 60 * 60 * 24 * 365);
 
                 pendingLogoFile = null;
                 Toast.Show("Logo uploaded successfully!");
