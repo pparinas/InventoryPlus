@@ -25,7 +25,7 @@ namespace InventoryPlus.Pages
             Inventory.OnStateChanged -= HandleStateChanged;
         }
 
-        protected double InventoryValue => Inventory.Ingredients.Sum(i => i.Stock * i.CostPerUnit);
+        protected double InventoryValue => Inventory.ActiveIngredients.Sum(i => i.Stock * i.CostPerUnit);
         
         protected IEnumerable<Sale> FilteredSales
         {

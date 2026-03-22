@@ -11,28 +11,31 @@ namespace InventoryPlus.Services
         public List<Product> Products { get; set; } = new();
         public List<Sale> Sales { get; set; } = new();
 
+        public IEnumerable<Ingredient> ActiveIngredients => Ingredients.Where(i => !i.IsArchived);
+        public IEnumerable<Product> ActiveProducts => Products.Where(p => !p.IsArchived);
+
         public event Action? OnStateChanged;
 
         public InventoryService()
         {
             // Seed Data
-            var tomato = new Ingredient { Id = Guid.NewGuid(), Name = "Tomato", Unit = "pcs", Stock = 100, CostPerUnit = 0.5 };
-            var pasta = new Ingredient { Id = Guid.NewGuid(), Name = "Pasta", Unit = "kg", Stock = 10.5, CostPerUnit = 2.0 };
-            var cheese = new Ingredient { Id = Guid.NewGuid(), Name = "Cheese", Unit = "kg", Stock = 5, CostPerUnit = 10.0 };
+            var tomato = new Ingredient { Guid = Guid.NewGuid(), Name = "Tomato", Unit = "pcs", Stock = 100, CostPerUnit = 0.5 };
+            var pasta = new Ingredient { Guid = Guid.NewGuid(), Name = "Pasta", Unit = "kg", Stock = 10.5, CostPerUnit = 2.0 };
+            var cheese = new Ingredient { Guid = Guid.NewGuid(), Name = "Cheese", Unit = "kg", Stock = 5, CostPerUnit = 10.0 };
             
             Ingredients.AddRange(new[] { tomato, pasta, cheese });
 
             var product1 = new Product
             {
-                Id = Guid.NewGuid(),
+                Guid = Guid.NewGuid(),
                 Name = "Tomato Pasta",
                 SellingPrice = 15.0,
                 TaxRate = 0.05,
                 RequiredIngredients = new List<ProductIngredient>
                 {
-                    new ProductIngredient { IngredientId = pasta.Id, Ingredient = pasta, QuantityRequired = 0.2 },
-                    new ProductIngredient { IngredientId = tomato.Id, Ingredient = tomato, QuantityRequired = 4 },
-                    new ProductIngredient { IngredientId = cheese.Id, Ingredient = cheese, QuantityRequired = 0.1 }
+                    new ProductIngredient { IngredientId = pasta.Guid, Ingredient = pasta, QuantityRequired = 0.2 },
+                    new ProductIngredient { IngredientId = tomato.Guid, Ingredient = tomato, QuantityRequired = 4 },
+                    new ProductIngredient { IngredientId = cheese.Guid, Ingredient = cheese, QuantityRequired = 0.1 }
                 }
             };
 
@@ -41,11 +44,11 @@ namespace InventoryPlus.Services
 
         public void AddIngredient(Ingredient ingredient) { Ingredients.Add(ingredient); NotifyStateChanged(); }
         public void UpdateIngredient(Ingredient ingredient) { NotifyStateChanged(); }
-        public void DeleteIngredient(Ingredient ingredient) { Ingredients.Remove(ingredient); NotifyStateChanged(); }
+        public void DeleteIngredient(Ingredient ingredient) { ingredient.IsArchived = true; NotifyStateChanged(); }
 
         public void AddProduct(Product product) { Products.Add(product); NotifyStateChanged(); }
         public void UpdateProduct(Product product) { NotifyStateChanged(); }
-        public void DeleteProduct(Product product) { Products.Remove(product); NotifyStateChanged(); }
+        public void DeleteProduct(Product product) { product.IsArchived = true; NotifyStateChanged(); }
 
         public bool RecordSale(Product product, int quantity, string note = "", string paymentMethod = "Cash")
         {
@@ -68,7 +71,7 @@ namespace InventoryPlus.Services
 
             var sale = new Sale
             {
-                ProductId = product.Id,
+                ProductId = product.Guid,
                 ProductName = product.Name,
                 QuantitySold = quantity,
                 TotalAmount = total,

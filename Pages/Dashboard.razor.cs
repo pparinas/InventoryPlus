@@ -29,7 +29,7 @@ namespace InventoryPlus.Pages
         protected double TotalRevenue => Inventory.Sales.Sum(s => s.TotalAmount);
         protected double TotalProfit => Inventory.Sales.Sum(s => s.ProfitAmount);
         
-        protected List<Ingredient> LowStockIngredients => Inventory.Ingredients.Where(i => i.Stock < 5).ToList();
+        protected List<Ingredient> LowStockIngredients => Inventory.ActiveIngredients.Where(i => i.Stock < 5).ToList();
         protected List<Sale> RecentSales => Inventory.Sales.OrderByDescending(s => s.Date).Take(5).ToList();
     }
 }

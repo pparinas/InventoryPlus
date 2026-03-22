@@ -40,7 +40,7 @@ namespace InventoryPlus.Pages
 
         protected void AddToCart(Product p)
         {
-            var existing = Cart.FirstOrDefault(c => c.Product.Id == p.Id);
+            var existing = Cart.FirstOrDefault(c => c.Product.Guid == p.Guid);
             if (existing != null)
             {
                 if (existing.Quantity < p.AvailableCount)

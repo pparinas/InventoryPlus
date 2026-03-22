@@ -22,7 +22,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Inventory.Ingredients)
+            @foreach (var item in Inventory.ActiveIngredients)
             {
                 <tr>
                     <td><strong>@item.Name</strong></td>
@@ -49,7 +49,7 @@
                     </td>
                 </tr>
             }
-            @if (!Inventory.Ingredients.Any())
+            @if (!Inventory.ActiveIngredients.Any())
             {
                 <tr>
                     <td colspan="6" class="text-center text-muted" style="padding: 3rem">No stock items found.</td>

@@ -10,11 +10,11 @@ namespace InventoryPlus.Models
     [Table("ingredients")]
     public class Ingredient : BaseModel
     {
-        [PrimaryKey("id", false)]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        [PrimaryKey("guid", false)]
+        public Guid Guid { get; set; } = Guid.NewGuid();
 
-        [Column("owner_id")]
-        public string OwnerId { get; set; } = string.Empty;
+        [Column("owner_guid")]
+        public Guid OwnerGuid { get; set; }
 
         [Column("name")]
         public string Name { get; set; } = string.Empty;
@@ -30,16 +30,19 @@ namespace InventoryPlus.Models
 
         [Column("type")]
         public string Type { get; set; } = "Ingredient"; // "Ingredient" or "Necessity"
+
+        [Column("is_archived")]
+        public bool IsArchived { get; set; } = false;
     }
 
     [Table("product_ingredients")]
     public class ProductIngredient : BaseModel
     {
-        [PrimaryKey("id", false)]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        [PrimaryKey("guid", false)]
+        public Guid Guid { get; set; } = Guid.NewGuid();
 
         [Column("owner_id")]
-        public string OwnerId { get; set; } = string.Empty;
+        public Guid OwnerId { get; set; }
 
         [Column("product_id")]
         public Guid ProductId { get; set; }
@@ -57,11 +60,11 @@ namespace InventoryPlus.Models
     [Table("products")]
     public class Product : BaseModel
     {
-        [PrimaryKey("id", false)]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        [PrimaryKey("guid", false)]
+        public Guid Guid { get; set; } = Guid.NewGuid();
 
-        [Column("owner_id")]
-        public string OwnerId { get; set; } = string.Empty;
+        [Column("owner_guid")]
+        public Guid OwnerGuid { get; set; }
 
         [Column("name")]
         public string Name { get; set; } = string.Empty;
@@ -74,6 +77,9 @@ namespace InventoryPlus.Models
 
         [Column("image_url")]
         public string ImageUrl { get; set; } = string.Empty;
+
+        [Column("is_archived")]
+        public bool IsArchived { get; set; } = false;
         
         [Reference(typeof(ProductIngredient))]
         public List<ProductIngredient> RequiredIngredients { get; set; } = new();
@@ -101,11 +107,11 @@ namespace InventoryPlus.Models
     [Table("sales")]
     public class Sale : BaseModel
     {
-        [PrimaryKey("id", false)]
-        public Guid Id { get; set; } = Guid.NewGuid();
+        [PrimaryKey("guid", false)]
+        public Guid Guid { get; set; } = Guid.NewGuid();
 
         [Column("owner_id")]
-        public string OwnerId { get; set; } = string.Empty;
+        public Guid OwnerId { get; set; }
 
         [Column("product_id")]
         public Guid ProductId { get; set; }
@@ -139,9 +145,26 @@ namespace InventoryPlus.Models
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public string Email { get; set; } = string.Empty;
-        public string Role { get; set; } = "User";
+        public bool IsAdmin { get; set; } = false;
         public bool IsActive { get; set; } = true;
+        public bool IsAdmin { get; set; } = false;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? SubscriptionExpiresAt { get; set; }
+    }
+
+    [Table("account_settings")]
+    public class AccountSettings : BaseModel
+    {
+        [PrimaryKey("owner_guid", false)]
+        public Guid OwnerGuid { get; set; }
+
+        [Column("company_name")]
+        public string CompanyName { get; set; } = "InventoryPlus";
+
+        [Column("logo_url")]
+        public string LogoUrl { get; set; } = string.Empty;
+
+        [Column("use_logo_for_branding")]
+        public bool UseLogoForBranding { get; set; } = false;
     }
 }

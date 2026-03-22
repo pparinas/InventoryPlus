@@ -37,7 +37,7 @@ namespace InventoryPlus.Pages
         {
             currentIngredient = new Ingredient
             {
-                Id = item.Id,
+                Guid = item.Guid,
                 Name = item.Name,
                 Unit = item.Unit,
                 Stock = item.Stock,
@@ -59,7 +59,7 @@ namespace InventoryPlus.Pages
 
             if (isEditing)
             {
-                var existing = Inventory.Ingredients.FirstOrDefault(i => i.Id == currentIngredient.Id);
+                var existing = Inventory.ActiveIngredients.FirstOrDefault(i => i.Guid == currentIngredient.Guid);
                 if (existing != null)
                 {
                     existing.Name = currentIngredient.Name;
@@ -72,7 +72,7 @@ namespace InventoryPlus.Pages
             }
             else
             {
-                currentIngredient.Id = Guid.NewGuid();
+                currentIngredient.Guid = Guid.NewGuid();
                 Inventory.AddIngredient(currentIngredient);
             }
             CloseModal();
