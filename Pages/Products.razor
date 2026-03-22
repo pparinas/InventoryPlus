@@ -82,7 +82,7 @@
 
 @if (showModal)
 {
-    <div class="modal-overlay" @onclick="CloseModal">
+    <div class="modal-overlay">
         <div class="modal-content" style="max-width: 800px" @onclick:stopPropagation>
             <div class="modal-header">
                 <h3>@(isEditing ? "Edit Product" : "New Product")</h3>

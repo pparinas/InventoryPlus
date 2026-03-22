@@ -61,7 +61,7 @@
 
 @if (showModal)
 {
-    <div class="modal-overlay" @onclick="CloseModal">
+    <div class="modal-overlay">
         <div class="modal-content" @onclick:stopPropagation>
             <div class="modal-header">
                 <h3>@(isEditing ? "Edit Stock Item" : "New Stock Item")</h3>
