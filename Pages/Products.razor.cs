@@ -11,6 +11,7 @@ namespace InventoryPlus.Pages
     {
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
+        [Inject] public Supabase.Client SupabaseClient { get; set; } = default!;
         protected bool showModal;
         protected bool isEditing;
         protected bool isUploading;
@@ -42,7 +43,7 @@ namespace InventoryPlus.Pages
         {
             currentProduct = new Product 
             {
-                Id = item.Id,
+                Guid = item.Guid,
                 Name = item.Name,
                 SellingPrice = item.SellingPrice,
                 TaxRate = item.TaxRate,
@@ -69,13 +70,23 @@ namespace InventoryPlus.Pages
             if (file == null) return;
 
             isUploading = true;
-            try 
+            try
             {
+                var userId = SupabaseClient.Auth.CurrentUser?.Id;
+                if (string.IsNullOrEmpty(userId)) return;
+
                 var format = "image/png";
                 var resizedImage = await file.RequestImageFileAsync(format, 300, 300);
                 var buffer = new byte[resizedImage.Size];
                 await resizedImage.OpenReadStream().ReadAsync(buffer);
-                currentProduct.ImageUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+
+                var path = $"{userId}/{currentProduct.Guid}.png";
+                await SupabaseClient.Storage
+                    .From("product-images")
+                    .Upload(buffer, path, new Supabase.Storage.FileOptions { ContentType = format, Upsert = true });
+                currentProduct.ImageUrl = SupabaseClient.Storage
+                    .From("product-images")
+                    .GetPublicUrl(path);
             }
             catch (Exception ex)
             {
@@ -91,7 +102,7 @@ namespace InventoryPlus.Pages
         {
             if (selectedIngredientId == null || selectedIngredientId == Guid.Empty || newQuantity <= 0) return;
 
-            var ing = Inventory.Ingredients.FirstOrDefault(i => i.Id == selectedIngredientId);
+            var ing = Inventory.ActiveIngredients.FirstOrDefault(i => i.Guid == selectedIngredientId);
             if (ing == null) return;
 
             var existing = currentProduct.RequiredIngredients.FirstOrDefault(r => r.IngredientId == selectedIngredientId);
@@ -124,7 +135,7 @@ namespace InventoryPlus.Pages
 
             if (isEditing)
             {
-                var existing = Inventory.Products.FirstOrDefault(p => p.Id == currentProduct.Id);
+                var existing = Inventory.ActiveProducts.FirstOrDefault(p => p.Guid == currentProduct.Guid);
                 if (existing != null)
                 {
                     existing.Name = currentProduct.Name;
@@ -137,7 +148,7 @@ namespace InventoryPlus.Pages
             }
             else
             {
-                currentProduct.Id = Guid.NewGuid();
+                currentProduct.Guid = Guid.NewGuid();
                 Inventory.AddProduct(currentProduct);
             }
             CloseModal();

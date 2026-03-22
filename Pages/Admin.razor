@@ -37,8 +37,8 @@
                             <strong>@user.Email</strong>
                         </td>
                         <td>
-                            <span class="badge @(user.Role == "Admin" ? "badge-primary" : "badge-secondary")">
-                                @user.Role
+                            <span class="badge @(user.IsAdmin ? "badge-primary" : "badge-secondary")">
+                                @(user.IsAdmin ? "Admin" : "User")
                             </span>
                         </td>
                         <td>
@@ -115,10 +115,10 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="form-group">
                         <label>User Role</label>
-                        <select @bind="selectedUser.Role" class="form-control">
-                            <option value="User">User</option>
-                            <option value="Admin">Admin</option>
-                        </select>
+                        <div class="flex items-center gap-2 mt-2">
+                            <input type="checkbox" id="isAdmin" @bind="selectedUser.IsAdmin" />
+                            <label for="isAdmin">Administrator</label>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Subscription Expiry</label>

@@ -24,7 +24,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Inventory.Products)
+            @foreach (var item in Inventory.ActiveProducts)
             {
                 <tr>
                     <td>
@@ -70,7 +70,7 @@
                     </td>
                 </tr>
             }
-            @if (!Inventory.Products.Any())
+            @if (!Inventory.ActiveProducts.Any())
             {
                 <tr>
                     <td colspan="6" class="text-center text-muted" style="padding: 3rem">No products configured yet.</td>
@@ -151,7 +151,7 @@
                         <div class="flex gap-2 mb-4">
                             <select @bind="selectedIngredientId" class="w-full">
                                 <option value="">-- Select Ingredient --</option>
-                                @foreach(var ing in Inventory.Ingredients.Where(i => i.Type == "Ingredient"))
+                                @foreach(var ing in Inventory.ActiveIngredients.Where(i => i.Type == "Ingredient"))
                                 {
                                     <option value="@ing.Id">@ing.Name (@ing.Stock @ing.Unit)</option>
                                 }

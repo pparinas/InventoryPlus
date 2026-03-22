@@ -33,18 +33,21 @@ namespace InventoryPlus.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            newCompanyName = AppSettings.CompanyName;
-            useLogo = AppSettings.UseLogoForBranding;
-            newLogoUrl = AppSettings.CustomLogoUrl;
             AppSettings.OnStateChanged += HandleStateChanged;
 
             currentUser = SupabaseClient.Auth.CurrentUser;
             if (currentUser == null)
             {
-                // Fallback if CurrentUser is null at first
                 var session = await SupabaseClient.Auth.RetrieveSessionAsync();
                 currentUser = session?.User;
             }
+
+            if (currentUser != null)
+                await AppSettings.LoadAsync(currentUser.Id);
+
+            newCompanyName = AppSettings.CompanyName;
+            useLogo = AppSettings.UseLogoForBranding;
+            newLogoUrl = AppSettings.CustomLogoUrl;
         }
 
         private void HandleStateChanged() => StateHasChanged();
@@ -57,7 +60,7 @@ namespace InventoryPlus.Pages
         protected async Task HandleLogoUpload(InputFileChangeEventArgs e)
         {
             var file = e.File;
-            if (file == null) return;
+            if (file == null || currentUser == null) return;
 
             isUploading = true;
             try 
@@ -66,7 +69,14 @@ namespace InventoryPlus.Pages
                 var resizedImage = await file.RequestImageFileAsync(format, 200, 200);
                 var buffer = new byte[resizedImage.Size];
                 await resizedImage.OpenReadStream().ReadAsync(buffer);
-                newLogoUrl = $"data:{format};base64,{Convert.ToBase64String(buffer)}";
+
+                var path = $"{currentUser.Id}/logo.png";
+                await SupabaseClient.Storage
+                    .From("branding")
+                    .Upload(buffer, path, new Supabase.Storage.FileOptions { ContentType = format, Upsert = true });
+                newLogoUrl = SupabaseClient.Storage
+                    .From("branding")
+                    .GetPublicUrl(path);
             }
             catch (Exception ex)
             {
@@ -83,8 +93,11 @@ namespace InventoryPlus.Pages
             AppSettings.CompanyName = newCompanyName;
             AppSettings.UseLogoForBranding = useLogo;
             AppSettings.CustomLogoUrl = newLogoUrl;
+
+            if (currentUser != null)
+                await AppSettings.SaveAsync(currentUser.Id);
+
             showSuccess = true;
-            
             await Task.Delay(3000);
             showSuccess = false;
             StateHasChanged();

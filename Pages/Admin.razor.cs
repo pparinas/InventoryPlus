@@ -34,7 +34,7 @@ namespace InventoryPlus.Pages
             {
                 Id = user.Id,
                 Email = user.Email,
-                Role = user.Role,
+                IsAdmin = user.IsAdmin,
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
                 SubscriptionExpiresAt = user.SubscriptionExpiresAt
@@ -49,7 +49,7 @@ namespace InventoryPlus.Pages
             if (original != null)
             {
                 original.Email = selectedUser.Email;
-                original.Role = selectedUser.Role;
+                original.IsAdmin = selectedUser.IsAdmin;
                 original.IsActive = selectedUser.IsActive;
                 original.SubscriptionExpiresAt = selectedUser.SubscriptionExpiresAt;
                 UserManagement.UpdateUser(original);

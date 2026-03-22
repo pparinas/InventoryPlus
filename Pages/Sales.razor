@@ -14,7 +14,7 @@
     <div>
         <h3 class="mb-4">Select Products</h3>
         <div class="grid grid-cols-2 gap-3">
-            @foreach (var prod in Inventory.Products)
+            @foreach (var prod in Inventory.ActiveProducts)
             {
                 bool isAvailable = prod.AvailableCount > 0;
                 <div class="glass-card @(isAvailable ? "cursor-pointer" : "")" 
@@ -44,7 +44,7 @@
                     </div>
                 </div>
             }
-            @if(!Inventory.Products.Any())
+            @if(!Inventory.ActiveProducts.Any())
             {
                 <div class="glass-card text-center" style="grid-column: span 2; padding: 2rem;">
                     <p class="text-muted">No products available. Add products first.</p>
