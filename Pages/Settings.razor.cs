@@ -11,7 +11,7 @@ using Session = Supabase.Gotrue.Session;
 
 namespace InventoryPlus.Pages
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public partial class Settings : ComponentBase, IDisposable
     {
         [Inject] public Supabase.Client SupabaseClient { get; set; } = default!;
