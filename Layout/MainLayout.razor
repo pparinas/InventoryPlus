@@ -76,6 +76,14 @@
         </div>
     </header>
 
+    @if (Inventory.IsOffline)
+    {
+        <div class="offline-banner">
+            <i class="fa-solid fa-wifi" style="opacity:0.6;"></i>
+            Offline &mdash; showing cached data. Changes require an internet connection.
+        </div>
+    }
+
     <div class="sidebar-overlay" @onclick="CloseMobileNav"></div>
 
     <aside class="sidebar" @onclick:stopPropagation>

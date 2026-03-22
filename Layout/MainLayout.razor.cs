@@ -78,7 +78,7 @@ namespace InventoryPlus.Layout
                 if (user == null) return;
 
                 await AppSettings.LoadAsync(user.Id);
-                await Inventory.LoadAsync(user.Id);
+                await Inventory.LoadAsync(user.Id, JSRuntime);
             }
             catch (Exception ex)
             {
@@ -89,6 +89,7 @@ namespace InventoryPlus.Layout
         protected override void OnInitialized()
         {
             AppSettings.OnStateChanged += HandleStateChanged;
+            Inventory.OnStateChanged += HandleStateChanged;
         }
 
         private void HandleStateChanged() => StateHasChanged();
@@ -96,6 +97,7 @@ namespace InventoryPlus.Layout
         public void Dispose()
         {
             AppSettings.OnStateChanged -= HandleStateChanged;
+            Inventory.OnStateChanged -= HandleStateChanged;
         }
 
         protected async Task SignOut()
@@ -108,12 +110,14 @@ namespace InventoryPlus.Layout
             }
             catch { }
 
+            var userId = Supabase.Auth.CurrentUser?.Id;
             await Supabase.Auth.SignOut();
             // Reset service state so next login reloads fresh data
             Inventory.IsLoaded = false;
             Inventory.Ingredients = new();
             Inventory.Products = new();
             Inventory.Sales = new();
+            if (userId != null) await Inventory.ClearCacheAsync(JSRuntime, userId);
             NavManager.NavigateTo("login");
         }
     }
