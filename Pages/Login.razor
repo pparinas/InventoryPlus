@@ -13,8 +13,8 @@
         }
 
         <div class="form-group">
-            <label for="email">Email</label>
-            <input id="email" type="email" @bind="Email" class="form-control" placeholder="Enter your email" />
+            <label for="email">Email or Username</label>
+            <input id="email" type="text" @bind="Email" class="form-control" placeholder="Enter your email or username" />
         </div>
 
         <div class="form-group">
@@ -22,7 +22,12 @@
             <input id="password" type="password" @bind="Password" class="form-control" placeholder="Enter your password" />
         </div>
 
-        <button @onclick="HandleLogin" class="btn btn-primary" disabled="@IsLoading">
+        <div class="form-check">
+            <input id="rememberMe" type="checkbox" @bind="RememberMe" />
+            <label for="rememberMe">Remember me</label>
+        </div>
+
+        <button @onclick="HandleLogin" class="btn btn-primary w-full" disabled="@IsLoading">
             @if (IsLoading)
             {
                 <span class="spinner"></span> <span>Logging in...</span>

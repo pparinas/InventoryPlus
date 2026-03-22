@@ -166,4 +166,20 @@ namespace InventoryPlus.Models
         [Column("use_logo_for_branding")]
         public bool UseLogoForBranding { get; set; } = false;
     }
+
+    [Table("profiles")]
+    public class UserProfile : BaseModel
+    {
+        [PrimaryKey("id", false)]
+        public Guid Id { get; set; } = Guid.NewGuid();
+
+        [Column("user_id")]
+        public Guid UserId { get; set; }
+
+        [Column("username")]
+        public string Username { get; set; } = string.Empty;
+
+        [Column("email")]
+        public string Email { get; set; } = string.Empty;
+    }
 }
