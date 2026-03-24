@@ -3,7 +3,13 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#03173d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="InventoryPlus" />
+    <meta name="description" content="Smart inventory & POS system for small businesses" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <title>InventoryPlus</title>
     <base href="/" />
     <link rel="preload" id="webassembly" />
@@ -47,6 +53,16 @@
         </div>
     </div>
 
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;padding:0.85rem 1.25rem;align-items:center;justify-content:space-between;gap:0.75rem;font-family:'Outfit',sans-serif;box-shadow:0 -4px 20px rgba(0,0,0,0.3)">
+        <div style="display:flex;align-items:center;gap:0.6rem;flex:1;min-width:0">
+            <span style="font-size:1.4rem">📲</span>
+            <span style="font-size:0.9rem;font-weight:500">Install InventoryPlus for quick access</span>
+        </div>
+        <button onclick="window.pwaInstall.prompt()" style="background:#fff;color:#4f46e5;border:none;padding:0.5rem 1rem;border-radius:8px;font-weight:700;font-size:0.85rem;cursor:pointer;white-space:nowrap;font-family:inherit">Install</button>
+        <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;color:rgba(255,255,255,0.7);font-size:1.2rem;cursor:pointer;padding:0.25rem">&times;</button>
+    </div>
+
     <div id="blazor-error-ui">
         An unhandled error has occurred.
         <a href="." class="reload">Reload</a>
@@ -78,6 +94,39 @@
         };
     </script>
     <!-- <script>navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' });</script> -->
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js', { updateViaCache: 'none' })
+                .then(reg => {
+                    console.info('SW registered:', reg.scope);
+                    // Check for updates periodically
+                    setInterval(() => reg.update(), 60 * 60 * 1000);
+                })
+                .catch(err => console.warn('SW registration failed:', err));
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const banner = document.getElementById('pwa-install-banner');
+            if (banner) banner.style.display = 'flex';
+        });
+        window.pwaInstall = {
+            prompt: async function () {
+                if (!deferredPrompt) return false;
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                const banner = document.getElementById('pwa-install-banner');
+                if (banner) banner.style.display = 'none';
+                return result.outcome === 'accepted';
+            },
+            canInstall: function () { return !!deferredPrompt; }
+        };
+    </script>
 </body>
 
 </html>

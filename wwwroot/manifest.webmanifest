@@ -1,22 +1,28 @@
 {
-  "name": "InventoryPlus",
+  "name": "InventoryPlus — Inventory & POS",
   "short_name": "InventoryPlus",
+  "description": "Smart inventory management and point-of-sale system for small businesses.",
   "id": "./",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "orientation": "any",
+  "background_color": "#0f111a",
   "theme_color": "#03173d",
   "prefer_related_applications": false,
+  "categories": ["business", "productivity", "finance"],
   "icons": [
     {
       "src": "icon-512.png",
       "type": "image/png",
-      "sizes": "512x512"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-192.png",
       "type": "image/png",
-      "sizes": "192x192"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     }
   ]
 }
