@@ -36,13 +36,10 @@ namespace InventoryPlus.Services
             {
                 if (_customLogoUrl == value) return;
                 _customLogoUrl = value;
-                // Also track the raw storage path for saving back to the DB.
-                // If it's a full URL (public or signed), extract just the path segment.
-                // If it's null/empty, clear the path. If it's already a path, keep as-is.
                 if (string.IsNullOrEmpty(value))
                     _customLogoPath = null;
                 else if (!value.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
-                    _customLogoPath = value; // already a plain path
+                    _customLogoPath = value;
                 else
                     _customLogoPath = ExtractStoragePath(value, "branding") ?? _customLogoPath;
                 NotifyStateChanged();
@@ -63,11 +60,31 @@ namespace InventoryPlus.Services
             }
         }
 
-        // Extracts just the object path from any URL format or returns value as-is if it's already a path
+        // Dashboard widget visibility
+        public bool ShowRevenueChart { get; set; } = true;
+        public bool ShowTopProducts { get; set; } = true;
+        public bool ShowPaymentBreakdown { get; set; } = true;
+        public bool ShowTodaySnapshot { get; set; } = true;
+        public bool ShowProfitTrend { get; set; } = true;
+        public bool ShowLowStock { get; set; } = true;
+        public bool ShowRecentSales { get; set; } = true;
+        public bool ShowQuickActions { get; set; } = true;
+
+        // Report visibility
+        public bool ShowReportSalesSummary { get; set; } = true;
+        public bool ShowReportTopProducts { get; set; } = true;
+        public bool ShowReportPaymentMethods { get; set; } = true;
+        public bool ShowReportProfitLoss { get; set; } = true;
+        public bool ShowReportInventoryValuation { get; set; } = true;
+        public bool ShowReportStockMovement { get; set; } = true;
+
+        // Onboarding
+        public bool OnboardingCompleted { get; set; } = false;
+
         private static string? ExtractStoragePath(string? urlOrPath, string bucket)
         {
             if (string.IsNullOrEmpty(urlOrPath)) return null;
-            if (!urlOrPath.StartsWith("https://")) return urlOrPath; // already a relative path
+            if (!urlOrPath.StartsWith("https://")) return urlOrPath;
             foreach (var marker in new[] { $"/object/public/{bucket}/", $"/object/sign/{bucket}/" })
             {
                 var idx = urlOrPath.IndexOf(marker, StringComparison.Ordinal);
@@ -95,6 +112,26 @@ namespace InventoryPlus.Services
                     _companyName = result.CompanyName;
                     _useLogoForBranding = result.UseLogoForBranding;
 
+                    // Dashboard settings
+                    ShowRevenueChart = result.ShowRevenueChart;
+                    ShowTopProducts = result.ShowTopProducts;
+                    ShowPaymentBreakdown = result.ShowPaymentBreakdown;
+                    ShowTodaySnapshot = result.ShowTodaySnapshot;
+                    ShowProfitTrend = result.ShowProfitTrend;
+                    ShowLowStock = result.ShowLowStock;
+                    ShowRecentSales = result.ShowRecentSales;
+                    ShowQuickActions = result.ShowQuickActions;
+
+                    // Report settings
+                    ShowReportSalesSummary = result.ShowReportSalesSummary;
+                    ShowReportTopProducts = result.ShowReportTopProducts;
+                    ShowReportPaymentMethods = result.ShowReportPaymentMethods;
+                    ShowReportProfitLoss = result.ShowReportProfitLoss;
+                    ShowReportInventoryValuation = result.ShowReportInventoryValuation;
+                    ShowReportStockMovement = result.ShowReportStockMovement;
+
+                    OnboardingCompleted = result.OnboardingCompleted;
+
                     var path = ExtractStoragePath(result.LogoUrl, "branding");
                     _customLogoPath = path;
                     if (!string.IsNullOrEmpty(path))
@@ -103,7 +140,7 @@ namespace InventoryPlus.Services
                         {
                             _customLogoUrl = await _supabase.Storage
                                 .From("branding")
-                                .CreateSignedUrl(path, 60 * 60 * 24 * 7); // 7-day signed URL
+                                .CreateSignedUrl(path, 60 * 60 * 24 * 7);
                         }
                         catch
                         {
@@ -129,13 +166,27 @@ namespace InventoryPlus.Services
             if (!Guid.TryParse(userId, out var ownerGuid)) return;
             try
             {
-                // Always save the storage PATH (not a full URL) so records stay valid long-term
                 var settings = new AccountSettings
                 {
                     OwnerGuid = ownerGuid,
                     CompanyName = _companyName,
                     LogoUrl = _customLogoPath ?? string.Empty,
-                    UseLogoForBranding = _useLogoForBranding
+                    UseLogoForBranding = _useLogoForBranding,
+                    ShowRevenueChart = ShowRevenueChart,
+                    ShowTopProducts = ShowTopProducts,
+                    ShowPaymentBreakdown = ShowPaymentBreakdown,
+                    ShowTodaySnapshot = ShowTodaySnapshot,
+                    ShowProfitTrend = ShowProfitTrend,
+                    ShowLowStock = ShowLowStock,
+                    ShowRecentSales = ShowRecentSales,
+                    ShowQuickActions = ShowQuickActions,
+                    ShowReportSalesSummary = ShowReportSalesSummary,
+                    ShowReportTopProducts = ShowReportTopProducts,
+                    ShowReportPaymentMethods = ShowReportPaymentMethods,
+                    ShowReportProfitLoss = ShowReportProfitLoss,
+                    ShowReportInventoryValuation = ShowReportInventoryValuation,
+                    ShowReportStockMovement = ShowReportStockMovement,
+                    OnboardingCompleted = OnboardingCompleted
                 };
                 await _supabase.From<AccountSettings>().Upsert(settings);
             }

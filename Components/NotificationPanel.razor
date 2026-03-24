@@ -1,0 +1,156 @@
+@inject InventoryPlus.Services.InventoryService Inventory
+@implements IDisposable
+
+<div class="notification-bell" @onclick="TogglePanel" @onclick:stopPropagation>
+    <i class="fa-solid fa-bell"></i>
+    @if (UnreadCount > 0)
+    {
+        <span class="notification-badge">@(UnreadCount > 9 ? "9+" : UnreadCount.ToString())</span>
+    }
+</div>
+
+@if (showPanel)
+{
+    <div class="notification-overlay" @onclick="() => showPanel = false"></div>
+    <div class="notification-panel glass-panel" @onclick:stopPropagation>
+        <div class="notification-header">
+            <h3 style="margin: 0; font-size: 1.1rem;">Notifications</h3>
+            @if (notifications.Any())
+            {
+                <button class="btn btn-sm btn-secondary" @onclick="MarkAllRead" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;">
+                    Mark all read
+                </button>
+            }
+        </div>
+        <div class="notification-list">
+            @if (!notifications.Any())
+            {
+                <div class="notification-empty">
+                    <i class="fa-solid fa-bell-slash"></i>
+                    <p>No notifications</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var n in notifications.OrderByDescending(x => x.CreatedAt).Take(20))
+                {
+                    <div class="notification-item @(n.IsRead ? "" : "unread")" @onclick="() => n.IsRead = true">
+                        <div class="notification-item-icon @n.Type">
+                            <i class="@n.Icon"></i>
+                        </div>
+                        <div class="notification-item-content">
+                            <div class="notification-item-title">@n.Title</div>
+                            <div class="notification-item-message">@n.Message</div>
+                            <div class="notification-item-time">@FormatTime(n.CreatedAt)</div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private bool showPanel = false;
+    private List<InventoryPlus.Models.AppNotification> notifications = new();
+    private int UnreadCount => notifications.Count(n => !n.IsRead);
+
+    protected override void OnInitialized()
+    {
+        Inventory.OnStateChanged += RefreshNotifications;
+        RefreshNotifications();
+    }
+
+    private void RefreshNotifications()
+    {
+        var newNotifications = new List<InventoryPlus.Models.AppNotification>();
+
+        // Low stock alerts
+        foreach (var ing in Inventory.ActiveIngredients.Where(i => i.Stock < 5 && i.Type == "Ingredient"))
+        {
+            var existing = notifications.FirstOrDefault(n => n.Id == $"low-stock-{ing.Guid}");
+            if (existing != null)
+            {
+                newNotifications.Add(existing);
+            }
+            else
+            {
+                newNotifications.Add(new InventoryPlus.Models.AppNotification
+                {
+                    Id = $"low-stock-{ing.Guid}",
+                    Title = "Low Stock Alert",
+                    Message = $"{ing.Name} is running low ({ing.Stock} {ing.Unit} remaining)",
+                    Icon = "fa-solid fa-triangle-exclamation",
+                    Type = "warning"
+                });
+            }
+        }
+
+        // Out of stock alerts
+        foreach (var ing in Inventory.ActiveIngredients.Where(i => i.Stock <= 0 && i.Type == "Ingredient"))
+        {
+            var id = $"out-stock-{ing.Guid}";
+            var existing = notifications.FirstOrDefault(n => n.Id == id);
+            if (existing != null)
+            {
+                newNotifications.Add(existing);
+            }
+            else
+            {
+                newNotifications.Add(new InventoryPlus.Models.AppNotification
+                {
+                    Id = id,
+                    Title = "Out of Stock!",
+                    Message = $"{ing.Name} has no stock left. Restock immediately.",
+                    Icon = "fa-solid fa-circle-xmark",
+                    Type = "danger"
+                });
+            }
+        }
+
+        // Recent sale notification (last sale)
+        var lastSale = Inventory.Sales.FirstOrDefault();
+        if (lastSale != null)
+        {
+            var id = $"sale-{lastSale.Guid}";
+            var existing = notifications.FirstOrDefault(n => n.Id == id);
+            if (existing != null)
+                newNotifications.Add(existing);
+            else
+                newNotifications.Add(new InventoryPlus.Models.AppNotification
+                {
+                    Id = id,
+                    Title = "Sale Completed",
+                    Message = $"{lastSale.ProductName} x{lastSale.QuantitySold} — ₱{lastSale.TotalAmount:0.00}",
+                    Icon = "fa-solid fa-circle-check",
+                    Type = "success",
+                    CreatedAt = lastSale.Date,
+                    IsRead = true
+                });
+        }
+
+        notifications = newNotifications;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void TogglePanel() => showPanel = !showPanel;
+
+    private void MarkAllRead()
+    {
+        foreach (var n in notifications) n.IsRead = true;
+    }
+
+    private string FormatTime(DateTime dt)
+    {
+        var diff = DateTime.Now - dt;
+        if (diff.TotalMinutes < 1) return "Just now";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
+        return dt.ToString("MMM dd");
+    }
+
+    public void Dispose()
+    {
+        Inventory.OnStateChanged -= RefreshNotifications;
+    }
+}

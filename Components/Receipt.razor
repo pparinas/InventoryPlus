@@ -1,0 +1,108 @@
+@inject Microsoft.JSInterop.IJSRuntime JS
+
+<div class="receipt-overlay" @onclick="Close">
+    <div class="receipt-container" @onclick:stopPropagation>
+        <div class="receipt-actions no-print">
+            <button class="btn btn-primary btn-sm" @onclick="PrintReceipt"><i class="fa-solid fa-print"></i> Print</button>
+            <button class="btn btn-secondary btn-sm" @onclick="Close"><i class="fa-solid fa-xmark"></i> Close</button>
+        </div>
+        <div class="receipt-paper" id="receipt-content">
+            <div class="receipt-header-section">
+                <h2 class="receipt-business-name">@BusinessName</h2>
+                <p class="receipt-date">@SaleDate.ToString("MMM dd, yyyy hh:mm tt")</p>
+                @if (!string.IsNullOrEmpty(CustomerName))
+                {
+                    <p class="receipt-customer">Customer: @CustomerName</p>
+                }
+            </div>
+
+            <div class="receipt-divider"></div>
+
+            <table class="receipt-items">
+                <thead>
+                    <tr>
+                        <th class="receipt-item-name">Item</th>
+                        <th class="receipt-item-qty">Qty</th>
+                        <th class="receipt-item-price">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Items)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td class="receipt-item-qty">@item.Quantity</td>
+                            <td class="receipt-item-price">₱@((item.UnitPrice * item.Quantity).ToString("0.00"))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="receipt-divider"></div>
+
+            <div class="receipt-totals">
+                <div class="receipt-row">
+                    <span>Subtotal</span>
+                    <span>₱@Subtotal.ToString("0.00")</span>
+                </div>
+                <div class="receipt-row">
+                    <span>Tax</span>
+                    <span>₱@TaxTotal.ToString("0.00")</span>
+                </div>
+                @if (DiscountAmount > 0)
+                {
+                    <div class="receipt-row receipt-discount">
+                        <span>Discount @(DiscountType == "Percentage" ? $"({DiscountAmount}%)" : "")</span>
+                        <span>-₱@CalculatedDiscount.ToString("0.00")</span>
+                    </div>
+                }
+                <div class="receipt-divider"></div>
+                <div class="receipt-row receipt-total">
+                    <strong>Total</strong>
+                    <strong>₱@Total.ToString("0.00")</strong>
+                </div>
+            </div>
+
+            <div class="receipt-divider"></div>
+
+            <div class="receipt-payment">
+                <span>Payment: @PaymentMethod</span>
+            </div>
+
+            <div class="receipt-footer">
+                <p>Thank you for your purchase!</p>
+                <p class="receipt-footer-sub">Powered by @BusinessName</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string BusinessName { get; set; } = "InventoryPlus";
+    [Parameter] public DateTime SaleDate { get; set; } = DateTime.Now;
+    [Parameter] public string CustomerName { get; set; } = string.Empty;
+    [Parameter] public List<ReceiptItem> Items { get; set; } = new();
+    [Parameter] public double Subtotal { get; set; }
+    [Parameter] public double TaxTotal { get; set; }
+    [Parameter] public double Total { get; set; }
+    [Parameter] public string PaymentMethod { get; set; } = "Cash";
+    [Parameter] public double DiscountAmount { get; set; }
+    [Parameter] public string DiscountType { get; set; } = "None";
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private double CalculatedDiscount => DiscountType == "Percentage" ? (Subtotal + TaxTotal) * (DiscountAmount / 100.0) : DiscountAmount;
+
+    private async Task PrintReceipt()
+    {
+        await JS.InvokeVoidAsync("window.print");
+    }
+
+    private async Task Close() => await OnClose.InvokeAsync();
+
+    public class ReceiptItem
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public double UnitPrice { get; set; }
+    }
+}

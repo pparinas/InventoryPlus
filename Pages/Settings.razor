@@ -156,3 +156,39 @@
     </div>
 </div>
 
+@* ── Dashboard & Report Preferences ── *@
+<div class="grid grid-cols-2 mt-4">
+    <div class="glass-panel">
+        <h2 class="mb-2">Dashboard Widgets</h2>
+        <p class="text-muted text-sm mb-4">Choose which widgets appear on your dashboard.</p>
+
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowTodaySnapshot" /><span>Today's Snapshot</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowRevenueChart" /><span>Revenue Chart</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowTopProducts" /><span>Top Products</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowPaymentBreakdown" /><span>Payment Breakdown</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowProfitTrend" /><span>Profit Trend</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowLowStock" /><span>Low Stock Alerts</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowRecentSales" /><span>Recent Sales</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowQuickActions" /><span>Quick Actions</span></label>
+
+        <button class="btn btn-primary mt-4 w-full" @onclick="SavePreferences">
+            <i class="fa-solid fa-save"></i> Save Preferences
+        </button>
+    </div>
+
+    <div class="glass-panel">
+        <h2 class="mb-2">Report Sections</h2>
+        <p class="text-muted text-sm mb-4">Choose which report sections are visible.</p>
+
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportSalesSummary" /><span>Sales Summary</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportTopProducts" /><span>Top Products</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportPaymentMethods" /><span>Payment Methods</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportProfitLoss" /><span>Profit & Loss</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportInventoryValuation" /><span>Inventory Valuation</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportStockMovement" /><span>Stock Movement</span></label>
+
+        <button class="btn btn-primary mt-4 w-full" @onclick="SavePreferences">
+            <i class="fa-solid fa-save"></i> Save Preferences
+        </button>
+    </div>
+</div>

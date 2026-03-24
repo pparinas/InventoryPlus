@@ -3,9 +3,13 @@
 @attribute [AllowAnonymous]
 
 
-<div class="login-container">
+<div class="login-container" @onkeydown="HandleKeyDown">
     <div class="login-card">
-        <h2>Login to @AppSettings.CompanyName</h2>
+        <div class="auth-brand">
+            <i class="fa-solid fa-cube"></i>
+        </div>
+        <h2>Welcome Back</h2>
+        <p class="text-muted" style="margin-bottom: 1.5rem; margin-top: -0.5rem;">Sign in to @AppSettings.CompanyName</p>
         
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
@@ -14,12 +18,12 @@
 
         <div class="form-group">
             <label for="email">Email</label>
-            <input id="email" type="email" @bind="Email" class="form-control" placeholder="Enter your email" />
+            <input id="email" type="email" @bind="Email" class="form-control" placeholder="you@example.com" />
         </div>
 
         <div class="form-group">
             <label for="password">Password</label>
-            <input id="password" type="password" @bind="Password" class="form-control" placeholder="Enter your password" />
+            <input id="password" type="password" @bind="Password" class="form-control" placeholder="Your password" />
         </div>
 
         <div class="form-check">
@@ -30,16 +34,17 @@
         <button @onclick="HandleLogin" class="btn btn-primary w-full" disabled="@IsLoading">
             @if (IsLoading)
             {
-                <span class="spinner"></span> <span>Logging in...</span>
+                <span class="spinner"></span> <span>Signing in...</span>
             }
             else
             {
-                <span>Login</span>
+                <i class="fa-solid fa-right-to-bracket"></i> <span>Sign In</span>
             }
         </button>
         
         <div class="login-links">
-            <p>Don't have an account? <a href="register">Register here</a></p>
+            <p>Don't have an account? <a href="register">Create one</a></p>
+            <p><a href="/">Back to home</a></p>
         </div>
     </div>
 </div>

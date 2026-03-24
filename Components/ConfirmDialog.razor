@@ -1,0 +1,34 @@
+@if (IsVisible)
+{
+    <div class="modal-overlay" @onclick="Cancel">
+        <div class="modal-content confirm-dialog" @onclick:stopPropagation style="max-width: 420px; text-align: center;">
+            <div class="modal-body" style="padding: 2rem;">
+                <div class="confirm-icon @IconClass" style="font-size: 3rem; margin-bottom: 1rem;">
+                    <i class="@Icon"></i>
+                </div>
+                <h3 style="margin-bottom: 0.5rem;">@Title</h3>
+                <p class="text-muted" style="margin-bottom: 1.5rem; font-size: 0.95rem;">@Message</p>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-secondary" @onclick="Cancel">@CancelText</button>
+                    <button class="btn @ConfirmButtonClass" @onclick="Confirm">@ConfirmText</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public string Title { get; set; } = "Are you sure?";
+    [Parameter] public string Message { get; set; } = "This action cannot be undone.";
+    [Parameter] public string Icon { get; set; } = "fa-solid fa-triangle-exclamation";
+    [Parameter] public string IconClass { get; set; } = "text-warning";
+    [Parameter] public string ConfirmText { get; set; } = "Confirm";
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public string ConfirmButtonClass { get; set; } = "btn-danger";
+    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    private async Task Confirm() => await OnConfirm.InvokeAsync();
+    private async Task Cancel() => await OnCancel.InvokeAsync();
+}

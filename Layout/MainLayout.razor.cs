@@ -17,6 +17,8 @@ namespace InventoryPlus.Layout
         protected bool showDropdown = false;
         protected bool isLightMode = false;
         protected bool showMobileNav = false;
+        protected bool showOnboarding = false;
+        protected string? currentUserEmail;
 
         protected void ToggleMobileNav()
         {
@@ -26,6 +28,20 @@ namespace InventoryPlus.Layout
         protected void CloseMobileNav()
         {
             showMobileNav = false;
+        }
+
+        protected void HandleGlobalClick()
+        {
+            showDropdown = false;
+        }
+
+        protected void HandleKeyDown(KeyboardEventArgs e)
+        {
+            if (e.Key == "Escape")
+            {
+                showDropdown = false;
+                showMobileNav = false;
+            }
         }
 
         protected void ToggleDropdown()
@@ -60,6 +76,14 @@ namespace InventoryPlus.Layout
                 }
 
                 await LoadDataAsync();
+
+                // Check if onboarding needed after data loads
+                if (Inventory.IsLoaded && !AppSettings.OnboardingCompleted 
+                    && !Inventory.ActiveProducts.Any() && !Inventory.ActiveIngredients.Any())
+                {
+                    showOnboarding = true;
+                }
+
                 StateHasChanged();
             }
         }
@@ -77,6 +101,7 @@ namespace InventoryPlus.Layout
                 }
                 if (user == null) return;
 
+                currentUserEmail = user.Email;
                 await AppSettings.LoadAsync(user.Id);
                 await Inventory.LoadAsync(user.Id, JSRuntime);
             }
@@ -86,13 +111,22 @@ namespace InventoryPlus.Layout
             }
         }
 
+        protected void OnboardingDone()
+        {
+            showOnboarding = false;
+            StateHasChanged();
+        }
+
         protected override void OnInitialized()
         {
             AppSettings.OnStateChanged += HandleStateChanged;
             Inventory.OnStateChanged += HandleStateChanged;
         }
 
-        private void HandleStateChanged() => StateHasChanged();
+        private void HandleStateChanged()
+        {
+            InvokeAsync(StateHasChanged);
+        }
 
         public void Dispose()
         {
@@ -102,7 +136,6 @@ namespace InventoryPlus.Layout
 
         protected async Task SignOut()
         {
-            // Clear persisted tokens from localStorage before signing out
             try
             {
                 await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_access_token");
@@ -112,7 +145,6 @@ namespace InventoryPlus.Layout
 
             var userId = Supabase.Auth.CurrentUser?.Id;
             await Supabase.Auth.SignOut();
-            // Reset service state so next login reloads fresh data
             Inventory.IsLoaded = false;
             Inventory.Ingredients = new();
             Inventory.Products = new();

@@ -18,7 +18,22 @@ else
         <h1>Products</h1>
         <p class="text-muted">Bundles of ingredients ready for sale.</p>
     </div>
-    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Product</button>
+    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="hide-mobile"> Add Product</span></button>
+</div>
+
+<div class="glass-panel mb-4" style="padding:0.75rem 1rem">
+    <div class="flex gap-2 flex-wrap items-center">
+        <div class="flex-1" style="min-width:180px">
+            <input type="text" class="form-control" placeholder="Search products..." @bind="searchQuery" @bind:event="oninput" />
+        </div>
+        <select class="form-control" style="width:auto" @bind="categoryFilter">
+            <option value="All">All Categories</option>
+            @foreach (var cat in Inventory.ActiveProducts.Select(p => string.IsNullOrEmpty(p.Category) ? "Other" : p.Category).Distinct().OrderBy(c => c))
+            {
+                <option value="@cat">@cat</option>
+            }
+        </select>
+    </div>
 </div>
 
 <div class="glass-panel">
@@ -78,11 +93,11 @@ else
                     </td>
                     <td class="text-right">
                         <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-sm btn-danger margin-left-2" @onclick="() => Delete(item)"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn btn-sm btn-danger margin-left-2" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             }
-            @if (!Inventory.ActiveProducts.Any())
+            @if (!FilteredProducts.Any())
             {
                 <tr>
                     <td colspan="6" class="text-center text-muted" style="padding: 3rem">No products configured yet.</td>
@@ -94,11 +109,11 @@ else
 
     @* Mobile card list *@
     <div class="card-view">
-        @if (!Inventory.ActiveProducts.Any())
+        @if (!FilteredProducts.Any())
         {
             <p class="text-center text-muted" style="padding: 2rem 0">No products configured yet.</p>
         }
-            @foreach (var item in Inventory.ActiveProducts.Skip((_page - 1) * PageSize).Take(PageSize))
+            @foreach (var item in FilteredProducts.Skip((_page - 1) * PageSize).Take(PageSize))
         {
             <div class="stock-card">
                 <div class="stock-card-header">
@@ -151,13 +166,13 @@ else
                 </div>
                 <div class="stock-card-actions">
                     <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
                 </div>
             </div>
         }
     </div>
 
-    <PaginationBar Page="_page" PageSize="PageSize" TotalItems="Inventory.ActiveProducts.Count()" OnPageChange="SetPage" />
+    <PaginationBar Page="_page" PageSize="PageSize" TotalItems="FilteredProducts.Count()" OnPageChange="SetPage" />
 </div>
 
 @if (showModal)
@@ -176,6 +191,11 @@ else
                         <div class="form-group">
                             <label>Product Name</label>
                             <input type="text" @bind="currentProduct.Name" placeholder="e.g. Hamburger" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="text" @bind="currentProduct.Category" placeholder="e.g. Food, Beverage, Retail" />
                         </div>
                         
                         <div class="form-group">
@@ -276,6 +296,15 @@ else
     </div>
 }
 }
+
+<InventoryPlus.Components.ConfirmDialog
+    IsVisible="showDeleteConfirm"
+    Title="Delete Product"
+    Message="@($"Are you sure you want to delete \"{deleteTarget?.Name}\"? This cannot be undone.")"
+    Icon="fa-solid fa-trash"
+    ConfirmButtonClass="btn-danger"
+    OnConfirm="ExecuteDelete"
+    OnCancel="() => showDeleteConfirm = false" />
 
 @code {
 }
