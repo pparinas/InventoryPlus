@@ -1,0 +1,22 @@
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <i class="@Icon"></i>
+    </div>
+    <h3 class="empty-state-title">@Title</h3>
+    <p class="empty-state-message">@Message</p>
+    @if (OnAction.HasDelegate)
+    {
+        <button class="btn btn-primary mt-4" @onclick="OnAction">
+            <i class="@ActionIcon"></i> @ActionText
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = "fa-solid fa-inbox";
+    [Parameter] public string Title { get; set; } = "Nothing here yet";
+    [Parameter] public string Message { get; set; } = "Get started by adding your first item.";
+    [Parameter] public string ActionText { get; set; } = "Get Started";
+    [Parameter] public string ActionIcon { get; set; } = "fa-solid fa-plus";
+    [Parameter] public EventCallback OnAction { get; set; }
+}

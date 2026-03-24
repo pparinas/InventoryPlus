@@ -22,14 +22,33 @@ namespace InventoryPlus.Pages
         protected double newQuantity;
         protected int _page = 1;
         protected const int PageSize = 10;
+
+        protected string searchQuery = "";
+        protected string categoryFilter = "All";
+        protected bool showDeleteConfirm;
+        protected Product? deleteTarget;
+
         protected void SetPage(int p) { _page = p; StateHasChanged(); }
+
+        protected IEnumerable<Product> FilteredProducts
+        {
+            get
+            {
+                var items = Inventory.ActiveProducts.AsEnumerable();
+                if (categoryFilter != "All")
+                    items = items.Where(p => (string.IsNullOrEmpty(p.Category) ? "Other" : p.Category) == categoryFilter);
+                if (!string.IsNullOrWhiteSpace(searchQuery))
+                    items = items.Where(p => p.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+                return items;
+            }
+        }
 
         protected override void OnInitialized()
         {
             Inventory.OnStateChanged += HandleStateChanged;
         }
 
-        private void HandleStateChanged() => StateHasChanged();
+        private void HandleStateChanged() => InvokeAsync(StateHasChanged);
 
         public void Dispose()
         {
@@ -52,6 +71,7 @@ namespace InventoryPlus.Pages
                 SellingPrice = item.SellingPrice,
                 TaxRate = item.TaxRate,
                 ImageUrl = item.ImageUrl,
+                Category = item.Category,
                 RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
                 {
                     IngredientId = r.IngredientId,
@@ -63,10 +83,21 @@ namespace InventoryPlus.Pages
             showModal = true;
         }
 
-        protected async Task Delete(Product item)
+        protected void ConfirmDelete(Product item)
         {
-            await Inventory.DeleteProductAsync(item);
-            Toast.Show($"\"{item.Name}\" removed.", "info");
+            deleteTarget = item;
+            showDeleteConfirm = true;
+        }
+
+        protected async Task ExecuteDelete()
+        {
+            if (deleteTarget != null)
+            {
+                await Inventory.DeleteProductAsync(deleteTarget);
+                Toast.Show($"\"{deleteTarget.Name}\" removed.", "info");
+            }
+            showDeleteConfirm = false;
+            deleteTarget = null;
         }
 
         protected async Task HandleFileSelected(InputFileChangeEventArgs e)
@@ -156,6 +187,7 @@ namespace InventoryPlus.Pages
                     existing.SellingPrice = currentProduct.SellingPrice;
                     existing.TaxRate = currentProduct.TaxRate;
                     existing.ImageUrl = currentProduct.ImageUrl;
+                    existing.Category = currentProduct.Category;
                     existing.RequiredIngredients = currentProduct.RequiredIngredients;
                     await Inventory.UpdateProductAsync(existing);
                     Toast.Show($"\"{existing.Name}\" updated successfully!");

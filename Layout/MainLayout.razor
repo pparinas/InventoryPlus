@@ -1,6 +1,6 @@
 @inherits LayoutComponentBase
 
-<div class="app-container @(showMobileNav ? "mobile-nav-open" : "")" @onclick="() => { showDropdown = false; }">
+<div class="app-container @(showMobileNav ? "mobile-nav-open" : "")" @onclick="HandleGlobalClick" @onkeydown="HandleKeyDown" tabindex="0">
     <header class="top-nav">
         <div class="flex items-center gap-3">
             <button class="hamburger-btn btn btn-secondary btn-sm" @onclick="ToggleMobileNav" @onclick:stopPropagation title="Menu"
@@ -38,9 +38,11 @@
                 }
             </button>
 
+            <NotificationPanel />
+
             <div class="account-dropdown" style="position: relative;" @onclick:stopPropagation>
                 <button class="btn btn-secondary btn-sm" @onclick="ToggleDropdown" style="border-radius: 50px; padding: 0.5rem 1rem;">
-                    <i class="fa-solid fa-circle-user fa-lg" style="margin-right: 0.5rem"></i> Account <i class="fa-solid fa-chevron-down" style="margin-left: 0.5rem; font-size: 0.7rem"></i>
+                    <i class="fa-solid fa-circle-user fa-lg" style="margin-right: 0.5rem"></i> <span class="hide-mobile">Account</span> <i class="fa-solid fa-chevron-down hide-mobile" style="margin-left: 0.5rem; font-size: 0.7rem"></i>
                 </button>
                 
                 @if (showDropdown)
@@ -50,9 +52,9 @@
                             <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; color: white;">
                                 <i class="fa-solid fa-user"></i>
                             </div>
-                            <div>
-                                <div style="font-weight: 600;">System Admin</div>
-                                <div class="text-muted" style="font-size: 0.8rem;">admin@inventoryplus.com</div>
+                            <div style="min-width: 0;">
+                                <div style="font-weight: 600;">@(currentUserEmail ?? "Loading...")</div>
+                                <div class="text-muted" style="font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@AppSettings.CompanyName</div>
                             </div>
                         </div>
                         
@@ -62,7 +64,7 @@
                             <Authorized>
                                 <NavLink class="nav-item" href="settings" @onclick="() => showDropdown = false" style="margin-bottom: 0.5rem;">
                                     <i class="fa-solid fa-gear fa-fw"></i>
-                                    <span>Brand Settings</span>
+                                    <span>Settings</span>
                                 </NavLink>
                             </Authorized>
                         </AuthorizeView>
@@ -95,4 +97,9 @@
     </main>
     <ToastContainer />
 </div>
+
+@if (showOnboarding)
+{
+    <OnboardingWizard IsVisible="true" OnComplete="OnboardingDone" />
+}
 

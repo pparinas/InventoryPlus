@@ -3,9 +3,13 @@
 @attribute [AllowAnonymous]
 
 
-<div class="login-container">
+<div class="login-container" @onkeydown="HandleKeyDown">
     <div class="login-card">
-        <h2>Register for @AppSettings.CompanyName</h2>
+        <div class="auth-brand">
+            <i class="fa-solid fa-cube"></i>
+        </div>
+        <h2>Create Account</h2>
+        <p class="text-muted" style="margin-bottom: 1.5rem; margin-top: -0.5rem;">Start your free trial with @AppSettings.CompanyName</p>
         
         @if (!string.IsNullOrEmpty(SuccessMessage))
         {
@@ -18,27 +22,41 @@
 
         <div class="form-group">
             <label for="email">Email</label>
-            <input id="email" type="email" @bind="Email" class="form-control" placeholder="Enter your email" />
+            <input id="email" type="email" @bind="Email" class="form-control" placeholder="you@example.com" />
         </div>
 
         <div class="form-group">
             <label for="password">Password</label>
-            <input id="password" type="password" @bind="Password" class="form-control" placeholder="Enter your password" />
+            <input id="password" type="password" @bind="Password" class="form-control" placeholder="Min 6 characters" />
+            @if (!string.IsNullOrEmpty(Password) && Password.Length < 6)
+            {
+                <span class="text-danger" style="font-size: 0.8rem;">Password must be at least 6 characters</span>
+            }
+        </div>
+
+        <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input id="confirmPassword" type="password" @bind="ConfirmPassword" class="form-control" placeholder="Repeat your password" />
+            @if (!string.IsNullOrEmpty(ConfirmPassword) && Password != ConfirmPassword)
+            {
+                <span class="text-danger" style="font-size: 0.8rem;">Passwords do not match</span>
+            }
         </div>
 
         <button @onclick="HandleRegister" class="btn btn-primary w-full" disabled="@IsLoading">
             @if (IsLoading)
             {
-                <span class="spinner"></span> <span>Registering...</span>
+                <span class="spinner"></span> <span>Creating account...</span>
             }
             else
             {
-                <span>Register</span>
+                <i class="fa-solid fa-user-plus"></i> <span>Create Account</span>
             }
         </button>
 
         <div class="login-links">
-            <p>Already have an account? <a href="login">Login here</a></p>
+            <p>Already have an account? <a href="login">Sign in</a></p>
+            <p><a href="/">Back to home</a></p>
         </div>
     </div>
 </div>

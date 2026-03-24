@@ -213,9 +213,9 @@ namespace InventoryPlus.Services
 
         // ── Sales ──────────────────────────────────────────────────────────────
 
-        public async Task<bool> RecordSaleAsync(Product product, int quantity, string note = "", string paymentMethod = "Cash")
+        public async Task<Sale?> RecordSaleAsync(Product product, int quantity, string note = "", string paymentMethod = "Cash", string customerName = "", double discountAmount = 0, string discountType = "None")
         {
-            if (product.AvailableCount < quantity) return false;
+            if (product.AvailableCount < quantity) return null;
 
             // Deduct ingredient stock and persist
             foreach (var req in product.RequiredIngredients)
@@ -230,6 +230,14 @@ namespace InventoryPlus.Services
             var subtotal = product.SellingPrice * quantity;
             var tax = product.SellingPrice * product.TaxRate * quantity;
             var total = subtotal + tax;
+
+            // Apply discount
+            if (discountType == "Percentage" && discountAmount > 0)
+                total -= total * (discountAmount / 100.0);
+            else if (discountType == "Fixed" && discountAmount > 0)
+                total -= discountAmount;
+            if (total < 0) total = 0;
+
             var profit = subtotal - (product.TotalCost * quantity);
 
             var sale = new Sale
@@ -243,15 +251,24 @@ namespace InventoryPlus.Services
                 ProfitAmount = profit,
                 Date = DateTime.UtcNow,
                 Note = note,
-                PaymentMethod = paymentMethod
+                PaymentMethod = paymentMethod,
+                CustomerName = customerName,
+                DiscountAmount = discountAmount,
+                DiscountType = discountType
             };
 
             var resp = await _supabase.From<Sale>().Insert(sale);
             var saved = resp.Models.FirstOrDefault() ?? sale;
+
+            // Re-apply in-memory-only fields (marked [JsonIgnore], not persisted to DB)
+            saved.CustomerName = customerName;
+            saved.DiscountAmount = discountAmount;
+            saved.DiscountType = discountType;
+
             Sales.Insert(0, saved);
 
             NotifyStateChanged();
-            return true;
+            return saved;
         }
 
         public void NotifyStateChanged() => OnStateChanged?.Invoke();

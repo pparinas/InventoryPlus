@@ -16,14 +16,39 @@ namespace InventoryPlus.Pages
         protected Ingredient currentIngredient = new();
         protected int _page = 1;
         protected const int PageSize = 10;
+
+        protected string searchQuery = "";
+        protected string typeFilter = "All";
+        protected string sortBy = "name";
+        protected bool showDeleteConfirm;
+        protected Ingredient? deleteTarget;
+
         protected void SetPage(int p) { _page = p; StateHasChanged(); }
+
+        protected IEnumerable<Ingredient> FilteredItems
+        {
+            get
+            {
+                var items = Inventory.ActiveIngredients.AsEnumerable();
+                if (typeFilter != "All")
+                    items = items.Where(i => i.Type == typeFilter);
+                if (!string.IsNullOrWhiteSpace(searchQuery))
+                    items = items.Where(i => i.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase));
+                return sortBy switch
+                {
+                    "stock" => items.OrderBy(i => i.Stock),
+                    "value" => items.OrderByDescending(i => i.Stock * i.CostPerUnit),
+                    _ => items.OrderBy(i => i.Name)
+                };
+            }
+        }
 
         protected override void OnInitialized()
         {
             Inventory.OnStateChanged += HandleStateChanged;
         }
 
-        private void HandleStateChanged() => StateHasChanged();
+        private void HandleStateChanged() => InvokeAsync(StateHasChanged);
 
         public void Dispose()
         {
@@ -52,10 +77,21 @@ namespace InventoryPlus.Pages
             showModal = true;
         }
 
-        protected async Task Delete(Ingredient item)
+        protected void ConfirmDelete(Ingredient item)
         {
-            await Inventory.DeleteIngredientAsync(item);
-            Toast.Show($"\"{item.Name}\" removed.", "info");
+            deleteTarget = item;
+            showDeleteConfirm = true;
+        }
+
+        protected async Task ExecuteDelete()
+        {
+            if (deleteTarget != null)
+            {
+                await Inventory.DeleteIngredientAsync(deleteTarget);
+                Toast.Show($"\"{deleteTarget.Name}\" removed.", "info");
+            }
+            showDeleteConfirm = false;
+            deleteTarget = null;
         }
 
         protected async Task Save()

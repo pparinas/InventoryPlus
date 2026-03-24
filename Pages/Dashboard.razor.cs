@@ -12,12 +12,14 @@ namespace InventoryPlus.Pages
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public NavigationManager Nav { get; set; } = default!;
 
+        protected string timeRange = "30d";
+
         protected override void OnInitialized()
         {
             Inventory.OnStateChanged += HandleStateChanged;
         }
 
-        private void HandleStateChanged() => StateHasChanged();
+        private void HandleStateChanged() => InvokeAsync(StateHasChanged);
 
         public void Dispose()
         {
@@ -26,10 +28,64 @@ namespace InventoryPlus.Pages
 
         protected void Refresh() => StateHasChanged();
 
-        protected double TotalRevenue => Inventory.Sales.Sum(s => s.TotalAmount);
-        protected double TotalProfit => Inventory.Sales.Sum(s => s.ProfitAmount);
-        
-        protected List<Ingredient> LowStockIngredients => Inventory.ActiveIngredients.Where(i => i.Stock < 5 && i.Type == "Ingredient").ToList();
-        protected List<Sale> RecentSales => Inventory.Sales.OrderByDescending(s => s.Date).Take(5).ToList();
+        private IEnumerable<Sale> FilteredSales
+        {
+            get
+            {
+                var now = DateTime.Now;
+                return timeRange switch
+                {
+                    "today" => Inventory.Sales.Where(s => s.Date.Date == now.Date),
+                    "7d" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-7)),
+                    "30d" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-30)),
+                    _ => Inventory.Sales
+                };
+            }
+        }
+
+        protected double FilteredRevenue => FilteredSales.Sum(s => s.TotalAmount);
+        protected double FilteredProfit => FilteredSales.Sum(s => s.ProfitAmount);
+
+        protected List<Ingredient> LowStockIngredients => Inventory.ActiveIngredients
+            .Where(i => i.Stock < 5).ToList();
+
+        protected List<Sale> RecentSales => FilteredSales
+            .OrderByDescending(s => s.Date).Take(8).ToList();
+
+        // Revenue per day for chart (last 7 entries)
+        protected Dictionary<string, double> DailyRevenue => FilteredSales
+            .GroupBy(s => s.Date.ToString("MM/dd"))
+            .OrderBy(g => g.Key)
+            .TakeLast(7)
+            .ToDictionary(g => g.Key, g => g.Sum(s => s.TotalAmount));
+
+        // Profit per day for chart
+        protected Dictionary<string, double> DailyProfit => FilteredSales
+            .GroupBy(s => s.Date.ToString("MM/dd"))
+            .OrderBy(g => g.Key)
+            .TakeLast(7)
+            .ToDictionary(g => g.Key, g => g.Sum(s => s.ProfitAmount));
+
+        // Top 5 products by quantity sold
+        protected Dictionary<string, int> TopProducts => FilteredSales
+            .GroupBy(s => s.ProductName)
+            .Select(g => new { Name = g.Key, Qty = g.Sum(s => s.QuantitySold) })
+            .OrderByDescending(x => x.Qty)
+            .Take(5)
+            .ToDictionary(x => x.Name, x => x.Qty);
+
+        // Payment method breakdown
+        protected Dictionary<string, double> PaymentBreakdown => FilteredSales
+            .GroupBy(s => string.IsNullOrEmpty(s.PaymentMethod) ? "Cash" : s.PaymentMethod)
+            .ToDictionary(g => g.Key, g => g.Sum(s => s.TotalAmount));
+
+        protected string GetPaymentIcon(string method) => method switch
+        {
+            "Cash" => "fa-solid fa-money-bill-wave",
+            "GCash" => "fa-solid fa-mobile-screen-button",
+            "Card" => "fa-solid fa-credit-card",
+            "Bank Transfer" => "fa-solid fa-building-columns",
+            _ => "fa-solid fa-circle-dollar-to-slot"
+        };
     }
 }

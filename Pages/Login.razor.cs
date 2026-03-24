@@ -19,6 +19,12 @@ namespace InventoryPlus.Pages
         protected bool IsLoading { get; set; } = false;
         protected bool RememberMe { get; set; } = false;
 
+        protected async Task HandleKeyDown(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+        {
+            if (e.Key == "Enter" && !IsLoading)
+                await HandleLogin();
+        }
+
         protected override async Task OnInitializedAsync()
         {
             var uri = new Uri(NavigationManager.Uri);

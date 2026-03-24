@@ -3,109 +3,211 @@
 @inject SettingsService AppSettings
 @attribute [AllowAnonymous]
 
-<PageTitle>@AppSettings.CompanyName - Smart Inventory Management</PageTitle>
+<PageTitle>@AppSettings.CompanyName - Smart Inventory & POS for Small Businesses</PageTitle>
 
+<!-- HERO -->
 <section class="hero-section">
     <div class="hero-content">
-        <h1 class="hero-title">Manage Your Inventory With <span class="text-gradient">Precision</span></h1>
-        <p class="hero-subtitle">The modern, beautiful path to managing products, real-time analytics, and low stock alerts. Run your business without the friction.</p>
+        <div class="hero-badge"><i class="fa-solid fa-bolt"></i> Trusted by growing businesses</div>
+        <h1 class="hero-title">Run Your Business<br/><span class="text-gradient">Smarter, Not Harder</span></h1>
+        <p class="hero-subtitle">All-in-one inventory management and point of sale system. Track stock, record sales, and get real-time insights — from any device.</p>
         <div class="hero-actions">
-            <a href="register" class="btn btn-primary btn-lg">Get Started Free</a>
-            <a href="#features" class="btn btn-secondary btn-lg">Explore Features</a>
+            <a href="register" class="btn btn-primary btn-lg"><i class="fa-solid fa-rocket"></i> Start Free Trial</a>
+            <a href="#features" class="btn btn-secondary btn-lg"><i class="fa-solid fa-play"></i> See How It Works</a>
+        </div>
+        <div class="hero-trust">
+            <div class="hero-trust-item"><i class="fa-solid fa-circle-check text-success"></i> No credit card required</div>
+            <div class="hero-trust-item"><i class="fa-solid fa-circle-check text-success"></i> Setup in 2 minutes</div>
+            <div class="hero-trust-item"><i class="fa-solid fa-circle-check text-success"></i> Works on any device</div>
         </div>
     </div>
     <div class="hero-image">
-        <!-- Floating mockups or abstract shapes -->
-        <div class="glass-panel mockup-panel">
+        <div class="hero-mockup glass-panel">
             <div class="mockup-header">
                 <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
+                <span class="text-muted" style="font-size: 0.7rem; margin-left: auto;">Dashboard</span>
             </div>
             <div class="mockup-body">
-                <div class="mockup-chart"></div>
-                <div class="mockup-stats">
-                    <div class="m-stat"></div>
-                    <div class="m-stat"></div>
-                    <div class="m-stat" style="width: 50%"></div>
+                <div class="mockup-stats-row">
+                    <div class="mockup-stat-card">
+                        <div class="mockup-stat-num text-success">₱12,450</div>
+                        <div class="mockup-stat-label">Revenue</div>
+                    </div>
+                    <div class="mockup-stat-card">
+                        <div class="mockup-stat-num text-primary">48</div>
+                        <div class="mockup-stat-label">Sales Today</div>
+                    </div>
                 </div>
-                <div class="mockup-stats" style="margin-top: 1rem">
-                    <div class="m-stat" style="background: rgba(99, 102, 241, 0.2)"></div>
-                    <div class="m-stat" style="background: rgba(39, 201, 63, 0.2)"></div>
+                <div class="mockup-chart-bars">
+                    <div class="mockup-bar" style="height: 40%"></div>
+                    <div class="mockup-bar" style="height: 65%"></div>
+                    <div class="mockup-bar" style="height: 50%"></div>
+                    <div class="mockup-bar active" style="height: 85%"></div>
+                    <div class="mockup-bar" style="height: 60%"></div>
+                    <div class="mockup-bar" style="height: 75%"></div>
+                    <div class="mockup-bar" style="height: 45%"></div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
+<!-- HOW IT WORKS -->
+<section class="how-it-works-section" id="how-it-works">
+    <div class="section-title">
+        <h2>Up and Running in 3 Steps</h2>
+        <p class="text-muted text-lg mt-2">No complex setup. No training required.</p>
+    </div>
+    <div class="steps-grid">
+        <div class="step-card">
+            <div class="step-number">1</div>
+            <div class="step-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <h3>Add Your Inventory</h3>
+            <p class="text-muted">Enter your raw materials, ingredients, or products with costs and quantities.</p>
+        </div>
+        <div class="step-connector"><i class="fa-solid fa-arrow-right"></i></div>
+        <div class="step-card">
+            <div class="step-number">2</div>
+            <div class="step-icon"><i class="fa-solid fa-tags"></i></div>
+            <h3>Configure Products</h3>
+            <p class="text-muted">Create sellable products with pricing, tax rates, and ingredient recipes.</p>
+        </div>
+        <div class="step-connector"><i class="fa-solid fa-arrow-right"></i></div>
+        <div class="step-card">
+            <div class="step-number">3</div>
+            <div class="step-icon"><i class="fa-solid fa-cash-register"></i></div>
+            <h3>Start Selling</h3>
+            <p class="text-muted">Use the POS to record sales. Stock auto-deducts and reports update instantly.</p>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURES -->
 <section id="features" class="features-section">
     <div class="section-title">
-        <h2>Everything you need</h2>
-        <p class="text-muted text-lg mt-2">Powerful tools integrated into one seamless experience.</p>
+        <h2>Everything Your Business Needs</h2>
+        <p class="text-muted text-lg mt-2">Powerful tools in one seamless, mobile-friendly experience.</p>
     </div>
     
     <div class="features-grid">
         <div class="feature-card glass-panel">
             <div class="feature-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
             <h3>Smart Inventory</h3>
-            <p>Track ingredients and products in real time with automatic stock deduction upon sales.</p>
+            <p>Track ingredients, raw materials, and supplies with automatic stock deduction when sales are made.</p>
         </div>
         <div class="feature-card glass-panel">
             <div class="feature-icon"><i class="fa-solid fa-cash-register"></i></div>
             <h3>Point of Sale</h3>
-            <p>A fast, intuitive POS system right in your browser. Complete orders seamlessly.</p>
+            <p>Fast, touch-friendly POS with search, categories, discounts, and instant receipt generation.</p>
         </div>
         <div class="feature-card glass-panel">
             <div class="feature-icon"><i class="fa-solid fa-chart-pie"></i></div>
-            <h3>Deep Analytics</h3>
-            <p>Understand your profit margins, top selling items, and revenue growth effortlessly.</p>
+            <h3>Business Reports</h3>
+            <p>Sales summaries, profit & loss, top products, payment breakdowns — all customizable.</p>
+        </div>
+        <div class="feature-card glass-panel">
+            <div class="feature-icon"><i class="fa-solid fa-bell"></i></div>
+            <h3>Low Stock Alerts</h3>
+            <p>Get notified instantly when ingredients run low so you never miss a sale.</p>
+        </div>
+        <div class="feature-card glass-panel">
+            <div class="feature-icon"><i class="fa-solid fa-receipt"></i></div>
+            <h3>Receipt Printing</h3>
+            <p>Generate professional receipts after every sale — print or share digitally.</p>
+        </div>
+        <div class="feature-card glass-panel">
+            <div class="feature-icon"><i class="fa-solid fa-moon"></i></div>
+            <h3>Dark & Light Mode</h3>
+            <p>Work comfortably in any lighting with beautiful dark and light themes built in.</p>
         </div>
     </div>
 </section>
 
+<!-- PRICING -->
 <section id="pricing" class="pricing-section">
     <div class="section-title">
         <h2>Simple, Transparent Pricing</h2>
-        <p class="text-muted text-lg mt-2">Choose the plan that fits your business scale.</p>
+        <p class="text-muted text-lg mt-2">Start free. Upgrade when you're ready.</p>
     </div>
     
     <div class="pricing-grid">
-        <!-- Monthly Plan -->
         <div class="pricing-card glass-panel">
             <div class="pricing-header">
                 <h3>Monthly</h3>
                 <div class="pricing-price">₱488<span>/mo</span></div>
             </div>
             <ul class="pricing-features">
-                <li><i class="fa-solid fa-check"></i> Full Inventory Access</li>
-                <li><i class="fa-solid fa-check"></i> Unlimited Products</li>
-                <li><i class="fa-solid fa-check"></i> Real-time Sales Tracking</li>
-                <li><i class="fa-solid fa-check"></i> Basic Analytics</li>
-                <li><i class="fa-solid fa-check"></i> 1 Admin Account</li>
+                <li><i class="fa-solid fa-check text-success"></i> Full Inventory Management</li>
+                <li><i class="fa-solid fa-check text-success"></i> Unlimited Products & Sales</li>
+                <li><i class="fa-solid fa-check text-success"></i> Point of Sale System</li>
+                <li><i class="fa-solid fa-check text-success"></i> Basic Reports & Analytics</li>
+                <li><i class="fa-solid fa-check text-success"></i> Receipt Generation</li>
+                <li><i class="fa-solid fa-check text-success"></i> Dark/Light Mode</li>
             </ul>
             <a href="register" class="btn btn-secondary w-full">Start Monthly</a>
         </div>
 
-        <!-- Annual Plan -->
         <div class="pricing-card glass-panel popular">
+            <div class="popular-badge">Best Value</div>
             <div class="pricing-header">
                 <h3>Annual</h3>
                 <div class="pricing-price">₱4,880<span>/yr</span></div>
+                <div class="pricing-savings">Save ₱976 (2 months free!)</div>
             </div>
             <ul class="pricing-features">
-                <li><i class="fa-solid fa-check"></i> Everything in Monthly</li>
-                <li><i class="fa-solid fa-check"></i> 2 Months Free</li>
-                <li><i class="fa-solid fa-check"></i> Advanced Reports</li>
-                <li><i class="fa-solid fa-check"></i> Priority Support</li>
-                <li><i class="fa-solid fa-check"></i> Multi-device sync</li>
+                <li><i class="fa-solid fa-check text-success"></i> Everything in Monthly</li>
+                <li><i class="fa-solid fa-check text-success"></i> Advanced Reports & CSV Export</li>
+                <li><i class="fa-solid fa-check text-success"></i> Dashboard Customization</li>
+                <li><i class="fa-solid fa-check text-success"></i> Priority Support</li>
+                <li><i class="fa-solid fa-check text-success"></i> Multi-device Sync</li>
+                <li><i class="fa-solid fa-check text-success"></i> Onboarding Wizard</li>
             </ul>
             <a href="register" class="btn btn-primary w-full">Get Best Value</a>
         </div>
     </div>
 </section>
 
-<section class="cta-section">
-    <div class="glass-panel cta-panel">
-        <h2>Ready to upgrade your business?</h2>
-        <p>Join thousands of businesses managing their workflow with @AppSettings.CompanyName.</p>
-        <a href="register" class="btn btn-primary btn-lg mt-4">Create Your Account</a>
+<!-- FAQ -->
+<section class="faq-section" id="faq">
+    <div class="section-title">
+        <h2>Frequently Asked Questions</h2>
+    </div>
+    <div class="faq-list">
+        @foreach (var faq in faqs)
+        {
+            <div class="faq-item glass-panel @(faq.Open ? "open" : "")" @onclick="() => faq.Open = !faq.Open">
+                <div class="faq-question">
+                    <span>@faq.Question</span>
+                    <i class="fa-solid @(faq.Open ? "fa-minus" : "fa-plus")"></i>
+                </div>
+                @if (faq.Open)
+                {
+                    <div class="faq-answer text-muted">@faq.Answer</div>
+                }
+            </div>
+        }
     </div>
 </section>
+
+<!-- CTA -->
+<section class="cta-section">
+    <div class="glass-panel cta-panel">
+        <h2>Ready to streamline your business?</h2>
+        <p class="text-muted">Join hundreds of small businesses already using @AppSettings.CompanyName to manage inventory and boost sales.</p>
+        <a href="register" class="btn btn-primary btn-lg mt-4"><i class="fa-solid fa-rocket"></i> Start Your Free Trial</a>
+    </div>
+</section>
+
+@code {
+    private class FaqItem { public string Question { get; set; } = ""; public string Answer { get; set; } = ""; public bool Open { get; set; } }
+    
+    private List<FaqItem> faqs = new()
+    {
+        new() { Question = "Is there a free trial?", Answer = "Yes! You can sign up and explore all features for free during your trial period. No credit card required." },
+        new() { Question = "Can I use this on my phone?", Answer = "Absolutely. InventoryPlus is a mobile-first web app that works beautifully on phones, tablets, and desktops." },
+        new() { Question = "How does stock deduction work?", Answer = "When you make a sale through the POS, ingredient stocks are automatically reduced based on your product recipes. No manual tracking needed." },
+        new() { Question = "Can I customize my dashboard?", Answer = "Yes! You can toggle dashboard widgets on/off in Settings to show only the reports that matter to your business." },
+        new() { Question = "What payment methods are supported?", Answer = "The POS supports Cash and GCash payment tracking. We're working on adding more payment methods." },
+        new() { Question = "Is my data secure?", Answer = "Yes. We use Supabase for authentication and data storage with row-level security, HTTPS encryption, and secure token management." }
+    };
+}

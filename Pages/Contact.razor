@@ -1,6 +1,7 @@
 @page "/contact"
 @layout InventoryPlus.Layout.LandingLayout
 @inject SettingsService AppSettings
+@inject ToastService Toast
 @attribute [AllowAnonymous]
 
 <PageTitle>Contact Us | @AppSettings.CompanyName</PageTitle>
@@ -10,21 +11,67 @@
         <h2 style="font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Get in touch</h2>
         <p class="text-muted" style="margin-bottom: 2rem">We'd love to hear from you. Fill out the form below and we'll reply ASAP!</p>
         
-        <div class="form-group">
-            <label>Name</label>
-            <input type="text" class="form-control" placeholder="Your Name" />
-        </div>
-        
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" class="form-control" placeholder="your@email.com" />
-        </div>
-        
-        <div class="form-group">
-            <label>Message</label>
-            <textarea class="form-control" rows="5" placeholder="How can we help?"></textarea>
-        </div>
-        
-        <button class="btn btn-primary btn-lg mt-2" style="width: 100%">Send Message</button>
+        @if (submitted)
+        {
+            <div class="empty-state" style="padding: 2rem 0;">
+                <div class="empty-state-icon text-success"><i class="fa-solid fa-circle-check"></i></div>
+                <h3 class="empty-state-title">Message Sent!</h3>
+                <p class="empty-state-message">Thanks for reaching out. We'll get back to you soon.</p>
+                <button class="btn btn-secondary mt-4" @onclick="() => submitted = false">Send another</button>
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" class="form-control" placeholder="Your Name" @bind="contactName" />
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" placeholder="your@email.com" @bind="contactEmail" />
+            </div>
+            
+            <div class="form-group">
+                <label>Message</label>
+                <textarea class="form-control" rows="5" placeholder="How can we help?" @bind="contactMessage"></textarea>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(errorMsg))
+            {
+                <div class="alert alert-error">@errorMsg</div>
+            }
+
+            <button class="btn btn-primary btn-lg mt-2" style="width: 100%" @onclick="HandleSubmit" disabled="@sending">
+                @if (sending) { <i class="fa-solid fa-spinner fa-spin"></i> }
+                <i class="fa-solid fa-paper-plane"></i> Send Message
+            </button>
+        }
     </div>
 </div>
+
+@code {
+    private string contactName = "";
+    private string contactEmail = "";
+    private string contactMessage = "";
+    private string errorMsg = "";
+    private bool sending = false;
+    private bool submitted = false;
+
+    private async Task HandleSubmit()
+    {
+        errorMsg = "";
+        if (string.IsNullOrWhiteSpace(contactName))
+        { errorMsg = "Please enter your name."; return; }
+        if (string.IsNullOrWhiteSpace(contactEmail) || !contactEmail.Contains("@"))
+        { errorMsg = "Please enter a valid email."; return; }
+        if (string.IsNullOrWhiteSpace(contactMessage))
+        { errorMsg = "Please enter a message."; return; }
+
+        sending = true;
+        await Task.Delay(800); // simulate send
+        Toast.Show("Message sent successfully!");
+        submitted = true;
+        sending = false;
+    }
+}

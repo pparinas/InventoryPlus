@@ -156,5 +156,12 @@ namespace InventoryPlus.Pages
                 isChangingPass = false;
             }
         }
+
+        protected async Task SavePreferences()
+        {
+            if (currentUser != null)
+                await AppSettings.SaveAsync(currentUser.Id);
+            Toast.Show("Preferences saved!");
+        }
     }
 }

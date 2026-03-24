@@ -16,7 +16,25 @@ else
         <h1>Stocks</h1>
         <p class="text-muted">Manage your raw materials and shop necessities.</p>
     </div>
-    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Stock Item</button>
+    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="hide-mobile"> Add Stock Item</span></button>
+</div>
+
+<div class="glass-panel mb-4" style="padding:0.75rem 1rem">
+    <div class="flex gap-2 flex-wrap items-center">
+        <div class="flex-1" style="min-width:180px">
+            <input type="text" class="form-control" placeholder="Search stocks..." @bind="searchQuery" @bind:event="oninput" />
+        </div>
+        <select class="form-control" style="width:auto" @bind="typeFilter">
+            <option value="All">All Types</option>
+            <option value="Ingredient">Ingredients</option>
+            <option value="Necessity">Necessities</option>
+        </select>
+        <select class="form-control" style="width:auto" @bind="sortBy">
+            <option value="name">Name</option>
+            <option value="stock">Stock (Low first)</option>
+            <option value="value">Value (High first)</option>
+        </select>
+    </div>
 </div>
 
 <div class="glass-panel">
@@ -35,7 +53,7 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Inventory.ActiveIngredients.Skip((_page - 1) * PageSize).Take(PageSize))
+            @foreach (var item in FilteredItems.Skip((_page - 1) * PageSize).Take(PageSize))
             {
                 <tr>
                     <td><strong>@item.Name</strong></td>
@@ -54,15 +72,15 @@ else
                             <span>@item.Stock @item.Unit</span>
                         }
                     </td>
-                    <td>₱@item.CostPerUnit.ToString("0.00")</td>
-                    <td class="text-primary">₱@((item.Stock * item.CostPerUnit).ToString("0.00"))</td>
+                    <td>₱@item.CostPerUnit.ToString("N2")</td>
+                    <td class="text-primary">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</td>
                     <td class="text-right">
                         <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-sm btn-danger margin-left-2" @onclick="() => Delete(item)"><i class="fa-solid fa-trash"></i></button>
+                        <button class="btn btn-sm btn-danger margin-left-2" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             }
-            @if (!Inventory.ActiveIngredients.Any())
+            @if (!FilteredItems.Any())
             {
                 <tr>
                     <td colspan="6" class="text-center text-muted" style="padding: 3rem">No stock items found.</td>
@@ -74,11 +92,11 @@ else
 
     @* Mobile card list *@
     <div class="card-view">
-        @if (!Inventory.ActiveIngredients.Any())
+        @if (!FilteredItems.Any())
         {
             <p class="text-center text-muted" style="padding: 2rem 0">No stock items found.</p>
         }
-        @foreach (var item in Inventory.ActiveIngredients.Skip((_page - 1) * PageSize).Take(PageSize))
+        @foreach (var item in FilteredItems.Skip((_page - 1) * PageSize).Take(PageSize))
         {
             <div class="stock-card">
                 <div class="stock-card-header">
@@ -99,22 +117,22 @@ else
                     </div>
                     <div class="stock-card-row">
                         <span class="stock-card-label">Cost / Unit</span>
-                        <span>₱@item.CostPerUnit.ToString("0.00")</span>
+                        <span>₱@item.CostPerUnit.ToString("N2")</span>
                     </div>
                     <div class="stock-card-row">
                         <span class="stock-card-label">Total Value</span>
-                        <span class="text-primary font-bold">₱@((item.Stock * item.CostPerUnit).ToString("0.00"))</span>
+                        <span class="text-primary font-bold">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</span>
                     </div>
                 </div>
                 <div class="stock-card-actions">
                     <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => Delete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
+                    <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
                 </div>
             </div>
         }
     </div>
 
-    <PaginationBar Page="_page" PageSize="PageSize" TotalItems="Inventory.ActiveIngredients.Count()" OnPageChange="SetPage" />
+    <PaginationBar Page="_page" PageSize="PageSize" TotalItems="FilteredItems.Count()" OnPageChange="SetPage" />
 
 </div>
 
@@ -165,3 +183,12 @@ else
     </div>
 }
 }
+
+<InventoryPlus.Components.ConfirmDialog
+    IsVisible="showDeleteConfirm"
+    Title="Delete Stock Item"
+    Message="@($"Are you sure you want to delete \"{deleteTarget?.Name}\"? This cannot be undone.")"
+    Icon="fa-solid fa-trash"
+    ConfirmButtonClass="btn-danger"
+    OnConfirm="ExecuteDelete"
+    OnCancel="() => showDeleteConfirm = false" />

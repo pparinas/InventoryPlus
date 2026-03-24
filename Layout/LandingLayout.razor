@@ -13,10 +13,15 @@
                 <i class="fa-solid fa-cube"></i> @AppSettings.CompanyName
             }
         </div>
-        <nav class="landing-nav">
-            <a href="">Home</a>
-            <a href="contact">Contact Us</a>
-            <a href="login" class="btn btn-primary btn-sm">Sign In / App</a>
+        <button class="landing-hamburger" @onclick="() => showMobileMenu = !showMobileMenu">
+            <i class="fa-solid @(showMobileMenu ? "fa-xmark" : "fa-bars")"></i>
+        </button>
+        <nav class="landing-nav @(showMobileMenu ? "open" : "")">
+            <a href="" @onclick="() => showMobileMenu = false">Home</a>
+            <a href="#features" @onclick="() => showMobileMenu = false">Features</a>
+            <a href="#pricing" @onclick="() => showMobileMenu = false">Pricing</a>
+            <a href="contact" @onclick="() => showMobileMenu = false">Contact</a>
+            <a href="login" class="btn btn-primary btn-sm" @onclick="() => showMobileMenu = false">Sign In</a>
         </nav>
     </header>
     
@@ -25,6 +30,36 @@
     </main>
     
     <footer class="landing-footer">
-        <p>&copy; @DateTime.Now.Year @AppSettings.CompanyName. All rights reserved.</p>
+        <div class="landing-footer-grid">
+            <div class="footer-col">
+                <div class="landing-brand footer-logo">
+                    <i class="fa-solid fa-cube"></i> @AppSettings.CompanyName
+                </div>
+                <p class="text-muted" style="font-size: 0.9rem; max-width: 280px;">Smart inventory and POS system built for small businesses that want to grow.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Product</h4>
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="register">Free Trial</a>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <a href="contact">Contact Us</a>
+                <a href="login">Sign In</a>
+            </div>
+            <div class="footer-col">
+                <h4>Support</h4>
+                <a href="contact">Help Center</a>
+                <a href="contact">Report a Bug</a>
+            </div>
+        </div>
+        <div class="landing-footer-bottom">
+            <p>&copy; @DateTime.Now.Year @AppSettings.CompanyName. All rights reserved.</p>
+        </div>
     </footer>
 </div>
+
+@code {
+    private bool showMobileMenu = false;
+}
