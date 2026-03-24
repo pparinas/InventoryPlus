@@ -2093,3 +2093,212 @@ tr:hover td { background: var(--table-hover); }
     border: 1px solid var(--border);
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ===== PWA & Mobile-First Enhancements ===== */
+
+/* iOS safe area insets for notch/home indicator devices */
+body {
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.top-nav {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+    -webkit-text-size-adjust: 100%;
+    -moz-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+/* Better touch targets throughout */
+button, .btn, a, input, select, textarea, .nav-item, .faq-question {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent pull-to-refresh on mobile (can interfere with scrolling) */
+html, body {
+    overscroll-behavior-y: contain;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Improve touch scrolling in overflow containers */
+.pos-cart-items,
+.modal-content,
+.notification-panel,
+.pos-mobile-sheet {
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile typography improvements */
+@media (max-width: 480px) {
+    .stat-content h3 { font-size: 1.2rem; }
+    .stat-content p { font-size: 0.7rem; }
+    .stat-icon { width: 40px; height: 40px; font-size: 1.1rem; }
+    .stat-card { gap: 0.65rem; }
+    
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.15rem; }
+    
+    .page-header p { font-size: 0.85rem; }
+    
+    /* Smaller glass panels on mobile */
+    .glass-panel { padding: 0.85rem; border-radius: 12px; }
+    .glass-panel:hover { transform: none; } /* Disable hover lift on touch */
+}
+
+/* Fix: Settings page grid — stack on mobile */
+@media (max-width: 767px) {
+    .grid.grid-cols-2 { grid-template-columns: 1fr; gap: 1rem; }
+}
+
+/* Better select styling on mobile */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8rem center;
+    padding-right: 2.2rem;
+}
+
+/* POS improvements for mobile */
+@media (max-width: 480px) {
+    .pos-product-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+    .pos-product-card { padding: 0.5rem; }
+    .pos-product-name { font-size: 0.78rem; }
+    .pos-product-price { font-size: 0.75rem; }
+    .pos-product-placeholder { font-size: 1.2rem; }
+    .pos-search-bar input { font-size: 16px; } /* Prevents iOS zoom on focus */
+    .pos-category-btn { padding: 0.3rem 0.65rem; font-size: 0.75rem; }
+}
+
+/* Prevent iOS zoom on input focus — use 16px minimum */
+@media (max-width: 767px) {
+    input, select, textarea, .form-control {
+        font-size: 16px;
+    }
+}
+
+/* Dashboard chart bars responsive */
+@media (max-width: 480px) {
+    .dashboard-chart { height: 130px; }
+    .chart-label { font-size: 0.55rem; }
+    .top-product-name { width: 70px; font-size: 0.78rem; }
+    .payment-label { width: 80px; font-size: 0.78rem; }
+    .payment-amount { min-width: 60px; font-size: 0.72rem; }
+}
+
+/* Quick actions better grid on mobile */
+@media (max-width: 480px) {
+    .quick-actions-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+    .quick-action-btn { padding: 1rem 0.5rem; font-size: 0.8rem; }
+    .quick-action-btn i { font-size: 1.25rem; }
+}
+
+/* Report filter bar full-width scroll on mobile */
+@media (max-width: 480px) {
+    .report-filter-bar {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .report-filter-bar::-webkit-scrollbar { display: none; }
+    .report-filter-btn { flex: 0 0 auto; }
+}
+
+/* Bottom safe area for POS floating button */
+.pos-mobile-cart-btn {
+    bottom: max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem));
+}
+
+/* Improve hamburger button touch target */
+.hamburger-btn {
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+/* Better notification panel on mobile */
+@media (max-width: 480px) {
+    .notification-panel {
+        width: 100%;
+        border-left: none;
+        border-top: var(--glass-border);
+    }
+}
+
+/* Landing page mobile tweaks */
+@media (max-width: 480px) {
+    .hero-section { padding: 2rem 1rem; gap: 1.5rem; }
+    .hero-title { font-size: 1.8rem; margin-bottom: 1rem; }
+    .hero-subtitle { font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .hero-badge { font-size: 0.73rem; }
+    .hero-trust { gap: 0.75rem; }
+    .hero-trust span { font-size: 0.72rem; }
+    .pricing-section { padding: 2.5rem 1rem; }
+    .pricing-grid { grid-template-columns: 1fr; }
+    .features-section { padding: 2.5rem 1rem; }
+    .features-grid { grid-template-columns: 1fr; }
+    .how-it-works-section { padding: 2.5rem 1rem; }
+    .faq-section { padding: 2.5rem 1rem; }
+    .cta-section { padding: 2.5rem 1rem; }
+}
+
+/* PWA standalone mode tweaks — hide browser chrome padding */
+@media (display-mode: standalone) {
+    .top-nav {
+        padding-top: env(safe-area-inset-top);
+        height: calc(64px + env(safe-area-inset-top));
+    }
+    .sidebar { top: calc(64px + env(safe-area-inset-top)); height: calc(100vh - 64px - env(safe-area-inset-top)); }
+    .main-content { margin-top: calc(64px + env(safe-area-inset-top)); }
+    .pos-mobile-sheet { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+}
+
+/* Landscape orientation helpers */
+@media (max-height: 480px) and (orientation: landscape) {
+    .modal-content { max-height: 95vh; }
+    .onboarding-card { padding: 1rem; }
+    .login-container { min-height: 60vh; }
+}
+
+/* Loading state skeleton pulse */
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: 200px 0; }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-surface-hover) 50%, var(--bg-surface) 75%);
+    background-size: 400px 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: var(--radius-sm);
+}
+
+/* Account dropdown mobile fix */
+@media (max-width: 480px) {
+    .account-dropdown {
+        position: fixed;
+        top: 64px;
+        left: 1rem;
+        right: 1rem;
+        width: auto;
+        min-width: unset;
+    }
+}
