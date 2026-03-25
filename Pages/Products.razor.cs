@@ -93,8 +93,16 @@ namespace InventoryPlus.Pages
         {
             if (deleteTarget != null)
             {
-                await Inventory.DeleteProductAsync(deleteTarget);
-                Toast.Show($"\"{deleteTarget.Name}\" removed.", "info");
+                try
+                {
+                    await Inventory.DeleteProductAsync(deleteTarget);
+                    Toast.Show($"\"{deleteTarget.Name}\" removed.", "info");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Delete error: {ex.Message}");
+                    Toast.Show("Failed to delete product.", "error");
+                }
             }
             showDeleteConfirm = false;
             deleteTarget = null;
@@ -178,27 +186,35 @@ namespace InventoryPlus.Pages
         {
             if (string.IsNullOrWhiteSpace(currentProduct.Name)) return;
 
-            if (isEditing)
+            try
             {
-                var existing = Inventory.ActiveProducts.FirstOrDefault(p => p.Guid == currentProduct.Guid);
-                if (existing != null)
+                if (isEditing)
                 {
-                    existing.Name = currentProduct.Name;
-                    existing.SellingPrice = currentProduct.SellingPrice;
-                    existing.TaxRate = currentProduct.TaxRate;
-                    existing.ImageUrl = currentProduct.ImageUrl;
-                    existing.Category = currentProduct.Category;
-                    existing.RequiredIngredients = currentProduct.RequiredIngredients;
-                    await Inventory.UpdateProductAsync(existing);
-                    Toast.Show($"\"{existing.Name}\" updated successfully!");
+                    var existing = Inventory.ActiveProducts.FirstOrDefault(p => p.Guid == currentProduct.Guid);
+                    if (existing != null)
+                    {
+                        existing.Name = currentProduct.Name;
+                        existing.SellingPrice = currentProduct.SellingPrice;
+                        existing.TaxRate = currentProduct.TaxRate;
+                        existing.ImageUrl = currentProduct.ImageUrl;
+                        existing.Category = currentProduct.Category;
+                        existing.RequiredIngredients = currentProduct.RequiredIngredients;
+                        await Inventory.UpdateProductAsync(existing);
+                        Toast.Show($"\"{existing.Name}\" updated successfully!");
+                    }
                 }
+                else
+                {
+                    await Inventory.AddProductAsync(currentProduct);
+                    Toast.Show($"\"{currentProduct.Name}\" added to products!");
+                }
+                CloseModal();
             }
-            else
+            catch (Exception ex)
             {
-                await Inventory.AddProductAsync(currentProduct);
-                Toast.Show($"\"{currentProduct.Name}\" added to products!");
+                Console.WriteLine($"Save error: {ex.Message}");
+                Toast.Show("Failed to save product.", "error");
             }
-            CloseModal();
         }
 
         protected void CloseModal() => showModal = false;

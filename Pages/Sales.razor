@@ -75,7 +75,7 @@
         <h3 style="margin-bottom: 0.5rem;"><i class="fa-solid fa-cart-shopping"></i> Current Sale</h3>
         
         <!-- Customer name -->
-        <div class="form-group" style="margin-bottom: 0.75rem;">
+        <div class="mb-3" style="margin-bottom: 0.75rem;">
             <input type="text" @bind="customerName" placeholder="Customer name (optional)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;" />
         </div>
 
@@ -113,7 +113,7 @@
         <!-- Discount -->
         <div class="pos-discount-section">
             <label style="font-size: 0.8rem; margin-bottom: 0.25rem;">Discount</label>
-            <div class="flex gap-2">
+            <div class="d-flex gap-2">
                 <select @bind="discountType" style="padding: 0.4rem; font-size: 0.85rem; flex: 0 0 120px;">
                     <option value="None">None</option>
                     <option value="Percentage">% Off</option>
@@ -121,24 +121,24 @@
                 </select>
                 @if (discountType != "None")
                 {
-                    <input type="number" step="0.01" @bind="discountAmount" placeholder="@(discountType == "Percentage" ? "e.g. 10" : "e.g. 50")" 
+                    <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="@(discountType == "Percentage" ? "e.g. 10" : "e.g. 50")" 
                            style="padding: 0.4rem; font-size: 0.85rem;" />
                 }
             </div>
         </div>
 
         <!-- Sale note -->
-        <div class="form-group" style="margin-bottom: 0.5rem;">
-            <textarea @bind="saleNote" placeholder="Sale note (optional)" rows="1" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"></textarea>
+        <div class="mb-2">
+            <textarea @bind="saleNote" placeholder="Sale note (optional)" rows="1" class="form-control" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"></textarea>
         </div>
 
         <!-- Payment -->
         <div class="pos-payment-section">
-            <div class="flex gap-2">
-                <button class="btn @(paymentMethod == "Cash" ? "btn-primary" : "btn-secondary") w-full btn-sm" @onclick='() => paymentMethod = "Cash"'>
+            <div class="d-flex gap-2">
+                <button class="btn @(paymentMethod == "Cash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "Cash"'>
                     <i class="fa-solid fa-money-bill-wave"></i> Cash
                 </button>
-                <button class="btn @(paymentMethod == "GCash" ? "btn-primary" : "btn-secondary") w-full btn-sm" @onclick='() => paymentMethod = "GCash"'>
+                <button class="btn @(paymentMethod == "GCash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "GCash"'>
                     <i class="fa-solid fa-mobile-screen-button"></i> GCash
                 </button>
             </div>
@@ -155,12 +155,12 @@
             <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@Total.ToString("0.00")</strong></div>
         </div>
 
-        <div class="flex gap-2">
+        <div class="d-flex gap-2">
             @if (Cart.Any())
             {
-                <button class="btn btn-secondary btn-sm" @onclick="ClearCart" style="flex: 0 0 auto;"><i class="fa-solid fa-trash"></i></button>
+                <button class="btn btn-outline-secondary btn-sm" @onclick="ClearCart" style="flex: 0 0 auto;"><i class="fa-solid fa-trash"></i></button>
             }
-            <button class="btn btn-primary w-full" style="padding: 0.75rem; font-size: 1rem;" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
+            <button class="btn btn-primary w-100" style="padding: 0.75rem; font-size: 1rem;" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
                 @if (isProcessing)
                 {
                     <i class="fa-solid fa-spinner fa-spin"></i>
@@ -193,8 +193,8 @@
         <div class="pos-mobile-sheet-content">
             <h3><i class="fa-solid fa-cart-shopping"></i> Cart (@Cart.Sum(c => c.Quantity) items)</h3>
             
-            <div class="form-group" style="margin-bottom: 0.5rem;">
-                <input type="text" @bind="customerName" placeholder="Customer name (optional)" style="padding: 0.5rem; font-size: 0.85rem;" />
+            <div class="mb-2">
+                <input type="text" class="form-control" @bind="customerName" placeholder="Customer name (optional)" style="padding: 0.5rem; font-size: 0.85rem;" />
             </div>
 
             <div class="pos-cart-items" style="max-height: 35vh;">
@@ -216,7 +216,7 @@
             </div>
 
             <div class="pos-discount-section">
-                <div class="flex gap-2">
+                <div class="d-flex gap-2">
                     <select @bind="discountType" style="padding: 0.4rem; font-size: 0.85rem;">
                         <option value="None">No Discount</option>
                         <option value="Percentage">% Off</option>
@@ -224,16 +224,16 @@
                     </select>
                     @if (discountType != "None")
                     {
-                        <input type="number" step="0.01" @bind="discountAmount" placeholder="Amount" style="padding: 0.4rem; font-size: 0.85rem; width: 80px;" />
+                        <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="Amount" style="padding: 0.4rem; font-size: 0.85rem; width: 80px;" />
                     }
                 </div>
             </div>
 
-            <div class="flex gap-2 mb-2">
-                <button class="btn @(paymentMethod == "Cash" ? "btn-primary" : "btn-secondary") w-full btn-sm" @onclick='() => paymentMethod = "Cash"'>
+            <div class="d-flex gap-2 mb-2">
+                <button class="btn @(paymentMethod == "Cash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "Cash"'>
                     <i class="fa-solid fa-money-bill-wave"></i> Cash
                 </button>
-                <button class="btn @(paymentMethod == "GCash" ? "btn-primary" : "btn-secondary") w-full btn-sm" @onclick='() => paymentMethod = "GCash"'>
+                <button class="btn @(paymentMethod == "GCash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "GCash"'>
                     <i class="fa-solid fa-mobile-screen-button"></i> GCash
                 </button>
             </div>
@@ -248,7 +248,7 @@
                 <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@Total.ToString("0.00")</strong></div>
             </div>
 
-            <button class="btn btn-primary w-full" style="padding: 0.75rem;" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
+            <button class="btn btn-primary w-100" style="padding: 0.75rem;" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
                 @if (isProcessing) { <i class="fa-solid fa-spinner fa-spin"></i> }
                 <i class="fa-solid fa-check"></i> Complete Sale (₱@Total.ToString("0.00"))
             </button>
