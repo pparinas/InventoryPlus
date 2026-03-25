@@ -1,21 +1,27 @@
 @if (TotalPages > 1)
 {
-    <div class="pagination-bar">
+    <nav class="pagination-bar">
         <span class="pagination-info">@((Page - 1) * PageSize + 1)–@(Math.Min(Page * PageSize, TotalItems)) of @TotalItems</span>
-        <div class="pagination-controls">
-            <button class="pag-btn" disabled="@(Page == 1)" @onclick="() => OnPageChange.InvokeAsync(Page - 1)" title="Previous">
-                <i class="fa-solid fa-chevron-left"></i>
-            </button>
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Page == 1 ? "disabled" : "")">
+                <button class="page-link" @onclick="() => OnPageChange.InvokeAsync(Page - 1)" title="Previous">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+            </li>
             @for (int i = StartPage; i <= EndPage; i++)
             {
                 var p = i;
-                <button class="pag-btn @(Page == p ? "active" : "")" @onclick="() => OnPageChange.InvokeAsync(p)">@p</button>
+                <li class="page-item @(Page == p ? "active" : "")">
+                    <button class="page-link" @onclick="() => OnPageChange.InvokeAsync(p)">@p</button>
+                </li>
             }
-            <button class="pag-btn" disabled="@(Page == TotalPages)" @onclick="() => OnPageChange.InvokeAsync(Page + 1)" title="Next">
-                <i class="fa-solid fa-chevron-right"></i>
-            </button>
-        </div>
-    </div>
+            <li class="page-item @(Page == TotalPages ? "disabled" : "")">
+                <button class="page-link" @onclick="() => OnPageChange.InvokeAsync(Page + 1)" title="Next">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </li>
+        </ul>
+    </nav>
 }
 
 @code {

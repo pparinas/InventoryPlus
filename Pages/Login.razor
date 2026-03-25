@@ -3,48 +3,48 @@
 @attribute [AllowAnonymous]
 
 
-<div class="login-container" @onkeydown="HandleKeyDown">
-    <div class="login-card">
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh; padding: 1.5rem;" @onkeydown="HandleKeyDown">
+    <div class="card login-card p-4 p-sm-5 w-100" style="max-width: 450px; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
         <div class="auth-brand">
             <i class="fa-solid fa-cube"></i>
         </div>
         <h2>Welcome Back</h2>
-        <p class="text-muted" style="margin-bottom: 1.5rem; margin-top: -0.5rem;">Sign in to @AppSettings.CompanyName</p>
+        <p class="text-muted text-center" style="margin-bottom: 1.5rem; margin-top: -0.5rem;">Sign in to @AppSettings.CompanyName</p>
         
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
-            <div class="alert alert-error">@ErrorMessage</div>
+            <div class="alert alert-danger">@ErrorMessage</div>
         }
 
-        <div class="form-group">
-            <label for="email">Email</label>
+        <div class="mb-3">
+            <label for="email" class="form-label small fw-medium text-muted">Email</label>
             <input id="email" type="email" @bind="Email" class="form-control" placeholder="you@example.com" />
         </div>
 
-        <div class="form-group">
-            <label for="password">Password</label>
+        <div class="mb-3">
+            <label for="password" class="form-label small fw-medium text-muted">Password</label>
             <input id="password" type="password" @bind="Password" class="form-control" placeholder="Your password" />
         </div>
 
-        <div class="form-check">
-            <input id="rememberMe" type="checkbox" @bind="RememberMe" />
-            <label for="rememberMe">Remember me</label>
+        <div class="form-check mb-3">
+            <input id="rememberMe" type="checkbox" class="form-check-input" @bind="RememberMe" style="accent-color: var(--primary);" />
+            <label for="rememberMe" class="form-check-label small text-muted">Remember me</label>
         </div>
 
-        <button @onclick="HandleLogin" class="btn btn-primary w-full" disabled="@IsLoading">
+        <button @onclick="HandleLogin" class="btn btn-primary w-100" disabled="@IsLoading">
             @if (IsLoading)
             {
                 <span class="spinner"></span> <span>Signing in...</span>
             }
             else
             {
-                <i class="fa-solid fa-right-to-bracket"></i> <span>Sign In</span>
+                <i class="fa-solid fa-right-to-bracket me-1"></i> <span>Sign In</span>
             }
         </button>
         
-        <div class="login-links">
-            <p>Don't have an account? <a href="register">Create one</a></p>
-            <p><a href="/">Back to home</a></p>
+        <div class="text-center mt-3 small text-muted">
+            <p>Don't have an account? <a href="register" class="fw-semibold text-decoration-none" style="color: var(--primary);">Create one</a></p>
+            <p><a href="/" class="text-decoration-none" style="color: var(--primary);">Back to home</a></p>
         </div>
     </div>
 </div>

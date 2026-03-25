@@ -72,7 +72,7 @@ namespace InventoryPlus.Pages
         }
 
         protected double Subtotal => Cart.Sum(c => c.Product.SellingPrice * c.Quantity);
-        protected double TaxTotal => Cart.Sum(c => c.Product.SellingPrice * c.Product.TaxRate * c.Quantity);
+        protected double TaxTotal => Cart.Sum(c => c.Product.SellingPrice * Math.Min(c.Product.TaxRate, 1.0) * c.Quantity);
         protected double DiscountDisplay
         {
             get

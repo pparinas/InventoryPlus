@@ -3,19 +3,17 @@
 
 @if (ToastSvc.Toasts.Any())
 {
-    <div class="toast-container">
+    <div class="toast-container-custom">
         @foreach (var toast in ToastSvc.Toasts.ToList())
         {
-            <div class="toast toast-@toast.Type" @key="toast.Id">
+            <div class="app-toast toast-@toast.Type" @key="toast.Id">
                 <span class="toast-icon">
                     @if (toast.Type == "success") { <i class="fa-solid fa-circle-check"></i> }
                     else if (toast.Type == "error") { <i class="fa-solid fa-circle-xmark"></i> }
                     else { <i class="fa-solid fa-circle-info"></i> }
                 </span>
-                <span class="toast-message">@toast.Message</span>
-                <button class="toast-close" @onclick="() => ToastSvc.Remove(toast)">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+                <span class="flex-grow-1" style="font-size: 0.9rem;">@toast.Message</span>
+                <button class="btn-close btn-close-white" style="font-size: 0.65rem; opacity: 0.5;" @onclick="() => ToastSvc.Remove(toast)"></button>
             </div>
         }
     </div>

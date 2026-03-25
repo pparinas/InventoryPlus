@@ -11,25 +11,25 @@
 else
 {
 
-<div class="page-header">
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
     <div>
         <h1>Stocks</h1>
-        <p class="text-muted">Manage your raw materials and shop necessities.</p>
+        <p class="text-muted mb-0">Manage your raw materials and shop necessities.</p>
     </div>
-    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="hide-mobile"> Add Stock Item</span></button>
+    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="d-none d-sm-inline"> Add Stock Item</span></button>
 </div>
 
 <div class="glass-panel mb-4" style="padding:0.75rem 1rem">
-    <div class="flex gap-2 flex-wrap items-center">
-        <div class="flex-1" style="min-width:180px">
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+        <div class="flex-grow-1" style="min-width:180px">
             <input type="text" class="form-control" placeholder="Search stocks..." @bind="searchQuery" @bind:event="oninput" />
         </div>
-        <select class="form-control" style="width:auto" @bind="typeFilter">
+        <select class="form-select" style="width:auto" @bind="typeFilter">
             <option value="All">All Types</option>
             <option value="Ingredient">Ingredients</option>
             <option value="Necessity">Necessities</option>
         </select>
-        <select class="form-control" style="width:auto" @bind="sortBy">
+        <select class="form-select" style="width:auto" @bind="sortBy">
             <option value="name">Name</option>
             <option value="stock">Stock (Low first)</option>
             <option value="value">Value (High first)</option>
@@ -41,7 +41,7 @@ else
 
     @* Desktop table *@
     <div class="table-responsive table-view">
-    <table>
+    <table class="table table-hover mb-0">
         <thead>
             <tr>
                 <th>Item Name</th>
@@ -49,7 +49,7 @@ else
                 <th>Current Stock</th>
                 <th>Cost/Unit</th>
                 <th>Total Value</th>
-                <th class="text-right">Actions</th>
+                <th class="text-end">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -58,14 +58,14 @@ else
                 <tr>
                     <td><strong>@item.Name</strong></td>
                     <td>
-                        <span class="badge @(item.Type == "Ingredient" ? "badge-primary" : "badge-secondary")">
+                        <span class="badge @(item.Type == "Ingredient" ? "bg-primary-subtle" : "bg-secondary")">
                             @item.Type
                         </span>
                     </td>
                     <td>
                         @if (item.Stock < 5 && item.Type == "Ingredient")
                         {
-                            <span class="text-warning font-bold">@item.Stock @item.Unit (Low)</span>
+                            <span class="text-warning fw-bold">@item.Stock @item.Unit (Low)</span>
                         }
                         else
                         {
@@ -73,10 +73,10 @@ else
                         }
                     </td>
                     <td>₱@item.CostPerUnit.ToString("N2")</td>
-                    <td class="text-primary">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</td>
-                    <td class="text-right">
-                        <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-sm btn-danger margin-left-2" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
+                    <td style="color: var(--primary)">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             }
@@ -101,14 +101,14 @@ else
             <div class="stock-card">
                 <div class="stock-card-header">
                     <span class="stock-card-name">@item.Name</span>
-                    <span class="badge @(item.Type == "Ingredient" ? "badge-primary" : "badge-secondary")">@item.Type</span>
+                    <span class="badge @(item.Type == "Ingredient" ? "bg-primary-subtle" : "bg-secondary")">@item.Type</span>
                 </div>
                 <div class="stock-card-body">
                     <div class="stock-card-row">
                         <span class="stock-card-label">Stock</span>
                         @if (item.Stock < 5 && item.Type == "Ingredient")
                         {
-                            <span class="text-warning font-bold">@item.Stock @item.Unit <small>(Low)</small></span>
+                            <span class="text-warning fw-bold">@item.Stock @item.Unit <small>(Low)</small></span>
                         }
                         else
                         {
@@ -121,12 +121,12 @@ else
                     </div>
                     <div class="stock-card-row">
                         <span class="stock-card-label">Total Value</span>
-                        <span class="text-primary font-bold">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</span>
+                        <span class="fw-bold" style="color: var(--primary)">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</span>
                     </div>
                 </div>
                 <div class="stock-card-actions">
-                    <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
                 </div>
             </div>
         }
@@ -145,38 +145,38 @@ else
                 <button class="btn-close" @onclick="CloseModal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label>Item Name</label>
-                    <input type="text" @bind="currentIngredient.Name" placeholder="e.g. Coffee Beans" />
+                <div class="mb-3">
+                    <label class="form-label">Item Name</label>
+                    <input type="text" class="form-control" @bind="currentIngredient.Name" placeholder="e.g. Coffee Beans" />
                 </div>
                 
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="form-group">
-                        <label>Unit</label>
-                        <input type="text" @bind="currentIngredient.Unit" placeholder="e.g. kg, pcs" />
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="form-label">Unit</label>
+                        <input type="text" class="form-control" @bind="currentIngredient.Unit" placeholder="e.g. kg, pcs" />
                     </div>
-                     <div class="form-group">
-                        <label>Item Type</label>
-                        <select @bind="currentIngredient.Type">
+                    <div class="col-6">
+                        <label class="form-label">Item Type</label>
+                        <select class="form-select" @bind="currentIngredient.Type">
                             <option value="Ingredient">Ingredient (for products)</option>
                             <option value="Necessity">Necessity (shop utility)</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div class="form-group">
-                        <label>Current Stock</label>
-                        <input type="number" step="0.1" @bind="currentIngredient.Stock" />
+                <div class="row g-3 mt-1">
+                    <div class="col-6">
+                        <label class="form-label">Current Stock</label>
+                        <input type="number" class="form-control" step="0.1" @bind="currentIngredient.Stock" />
                     </div>
-                    <div class="form-group">
-                        <label>Cost per Unit (₱)</label>
-                        <input type="number" step="0.01" @bind="currentIngredient.CostPerUnit" />
+                    <div class="col-6">
+                        <label class="form-label">Cost per Unit (₱)</label>
+                        <input type="number" class="form-control" step="0.01" @bind="currentIngredient.CostPerUnit" />
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-outline-secondary" @onclick="CloseModal">Cancel</button>
                 <button class="btn btn-primary" @onclick="Save">Save Item</button>
             </div>
         </div>
