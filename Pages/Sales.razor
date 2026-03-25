@@ -185,81 +185,77 @@
 </div>
 
 <!-- Mobile cart bottom sheet -->
-@if (showMobileCart)
-{
-    <div class="pos-mobile-sheet-overlay" @onclick="() => showMobileCart = false"></div>
-    <div class="pos-mobile-sheet" @onclick:stopPropagation>
-        <div class="pos-mobile-sheet-handle" @onclick="() => showMobileCart = false"></div>
-        <div class="pos-mobile-sheet-content">
-            <h3><i class="fa-solid fa-cart-shopping"></i> Cart (@Cart.Sum(c => c.Quantity) items)</h3>
-            
-            <div class="mb-2">
-                <input type="text" class="form-control" @bind="customerName" placeholder="Customer name (optional)" style="padding: 0.5rem; font-size: 0.85rem;" />
-            </div>
+<BSOffCanvas IsOpen="showMobileCart" Placement="Placement.Bottom" @ref="_mobileCartOffCanvas">
+    <Header>
+        <h5 class="offcanvas-title"><i class="fa-solid fa-cart-shopping"></i> Cart (@Cart.Sum(c => c.Quantity) items)</h5>
+    </Header>
+    <Content>
+        <div class="mb-2">
+            <input type="text" class="form-control" @bind="customerName" placeholder="Customer name (optional)" style="padding: 0.5rem; font-size: 0.85rem;" />
+        </div>
 
-            <div class="pos-cart-items" style="max-height: 35vh;">
-                @foreach (var item in Cart)
-                {
-                    <div class="pos-cart-item">
-                        <div class="pos-cart-item-info">
-                            <strong>@item.Product.Name</strong>
-                            <span class="text-muted" style="font-size: 0.8rem;">₱@item.Product.SellingPrice.ToString("0.00")</span>
-                        </div>
-                        <div class="pos-cart-item-controls">
-                            <button class="pos-qty-btn" @onclick="() => DecreaseQty(item)"><i class="fa-solid fa-minus"></i></button>
-                            <span style="min-width: 24px; text-align: center;">@item.Quantity</span>
-                            <button class="pos-qty-btn" @onclick="() => IncreaseQty(item)"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                        <button class="pos-cart-remove" @onclick="() => RemoveFromCart(item)"><i class="fa-solid fa-xmark"></i></button>
+        <div class="pos-cart-items" style="max-height: 35vh; overflow-y: auto;">
+            @foreach (var item in Cart)
+            {
+                <div class="pos-cart-item">
+                    <div class="pos-cart-item-info">
+                        <strong>@item.Product.Name</strong>
+                        <span class="text-muted" style="font-size: 0.8rem;">₱@item.Product.SellingPrice.ToString("0.00")</span>
                     </div>
-                }
-            </div>
-
-            <div class="pos-discount-section">
-                <div class="d-flex gap-2">
-                    <select @bind="discountType" style="padding: 0.4rem; font-size: 0.85rem;">
-                        <option value="None">No Discount</option>
-                        <option value="Percentage">% Off</option>
-                        <option value="Fixed">₱ Fixed</option>
-                    </select>
-                    @if (discountType != "None")
-                    {
-                        <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="Amount" style="padding: 0.4rem; font-size: 0.85rem; width: 80px;" />
-                    }
+                    <div class="pos-cart-item-controls">
+                        <button class="pos-qty-btn" @onclick="() => DecreaseQty(item)"><i class="fa-solid fa-minus"></i></button>
+                        <span style="min-width: 24px; text-align: center;">@item.Quantity</span>
+                        <button class="pos-qty-btn" @onclick="() => IncreaseQty(item)"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <button class="pos-cart-remove" @onclick="() => RemoveFromCart(item)"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-            </div>
+            }
+        </div>
 
-            <div class="d-flex gap-2 mb-2">
-                <button class="btn @(paymentMethod == "Cash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "Cash"'>
-                    <i class="fa-solid fa-money-bill-wave"></i> Cash
-                </button>
-                <button class="btn @(paymentMethod == "GCash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "GCash"'>
-                    <i class="fa-solid fa-mobile-screen-button"></i> GCash
-                </button>
-            </div>
-
-            <div class="pos-totals">
-                <div class="pos-total-row"><span>Subtotal</span><span>₱@Subtotal.ToString("0.00")</span></div>
-                <div class="pos-total-row"><span>Tax</span><span>₱@TaxTotal.ToString("0.00")</span></div>
-                @if (DiscountDisplay > 0)
+        <div class="pos-discount-section">
+            <div class="d-flex gap-2">
+                <select @bind="discountType" style="padding: 0.4rem; font-size: 0.85rem;">
+                    <option value="None">No Discount</option>
+                    <option value="Percentage">% Off</option>
+                    <option value="Fixed">₱ Fixed</option>
+                </select>
+                @if (discountType != "None")
                 {
-                    <div class="pos-total-row text-danger"><span>Discount</span><span>-₱@DiscountDisplay.ToString("0.00")</span></div>
+                    <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="Amount" style="padding: 0.4rem; font-size: 0.85rem; width: 80px;" />
                 }
-                <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@Total.ToString("0.00")</strong></div>
             </div>
+        </div>
 
-            <button class="btn btn-primary w-100" style="padding: 0.75rem;" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
-                @if (isProcessing) { <i class="fa-solid fa-spinner fa-spin"></i> }
-                <i class="fa-solid fa-check"></i> Complete Sale (₱@Total.ToString("0.00"))
+        <div class="d-flex gap-2 mb-2">
+            <button class="btn @(paymentMethod == "Cash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "Cash"'>
+                <i class="fa-solid fa-money-bill-wave"></i> Cash
+            </button>
+            <button class="btn @(paymentMethod == "GCash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "GCash"'>
+                <i class="fa-solid fa-mobile-screen-button"></i> GCash
             </button>
         </div>
-    </div>
-}
+
+        <div class="pos-totals">
+            <div class="pos-total-row"><span>Subtotal</span><span>₱@Subtotal.ToString("0.00")</span></div>
+            <div class="pos-total-row"><span>Tax</span><span>₱@TaxTotal.ToString("0.00")</span></div>
+            @if (DiscountDisplay > 0)
+            {
+                <div class="pos-total-row text-danger"><span>Discount</span><span>-₱@DiscountDisplay.ToString("0.00")</span></div>
+            }
+            <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@Total.ToString("0.00")</strong></div>
+        </div>
+
+        <button class="btn btn-primary w-100" style="padding: 0.75rem;" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
+            @if (isProcessing) { <i class="fa-solid fa-spinner fa-spin"></i> }
+            <i class="fa-solid fa-check"></i> Complete Sale (₱@Total.ToString("0.00"))
+        </button>
+    </Content>
+</BSOffCanvas>
 
 <!-- Receipt -->
-@if (showReceipt && lastSaleItems != null)
+@if (lastSaleItems != null)
 {
-    <Receipt BusinessName="@AppSettings.CompanyName" SaleDate="@lastSaleDate" CustomerName="@lastCustomerName"
+    <Receipt IsVisible="showReceipt" BusinessName="@AppSettings.CompanyName" SaleDate="@lastSaleDate" CustomerName="@lastCustomerName"
              Items="@lastSaleItems" Subtotal="@lastSubtotal" TaxTotal="@lastTaxTotal" Total="@lastTotal"
              PaymentMethod="@lastPaymentMethod" DiscountAmount="@lastDiscountAmount" DiscountType="@lastDiscountType"
              OnClose="() => showReceipt = false" />

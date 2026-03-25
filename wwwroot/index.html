@@ -54,14 +54,12 @@
         </div>
     </div>
 
-    <!-- PWA Install Banner — non-intrusive, appears at bottom -->
-    <div id="pwa-install-banner" style="display:none;position:fixed;bottom:1rem;left:1rem;right:1rem;z-index:9998;background:var(--bg-surface,rgba(25,28,41,0.95));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#f0f2f8;padding:0.75rem 1rem;border-radius:12px;align-items:center;gap:0.75rem;font-family:'Outfit',sans-serif;box-shadow:0 8px 32px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.08)">
-        <div style="display:flex;align-items:center;gap:0.6rem;flex:1;min-width:0">
-            <i class="fa-solid fa-download" style="font-size:1.1rem;color:#6366f1"></i>
-            <span style="font-size:0.85rem;font-weight:500">Install app for offline access</span>
-        </div>
-        <button onclick="window.pwaInstall.prompt()" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;padding:0.45rem 0.9rem;border-radius:8px;font-weight:600;font-size:0.8rem;cursor:pointer;white-space:nowrap;font-family:inherit">Install</button>
-        <button onclick="this.parentElement.style.display='none';sessionStorage.setItem('pwa-dismissed','1')" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:1.1rem;cursor:pointer;padding:0.25rem;line-height:1">&times;</button>
+    <!-- PWA Install Banner — compact top-right toast -->
+    <div id="pwa-install-banner" style="display:none;position:fixed;top:0.75rem;right:0.75rem;z-index:9998;background:var(--bg-surface,rgba(25,28,41,0.95));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:#f0f2f8;padding:0.5rem 0.75rem;border-radius:10px;align-items:center;gap:0.5rem;font-family:'Outfit',sans-serif;box-shadow:0 4px 20px rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.08);max-width:320px">
+        <i class="fa-solid fa-download" style="font-size:0.95rem;color:#6366f1;flex-shrink:0"></i>
+        <span style="font-size:0.8rem;font-weight:500;white-space:nowrap">Install for offline access</span>
+        <button onclick="window.pwaInstall.prompt()" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;padding:0.3rem 0.7rem;border-radius:6px;font-weight:600;font-size:0.75rem;cursor:pointer;white-space:nowrap;font-family:inherit">Install</button>
+        <button onclick="this.parentElement.style.display='none';sessionStorage.setItem('pwa-dismissed','1')" style="background:none;border:none;color:rgba(255,255,255,0.4);font-size:1rem;cursor:pointer;padding:0.15rem;line-height:1">&times;</button>
     </div>
 
     <div id="blazor-error-ui">
@@ -80,7 +78,15 @@
             }
         })();
     </script>
-    <script src="_framework/blazor.webassembly.js"></script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>
+        // Boot Blazor with error logging
+        Blazor.start().catch(err => console.error('Blazor boot error:', err));
+
+        // Log unhandled .NET errors to console for debugging
+        window.addEventListener('error', e => console.error('Global error:', e.error || e.message));
+        window.addEventListener('unhandledrejection', e => console.error('Unhandled promise:', e.reason));
+    </script>
     <script>
         // CSV export interop
         window.downloadCsv = function(filename, csvContent) {

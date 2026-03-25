@@ -23,8 +23,8 @@ if (string.IsNullOrEmpty(supabaseKey) || supabaseKey.StartsWith("__"))
 
 var options = new SupabaseOptions
 {
-    AutoRefreshToken = true,
-    AutoConnectRealtime = true,
+    AutoRefreshToken = false,
+    AutoConnectRealtime = false,
 };
 
 builder.Services.AddSingleton(provider => new Supabase.Client(supabaseUrl, supabaseKey, options));

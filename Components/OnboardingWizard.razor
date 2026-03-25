@@ -4,124 +4,123 @@
 @inject Supabase.Client SupabaseClient
 @inject NavigationManager Nav
 
-@if (IsVisible)
-{
-<div class="onboarding-overlay">
-    <div class="onboarding-container">
-        <div class="onboarding-progress">
-            @for (int i = 0; i < totalSteps; i++)
+<BSModal IsOpen="IsVisible" IsCentered="true" Size="Size.Large" IsStaticBackdrop="true" HasCloseButton="false">
+    <Content>
+        <div class="onboarding-container">
+            <div class="onboarding-progress">
+                @for (int i = 0; i < totalSteps; i++)
+                {
+                    var idx = i;
+                    <div class="onboarding-dot @(idx == step ? "active" : "") @(idx < step ? "completed" : "")"></div>
+                }
+            </div>
+
+            @switch (step)
             {
-                var idx = i;
-                <div class="onboarding-dot @(idx == step ? "active" : "") @(idx < step ? "completed" : "")"></div>
+                case 0:
+                    <div class="onboarding-step">
+                        <div class="onboarding-icon"><i class="fa-solid fa-rocket"></i></div>
+                        <h2>Welcome to InventoryPlus!</h2>
+                        <p class="text-muted">Let's set up your business in just a few steps. This will only take a minute.</p>
+                        <div class="onboarding-actions">
+                            <button class="btn btn-primary btn-lg" @onclick="NextStep"><i class="fa-solid fa-arrow-right"></i> Let's Go!</button>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="SkipOnboarding">Skip setup</button>
+                        </div>
+                    </div>
+                    break;
+
+                case 1:
+                    <div class="onboarding-step">
+                        <div class="onboarding-icon"><i class="fa-solid fa-store"></i></div>
+                        <h2>Name Your Business</h2>
+                        <p class="text-muted">What's your business called? This will appear throughout the app.</p>
+                        <div class="mb-3" style="max-width: 400px; margin: 0 auto;">
+                            <input type="text" @bind="businessName" placeholder="e.g. Maria's Cafe" class="text-center" style="font-size: 1.1rem;" />
+                        </div>
+                        <div class="onboarding-actions">
+                            <button class="btn btn-outline-secondary" @onclick="PrevStep"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                            <button class="btn btn-primary" @onclick="SaveBusinessName" disabled="@string.IsNullOrWhiteSpace(businessName)">Continue <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                    break;
+
+                case 2:
+                    <div class="onboarding-step">
+                        <div class="onboarding-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <h2>Add Your First Stock Item</h2>
+                        <p class="text-muted">Stock items are your raw materials or ingredients. Add one to get started.</p>
+                        <div style="max-width: 400px; margin: 0 auto;">
+                            <div class="mb-3">
+                                <label class="form-label">Item Name</label>
+                                <input type="text" class="form-control" @bind="stockName" placeholder="e.g. Coffee Beans, Paper Cups" />
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label">Unit</label>
+                                    <input type="text" class="form-control" @bind="stockUnit" placeholder="e.g. kg, pcs" />
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label">Starting Stock</label>
+                                    <input type="number" class="form-control" step="0.1" @bind="stockQty" />
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Cost per Unit (₱)</label>
+                                <input type="number" class="form-control" step="0.01" @bind="stockCost" />
+                            </div>
+                        </div>
+                        <div class="onboarding-actions">
+                            <button class="btn btn-outline-secondary" @onclick="PrevStep"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                            <button class="btn btn-primary" @onclick="SaveStock" disabled="@(string.IsNullOrWhiteSpace(stockName) || isSaving)">
+                                @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> } Add & Continue <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    break;
+
+                case 3:
+                    <div class="onboarding-step">
+                        <div class="onboarding-icon"><i class="fa-solid fa-tag"></i></div>
+                        <h2>Create Your First Product</h2>
+                        <p class="text-muted">Products are what you sell. Set a name and price to create one.</p>
+                        <div style="max-width: 400px; margin: 0 auto;">
+                            <div class="mb-3">
+                                <label class="form-label">Product Name</label>
+                                <input type="text" class="form-control" @bind="productName" placeholder="e.g. Iced Coffee, T-Shirt" />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Selling Price (₱)</label>
+                                <input type="number" class="form-control" step="0.01" @bind="productPrice" />
+                            </div>
+                        </div>
+                        <div class="onboarding-actions">
+                            <button class="btn btn-outline-secondary" @onclick="PrevStep"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                            <button class="btn btn-primary" @onclick="SaveProduct" disabled="@(string.IsNullOrWhiteSpace(productName) || isSaving)">
+                                @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> } Add & Continue <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    break;
+
+                case 4:
+                    <div class="onboarding-step">
+                        <div class="onboarding-icon text-success" style="font-size: 4rem;"><i class="fa-solid fa-circle-check"></i></div>
+                        <h2>You're All Set!</h2>
+                        <p class="text-muted">Your business is ready. You can now manage inventory, make sales, and track reports — all from your dashboard.</p>
+                        <div class="onboarding-tips">
+                            <div class="onboarding-tip"><i class="fa-solid fa-cash-register text-primary"></i> Use <strong>Point of Sale</strong> to record sales</div>
+                            <div class="onboarding-tip"><i class="fa-solid fa-chart-line text-success"></i> Check <strong>Reports</strong> for business analytics</div>
+                            <div class="onboarding-tip"><i class="fa-solid fa-gear text-muted"></i> Customize widgets in <strong>Settings</strong></div>
+                        </div>
+                        <div class="onboarding-actions">
+                            <button class="btn btn-primary btn-lg" @onclick="CompleteOnboarding"><i class="fa-solid fa-chart-line"></i> Go to Dashboard</button>
+                        </div>
+                    </div>
+                    break;
             }
         </div>
-
-        @switch (step)
-        {
-            case 0:
-                <div class="onboarding-step">
-                    <div class="onboarding-icon"><i class="fa-solid fa-rocket"></i></div>
-                    <h2>Welcome to InventoryPlus!</h2>
-                    <p class="text-muted">Let's set up your business in just a few steps. This will only take a minute.</p>
-                    <div class="onboarding-actions">
-                        <button class="btn btn-primary btn-lg" @onclick="NextStep"><i class="fa-solid fa-arrow-right"></i> Let's Go!</button>
-                        <button class="btn btn-outline-secondary btn-sm" @onclick="SkipOnboarding">Skip setup</button>
-                    </div>
-                </div>
-                break;
-
-            case 1:
-                <div class="onboarding-step">
-                    <div class="onboarding-icon"><i class="fa-solid fa-store"></i></div>
-                    <h2>Name Your Business</h2>
-                    <p class="text-muted">What's your business called? This will appear throughout the app.</p>
-                    <div class="mb-3" style="max-width: 400px; margin: 0 auto;">
-                        <input type="text" @bind="businessName" placeholder="e.g. Maria's Cafe" class="text-center" style="font-size: 1.1rem;" />
-                    </div>
-                    <div class="onboarding-actions">
-                        <button class="btn btn-outline-secondary" @onclick="PrevStep"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                        <button class="btn btn-primary" @onclick="SaveBusinessName" disabled="@string.IsNullOrWhiteSpace(businessName)">Continue <i class="fa-solid fa-arrow-right"></i></button>
-                    </div>
-                </div>
-                break;
-
-            case 2:
-                <div class="onboarding-step">
-                    <div class="onboarding-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-                    <h2>Add Your First Stock Item</h2>
-                    <p class="text-muted">Stock items are your raw materials or ingredients. Add one to get started.</p>
-                    <div style="max-width: 400px; margin: 0 auto;">
-                        <div class="mb-3">
-                            <label class="form-label">Item Name</label>
-                            <input type="text" class="form-control" @bind="stockName" placeholder="e.g. Coffee Beans, Paper Cups" />
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-6">
-                                <label class="form-label">Unit</label>
-                                <input type="text" class="form-control" @bind="stockUnit" placeholder="e.g. kg, pcs" />
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">Starting Stock</label>
-                                <input type="number" class="form-control" step="0.1" @bind="stockQty" />
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Cost per Unit (₱)</label>
-                            <input type="number" class="form-control" step="0.01" @bind="stockCost" />
-                        </div>
-                    </div>
-                    <div class="onboarding-actions">
-                        <button class="btn btn-outline-secondary" @onclick="PrevStep"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                        <button class="btn btn-primary" @onclick="SaveStock" disabled="@(string.IsNullOrWhiteSpace(stockName) || isSaving)">
-                            @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> } Add & Continue <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-                break;
-
-            case 3:
-                <div class="onboarding-step">
-                    <div class="onboarding-icon"><i class="fa-solid fa-tag"></i></div>
-                    <h2>Create Your First Product</h2>
-                    <p class="text-muted">Products are what you sell. Set a name and price to create one.</p>
-                    <div style="max-width: 400px; margin: 0 auto;">
-                        <div class="mb-3">
-                            <label class="form-label">Product Name</label>
-                            <input type="text" class="form-control" @bind="productName" placeholder="e.g. Iced Coffee, T-Shirt" />
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Selling Price (₱)</label>
-                            <input type="number" class="form-control" step="0.01" @bind="productPrice" />
-                        </div>
-                    </div>
-                    <div class="onboarding-actions">
-                        <button class="btn btn-outline-secondary" @onclick="PrevStep"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                        <button class="btn btn-primary" @onclick="SaveProduct" disabled="@(string.IsNullOrWhiteSpace(productName) || isSaving)">
-                            @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> } Add & Continue <i class="fa-solid fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-                break;
-
-            case 4:
-                <div class="onboarding-step">
-                    <div class="onboarding-icon text-success" style="font-size: 4rem;"><i class="fa-solid fa-circle-check"></i></div>
-                    <h2>You're All Set!</h2>
-                    <p class="text-muted">Your business is ready. You can now manage inventory, make sales, and track reports — all from your dashboard.</p>
-                    <div class="onboarding-tips">
-                        <div class="onboarding-tip"><i class="fa-solid fa-cash-register text-primary"></i> Use <strong>Point of Sale</strong> to record sales</div>
-                        <div class="onboarding-tip"><i class="fa-solid fa-chart-line text-success"></i> Check <strong>Reports</strong> for business analytics</div>
-                        <div class="onboarding-tip"><i class="fa-solid fa-gear text-muted"></i> Customize widgets in <strong>Settings</strong></div>
-                    </div>
-                    <div class="onboarding-actions">
-                        <button class="btn btn-primary btn-lg" @onclick="CompleteOnboarding"><i class="fa-solid fa-chart-line"></i> Go to Dashboard</button>
-                    </div>
-                </div>
-                break;
-        }
-    </div>
-</div>
-}
+    </Content>
+</BSModal>
 
 @code {
     [Parameter] public bool IsVisible { get; set; }

@@ -32,13 +32,20 @@ namespace InventoryPlus.Pages
             {
                 isLoading = true;
                 StateHasChanged();
-                await UserManagement.LoadAsync();
+                try
+                {
+                    await UserManagement.LoadAsync();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Admin load error: {ex.Message}");
+                }
                 isLoading = false;
                 StateHasChanged();
             }
         }
 
-        private void HandleStateChanged() => StateHasChanged();
+        private void HandleStateChanged() => InvokeAsync(StateHasChanged);
 
         public void Dispose()
         {

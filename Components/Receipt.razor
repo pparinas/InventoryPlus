@@ -1,11 +1,13 @@
 @inject Microsoft.JSInterop.IJSRuntime JS
 
-<div class="receipt-overlay" @onclick="Close">
-    <div class="receipt-container" @onclick:stopPropagation>
-        <div class="receipt-actions no-print">
+<BSModal IsOpen="IsVisible" IsCentered="true" Size="Size.Large">
+    <Header>
+        <div class="d-flex gap-2">
             <button class="btn btn-primary btn-sm" @onclick="PrintReceipt"><i class="fa-solid fa-print"></i> Print</button>
             <button class="btn btn-outline-secondary btn-sm" @onclick="Close"><i class="fa-solid fa-xmark"></i> Close</button>
         </div>
+    </Header>
+    <Content>
         <div class="receipt-paper" id="receipt-content">
             <div class="receipt-header-section">
                 <h2 class="receipt-business-name">@BusinessName</h2>
@@ -74,10 +76,11 @@
                 <p class="receipt-footer-sub">Powered by @BusinessName</p>
             </div>
         </div>
-    </div>
-</div>
+    </Content>
+</BSModal>
 
 @code {
+    [Parameter] public bool IsVisible { get; set; }
     [Parameter] public string BusinessName { get; set; } = "InventoryPlus";
     [Parameter] public DateTime SaleDate { get; set; } = DateTime.Now;
     [Parameter] public string CustomerName { get; set; } = string.Empty;

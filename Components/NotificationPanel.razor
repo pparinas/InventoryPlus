@@ -9,19 +9,17 @@
     }
 </div>
 
-@if (showPanel)
-{
-    <div class="notification-overlay" @onclick="() => showPanel = false"></div>
-    <div class="notification-panel glass-panel" @onclick:stopPropagation>
-        <div class="notification-header">
-            <h3 style="margin: 0; font-size: 1.1rem;">Notifications</h3>
-            @if (notifications.Any())
-            {
-                <button class="btn btn-sm btn-outline-secondary" @onclick="MarkAllRead" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;">
-                    Mark all read
-                </button>
-            }
-        </div>
+<BSOffCanvas IsOpen="showPanel" Placement="Placement.Right" @ref="_offCanvas">
+    <Header>
+        <h5 class="offcanvas-title" style="margin: 0;">Notifications</h5>
+        @if (notifications.Any())
+        {
+            <button class="btn btn-sm btn-outline-secondary ms-auto me-2" @onclick="MarkAllRead" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;">
+                Mark all read
+            </button>
+        }
+    </Header>
+    <Content>
         <div class="notification-list">
             @if (!notifications.Any())
             {
@@ -47,11 +45,12 @@
                 }
             }
         </div>
-    </div>
-}
+    </Content>
+</BSOffCanvas>
 
 @code {
     private bool showPanel = false;
+    private BSOffCanvas? _offCanvas;
     private List<InventoryPlus.Models.AppNotification> notifications = new();
     private int UnreadCount => notifications.Count(n => !n.IsRead);
 

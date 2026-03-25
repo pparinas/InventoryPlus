@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
+using BlazorStrap;
+using BlazorStrap.V5;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
 
@@ -18,6 +20,7 @@ namespace InventoryPlus.Pages
         protected bool isUploading;
         protected IBrowserFile? pendingImageFile;
         protected Product currentProduct = new();
+        protected BSModal? _productModal;
         protected Guid? selectedIngredientId;
         protected double newQuantity;
         protected int _page = 1;

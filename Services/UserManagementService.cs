@@ -19,20 +19,27 @@ namespace InventoryPlus.Services
 
         public async Task LoadAsync()
         {
-            var resp = await _supabase.From<UserProfile>().Get();
-            Users = resp.Models
-                .Select(p => new SystemUser
-                {
-                    Id = p.Guid,
-                    Email = p.Email,
-                    IsAdmin = p.IsAdmin,
-                    IsActive = p.IsActive,
-                    CreatedAt = p.CreatedAt,
-                    SubscriptionExpiresAt = p.SubscriptionExpiry
-                })
-                .OrderBy(u => u.CreatedAt)
-                .ToList();
-            NotifyStateChanged();
+            try
+            {
+                var resp = await _supabase.From<UserProfile>().Get();
+                Users = resp.Models
+                    .Select(p => new SystemUser
+                    {
+                        Id = p.Guid,
+                        Email = p.Email,
+                        IsAdmin = p.IsAdmin,
+                        IsActive = p.IsActive,
+                        CreatedAt = p.CreatedAt,
+                        SubscriptionExpiresAt = p.SubscriptionExpiry
+                    })
+                    .OrderBy(u => u.CreatedAt)
+                    .ToList();
+                NotifyStateChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"UserManagement load error: {ex.Message}");
+            }
         }
 
         public async Task UpdateUserAsync(SystemUser user)
