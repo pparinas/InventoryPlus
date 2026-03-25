@@ -2,13 +2,13 @@
 
 <PageTitle>Reports | @AppSettings.CompanyName</PageTitle>
 
-<div class="page-header">
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
     <div>
         <h1>Reports</h1>
-        <p class="text-muted">Analyze sales, inventory, and profitability.</p>
+        <p class="text-muted mb-0">Analyze sales, inventory, and profitability.</p>
     </div>
-    <div class="flex gap-2 flex-wrap">
-        <button class="btn btn-secondary" @onclick="ExportCsv"><i class="fa-solid fa-file-csv"></i><span class="hide-mobile"> Export CSV</span></button>
+    <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-outline-secondary" @onclick="ExportCsv"><i class="fa-solid fa-file-csv"></i><span class="d-none d-sm-inline"> Export CSV</span></button>
     </div>
 </div>
 
@@ -20,22 +20,30 @@
 </div>
 
 @* ── Summary Stats ── *@
-<div class="grid grid-cols-4 mb-4">
-    <div class="glass-panel stat-card">
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="glass-panel stat-card">
         <div class="stat-icon stat-success"><i class="fa-solid fa-chart-line"></i></div>
         <div class="stat-content"><h3>₱@FilteredRevenue.ToString("N2")</h3><p>Revenue</p></div>
     </div>
+    </div>
+    <div class="col-6 col-lg-3">
     <div class="glass-panel stat-card">
         <div class="stat-icon stat-accent"><i class="fa-solid fa-money-bill-trend-up"></i></div>
         <div class="stat-content"><h3>₱@FilteredProfit.ToString("N2")</h3><p>Profit</p></div>
     </div>
+    </div>
+    <div class="col-6 col-lg-3">
     <div class="glass-panel stat-card">
         <div class="stat-icon stat-primary"><i class="fa-solid fa-receipt"></i></div>
         <div class="stat-content"><h3>@FilteredSales.Count()</h3><p>Transactions</p></div>
     </div>
+    </div>
+    <div class="col-6 col-lg-3">
     <div class="glass-panel stat-card">
         <div class="stat-icon stat-warning"><i class="fa-solid fa-boxes-packing"></i></div>
         <div class="stat-content"><h3>₱@InventoryValue.ToString("N2")</h3><p>Inventory Value</p></div>
+    </div>
     </div>
 </div>
 
@@ -52,7 +60,7 @@
         @if (FilteredSales.Any())
         {
             <div class="table-responsive table-view mt-3">
-            <table>
+            <table class="table table-hover mb-0">
                 <thead>
                     <tr><th>ID</th><th>Date</th><th>Product</th><th>Qty</th><th>Method</th><th>Amount</th><th>Profit</th></tr>
                 </thead>
@@ -64,8 +72,8 @@
                             <td>@sale.Date.ToString("MMM dd, h:mm tt")</td>
                             <td><strong>@sale.ProductName</strong></td>
                             <td>@sale.QuantitySold</td>
-                            <td><span class="badge @(sale.PaymentMethod == "GCash" ? "badge-primary" : "badge-secondary")">@sale.PaymentMethod</span></td>
-                            <td class="text-primary">₱@sale.TotalAmount.ToString("N2")</td>
+                            <td><span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span></td>
+                            <td style="color: var(--primary)">₱@sale.TotalAmount.ToString("N2")</td>
                             <td class="text-success">₱@sale.ProfitAmount.ToString("N2")</td>
                         </tr>
                     }
@@ -81,12 +89,12 @@
                                 <span class="stock-card-name">@sale.ProductName</span>
                                 <div class="text-muted" style="font-size:0.72rem;font-family:monospace">@sale.Guid.ToString()[..8]</div>
                             </div>
-                            <span class="badge @(sale.PaymentMethod == "GCash" ? "badge-primary" : "badge-secondary")">@sale.PaymentMethod</span>
+                            <span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span>
                         </div>
                         <div class="stock-card-body">
                             <div class="stock-card-row"><span class="stock-card-label">Date</span><span>@sale.Date.ToString("MMM dd, h:mm tt")</span></div>
                             <div class="stock-card-row"><span class="stock-card-label">Qty</span><span>@sale.QuantitySold</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="text-primary font-bold">₱@sale.TotalAmount.ToString("N2")</span></div>
+                            <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="fw-bold" style="color: var(--primary)">₱@sale.TotalAmount.ToString("N2")</span></div>
                             <div class="stock-card-row"><span class="stock-card-label">Profit</span><span class="text-success">₱@sale.ProfitAmount.ToString("N2")</span></div>
                         </div>
                     </div>
@@ -216,35 +224,35 @@
     </div>
     @if (openSections.Contains("inv"))
     {
-        <div class="flex items-center gap-2 mt-3 mb-3">
+        <div class="d-flex align-items-center gap-2 mt-3 mb-3">
             <input type="date" @bind="stockDateFilter" @bind:format="yyyy-MM-dd"
                    class="form-control" style="width:auto" />
             @if (stockDateFilter.HasValue)
             {
-                <button class="btn btn-sm btn-secondary" @onclick="() => { stockDateFilter = null; stockPage = 1; }"><i class="fa-solid fa-xmark"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" @onclick="() => { stockDateFilter = null; stockPage = 1; }"><i class="fa-solid fa-xmark"></i></button>
             }
         </div>
         @if (FilteredStockItems.Any())
         {
             <div class="table-responsive table-view">
-            <table>
+            <table class="table table-hover mb-0">
                 <thead><tr><th>Item</th><th>Type</th><th>Stock</th><th>Cost/Unit</th><th>Value</th></tr></thead>
                 <tbody>
                     @foreach (var item in FilteredStockItems.OrderByDescending(i => i.Stock * i.CostPerUnit).Skip((stockPage - 1) * PageSize).Take(PageSize))
                     {
                         <tr>
                             <td><strong>@item.Name</strong></td>
-                            <td><span class="badge @(item.Type == "Ingredient" ? "badge-primary" : "badge-secondary")">@item.Type</span></td>
+                            <td><span class="badge @(item.Type == "Ingredient" ? "bg-primary-subtle" : "bg-secondary")">@item.Type</span></td>
                             <td>
-                                @if (item.Stock < 5) { <span class="text-warning font-bold">@item.Stock @item.Unit</span> }
+                                @if (item.Stock < 5) { <span class="text-warning fw-bold">@item.Stock @item.Unit</span> }
                                 else { <span>@item.Stock @item.Unit</span> }
                             </td>
                             <td>₱@item.CostPerUnit.ToString("N2")</td>
-                            <td class="text-primary font-bold">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</td>
+                            <td class="fw-bold" style="color: var(--primary)">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</td>
                         </tr>
                     }
                     <tr style="border-top:2px solid var(--border);font-weight:600">
-                        <td colspan="4" class="text-right">Total (@FilteredStockItems.Count() items)</td>
+                        <td colspan="4" class="text-end">Total (@FilteredStockItems.Count() items)</td>
                         <td class="text-success">₱@FilteredStockItems.Sum(i => i.Stock * i.CostPerUnit).ToString("N2")</td>
                     </tr>
                 </tbody>
@@ -256,11 +264,11 @@
                     <div class="stock-card">
                         <div class="stock-card-header">
                             <span class="stock-card-name">@item.Name</span>
-                            <span class="badge @(item.Type == "Ingredient" ? "badge-primary" : "badge-secondary")">@item.Type</span>
+                            <span class="badge @(item.Type == "Ingredient" ? "bg-primary-subtle" : "bg-secondary")">@item.Type</span>
                         </div>
                         <div class="stock-card-body">
                             <div class="stock-card-row"><span class="stock-card-label">Stock</span><span>@item.Stock @item.Unit</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Value</span><span class="text-primary font-bold">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</span></div>
+                            <div class="stock-card-row"><span class="stock-card-label">Value</span><span class="fw-bold" style="color: var(--primary)">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</span></div>
                         </div>
                     </div>
                 }
@@ -288,7 +296,7 @@
         @if (StockMovement.Any())
         {
             <div class="table-responsive table-view mt-3">
-            <table>
+            <table class="table table-hover mb-0">
                 <thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th><th>Avg Price</th></tr></thead>
                 <tbody>
                     @foreach (var sm in StockMovement)
@@ -296,7 +304,7 @@
                         <tr>
                             <td><strong>@sm.Name</strong></td>
                             <td>@sm.UnitsSold</td>
-                            <td class="text-primary">₱@sm.Revenue.ToString("N2")</td>
+                            <td style="color: var(--primary)">₱@sm.Revenue.ToString("N2")</td>
                             <td>₱@sm.AvgPrice.ToString("N2")</td>
                         </tr>
                     }
@@ -309,7 +317,7 @@
                     <div class="stock-card">
                         <div class="stock-card-header">
                             <span class="stock-card-name">@sm.Name</span>
-                            <span class="text-primary font-bold">₱@sm.Revenue.ToString("N2")</span>
+                            <span style="color: var(--primary)" class="fw-bold">₱@sm.Revenue.ToString("N2")</span>
                         </div>
                         <div class="stock-card-body">
                             <div class="stock-card-row"><span class="stock-card-label">Units Sold</span><span>@sm.UnitsSold</span></div>

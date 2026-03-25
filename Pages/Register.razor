@@ -3,13 +3,13 @@
 @attribute [AllowAnonymous]
 
 
-<div class="login-container" @onkeydown="HandleKeyDown">
-    <div class="login-card">
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh; padding: 1.5rem;" @onkeydown="HandleKeyDown">
+    <div class="card login-card p-4 p-sm-5 w-100" style="max-width: 450px; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
         <div class="auth-brand">
             <i class="fa-solid fa-cube"></i>
         </div>
         <h2>Create Account</h2>
-        <p class="text-muted" style="margin-bottom: 1.5rem; margin-top: -0.5rem;">Start your free trial with @AppSettings.CompanyName</p>
+        <p class="text-muted text-center" style="margin-bottom: 1.5rem; margin-top: -0.5rem;">Start your free trial with @AppSettings.CompanyName</p>
         
         @if (!string.IsNullOrEmpty(SuccessMessage))
         {
@@ -17,46 +17,46 @@
         }
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
-            <div class="alert alert-error">@ErrorMessage</div>
+            <div class="alert alert-danger">@ErrorMessage</div>
         }
 
-        <div class="form-group">
-            <label for="email">Email</label>
+        <div class="mb-3">
+            <label for="email" class="form-label small fw-medium text-muted">Email</label>
             <input id="email" type="email" @bind="Email" class="form-control" placeholder="you@example.com" />
         </div>
 
-        <div class="form-group">
-            <label for="password">Password</label>
+        <div class="mb-3">
+            <label for="password" class="form-label small fw-medium text-muted">Password</label>
             <input id="password" type="password" @bind="Password" class="form-control" placeholder="Min 6 characters" />
             @if (!string.IsNullOrEmpty(Password) && Password.Length < 6)
             {
-                <span class="text-danger" style="font-size: 0.8rem;">Password must be at least 6 characters</span>
+                <small class="text-danger">Password must be at least 6 characters</small>
             }
         </div>
 
-        <div class="form-group">
-            <label for="confirmPassword">Confirm Password</label>
+        <div class="mb-3">
+            <label for="confirmPassword" class="form-label small fw-medium text-muted">Confirm Password</label>
             <input id="confirmPassword" type="password" @bind="ConfirmPassword" class="form-control" placeholder="Repeat your password" />
             @if (!string.IsNullOrEmpty(ConfirmPassword) && Password != ConfirmPassword)
             {
-                <span class="text-danger" style="font-size: 0.8rem;">Passwords do not match</span>
+                <small class="text-danger">Passwords do not match</small>
             }
         </div>
 
-        <button @onclick="HandleRegister" class="btn btn-primary w-full" disabled="@IsLoading">
+        <button @onclick="HandleRegister" class="btn btn-primary w-100" disabled="@IsLoading">
             @if (IsLoading)
             {
                 <span class="spinner"></span> <span>Creating account...</span>
             }
             else
             {
-                <i class="fa-solid fa-user-plus"></i> <span>Create Account</span>
+                <i class="fa-solid fa-user-plus me-1"></i> <span>Create Account</span>
             }
         </button>
 
-        <div class="login-links">
-            <p>Already have an account? <a href="login">Sign in</a></p>
-            <p><a href="/">Back to home</a></p>
+        <div class="text-center mt-3 small text-muted">
+            <p>Already have an account? <a href="login" class="fw-semibold text-decoration-none" style="color: var(--primary);">Sign in</a></p>
+            <p><a href="/" class="text-decoration-none" style="color: var(--primary);">Back to home</a></p>
         </div>
     </div>
 </div>

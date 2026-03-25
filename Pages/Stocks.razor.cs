@@ -87,8 +87,16 @@ namespace InventoryPlus.Pages
         {
             if (deleteTarget != null)
             {
-                await Inventory.DeleteIngredientAsync(deleteTarget);
-                Toast.Show($"\"{deleteTarget.Name}\" removed.", "info");
+                try
+                {
+                    await Inventory.DeleteIngredientAsync(deleteTarget);
+                    Toast.Show($"\"{deleteTarget.Name}\" removed.", "info");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Delete error: {ex.Message}");
+                    Toast.Show("Failed to delete item.", "error");
+                }
             }
             showDeleteConfirm = false;
             deleteTarget = null;
@@ -98,27 +106,35 @@ namespace InventoryPlus.Pages
         {
             if (string.IsNullOrWhiteSpace(currentIngredient.Name)) return;
 
-            if (isEditing)
+            try
             {
-                var existing = Inventory.ActiveIngredients.FirstOrDefault(i => i.Guid == currentIngredient.Guid);
-                if (existing != null)
+                if (isEditing)
                 {
-                    existing.Name = currentIngredient.Name;
-                    existing.Unit = currentIngredient.Unit;
-                    existing.Stock = currentIngredient.Stock;
-                    existing.CostPerUnit = currentIngredient.CostPerUnit;
-                    existing.Type = currentIngredient.Type;
-                    await Inventory.UpdateIngredientAsync(existing);
-                    Toast.Show($"\"{existing.Name}\" updated successfully!");
+                    var existing = Inventory.ActiveIngredients.FirstOrDefault(i => i.Guid == currentIngredient.Guid);
+                    if (existing != null)
+                    {
+                        existing.Name = currentIngredient.Name;
+                        existing.Unit = currentIngredient.Unit;
+                        existing.Stock = currentIngredient.Stock;
+                        existing.CostPerUnit = currentIngredient.CostPerUnit;
+                        existing.Type = currentIngredient.Type;
+                        await Inventory.UpdateIngredientAsync(existing);
+                        Toast.Show($"\"{existing.Name}\" updated successfully!");
+                    }
                 }
+                else
+                {
+                    currentIngredient.Guid = Guid.NewGuid();
+                    await Inventory.AddIngredientAsync(currentIngredient);
+                    Toast.Show($"\"{currentIngredient.Name}\" added to stock!");
+                }
+                CloseModal();
             }
-            else
+            catch (Exception ex)
             {
-                currentIngredient.Guid = Guid.NewGuid();
-                await Inventory.AddIngredientAsync(currentIngredient);
-                Toast.Show($"\"{currentIngredient.Name}\" added to stock!");
+                Console.WriteLine($"Save error: {ex.Message}");
+                Toast.Show("Failed to save item.", "error");
             }
-            CloseModal();
         }
 
         protected void CloseModal() => showModal = false;

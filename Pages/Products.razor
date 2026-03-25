@@ -13,20 +13,20 @@
 else
 {
 
-<div class="page-header">
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
     <div>
         <h1>Products</h1>
-        <p class="text-muted">Bundles of ingredients ready for sale.</p>
+        <p class="text-muted mb-0">Bundles of ingredients ready for sale.</p>
     </div>
-    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="hide-mobile"> Add Product</span></button>
+    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="d-none d-sm-inline"> Add Product</span></button>
 </div>
 
 <div class="glass-panel mb-4" style="padding:0.75rem 1rem">
-    <div class="flex gap-2 flex-wrap items-center">
-        <div class="flex-1" style="min-width:180px">
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+        <div class="flex-grow-1" style="min-width:180px">
             <input type="text" class="form-control" placeholder="Search products..." @bind="searchQuery" @bind:event="oninput" />
         </div>
-        <select class="form-control" style="width:auto" @bind="categoryFilter">
+        <select class="form-select" style="width:auto" @bind="categoryFilter">
             <option value="All">All Categories</option>
             @foreach (var cat in Inventory.ActiveProducts.Select(p => string.IsNullOrEmpty(p.Category) ? "Other" : p.Category).Distinct().OrderBy(c => c))
             {
@@ -39,7 +39,7 @@ else
 <div class="glass-panel">
     @* Desktop table *@
     <div class="table-responsive table-view">
-    <table>
+    <table class="table table-hover mb-0">
         <thead>
             <tr>
                 <th>Product Name</th>
@@ -47,7 +47,7 @@ else
                 <th>Cost</th>
                 <th>Profit Margin</th>
                 <th>Available</th>
-                <th class="text-right">Actions</th>
+                <th class="text-end">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -55,7 +55,7 @@ else
             {
                 <tr>
                     <td>
-                        <div class="flex items-center gap-3">
+                        <div class="d-flex align-items-center gap-3">
                             @if (!string.IsNullOrEmpty(item.ImageUrl))
                             {
                                 <img src="@item.ImageUrl" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border)" alt="@item.Name" />
@@ -84,16 +84,16 @@ else
                     <td>
                         @if (item.AvailableCount <= 0)
                         {
-                            <span class="badge badge-danger">Out of Stock</span>
+                            <span class="badge bg-danger-subtle">Out of Stock</span>
                         }
                         else
                         {
-                            <span class="badge badge-success">@item.AvailableCount Available</span>
+                            <span class="badge bg-success-subtle">@item.AvailableCount Available</span>
                         }
                     </td>
-                    <td class="text-right">
-                        <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-sm btn-danger margin-left-2" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             }
@@ -117,7 +117,7 @@ else
         {
             <div class="stock-card">
                 <div class="stock-card-header">
-                    <div class="flex items-center gap-2" style="flex: 1; min-width: 0; overflow: hidden;">
+                    <div class="d-flex align-items-center gap-2" style="flex: 1; min-width: 0; overflow: hidden;">
                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                         {
                             <img src="@item.ImageUrl" style="width: 36px; height: 36px; border-radius: 6px; object-fit: cover; flex-shrink: 0;" />
@@ -132,11 +132,11 @@ else
                     </div>
                     @if (item.AvailableCount <= 0)
                     {
-                        <span class="badge badge-danger">Out of Stock</span>
+                        <span class="badge bg-danger-subtle">Out of Stock</span>
                     }
                     else
                     {
-                        <span class="badge badge-success">@item.AvailableCount avail.</span>
+                        <span class="badge bg-success-subtle">@item.AvailableCount avail.</span>
                     }
                 </div>
                 <div class="stock-card-body">
@@ -165,8 +165,8 @@ else
                     }
                 </div>
                 <div class="stock-card-actions">
-                    <button class="btn btn-sm btn-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="btn btn-sm btn-danger" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
+                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
                 </div>
             </div>
         }
@@ -184,23 +184,23 @@ else
                 <button class="btn-close" @onclick="CloseModal"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div class="modal-body">
-                <div class="grid grid-cols-2">
+                <div class="row">
                     <!-- Basic Info -->
-                    <div>
+                    <div class="col-12 col-md-6">
                         <h4>Product Details</h4>
-                        <div class="form-group">
-                            <label>Product Name</label>
-                            <input type="text" @bind="currentProduct.Name" placeholder="e.g. Hamburger" />
+                        <div class="mb-3">
+                            <label class="form-label">Product Name</label>
+                            <input type="text" class="form-control" @bind="currentProduct.Name" placeholder="e.g. Hamburger" />
                         </div>
 
-                        <div class="form-group">
-                            <label>Category</label>
-                            <input type="text" @bind="currentProduct.Category" placeholder="e.g. Food, Beverage, Retail" />
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <input type="text" class="form-control" @bind="currentProduct.Category" placeholder="e.g. Food, Beverage, Retail" />
                         </div>
                         
-                        <div class="form-group">
-                            <label>Product Image</label>
-                            <div class="flex items-center gap-3">
+                        <div class="mb-3">
+                            <label class="form-label">Product Image</label>
+                            <div class="d-flex align-items-center gap-3">
                                 @if (!string.IsNullOrEmpty(currentProduct.ImageUrl))
                                 {
                                     <img src="@currentProduct.ImageUrl" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;" />
@@ -219,28 +219,28 @@ else
                             }
                         </div>
 
-                        <div class="grid grid-cols-2 gap-3 mb-4">
-                            <div class="form-group w-full">
-                                <label>Selling Price (₱)</label>
-                                <input type="number" step="0.01" @bind="currentProduct.SellingPrice" />
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <label class="form-label">Selling Price (₱)</label>
+                                <input type="number" class="form-control" step="0.01" @bind="currentProduct.SellingPrice" />
                             </div>
-                            <div class="form-group w-full">
-                                <label>Tax Rate (Decimal)</label>
-                                <input type="number" step="0.01" @bind="currentProduct.TaxRate" placeholder="0.05 for 5%" />
+                            <div class="col-6">
+                                <label class="form-label">Tax Rate (Decimal)</label>
+                                <input type="number" class="form-control" step="0.01" @bind="currentProduct.TaxRate" placeholder="0.05 for 5%" />
                             </div>
                         </div>
 
                         <div class="glass-card mb-4">
                             <h5>Summary</h5>
-                            <div class="flex justify-between mb-2">
+                            <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Cost</span>
                                 <span class="text-danger">₱@currentProduct.TotalCost.ToString("0.00")</span>
                             </div>
-                            <div class="flex justify-between mb-2">
+                            <div class="d-flex justify-content-between mb-2">
                                 <span class="text-muted">Selling Price</span>
                                 <span class="text-success">₱@currentProduct.SellingPrice.ToString("0.00")</span>
                             </div>
-                            <div class="flex justify-between" style="border-top: 1px solid var(--border); padding-top: 0.5rem">
+                            <div class="d-flex justify-content-between" style="border-top: 1px solid var(--border); padding-top: 0.5rem">
                                 <strong>Profit Margin</strong>
                                 <strong class="text-success">₱@currentProduct.ProfitMargin.ToString("0.00")</strong>
                             </div>
@@ -248,28 +248,28 @@ else
                     </div>
 
                     <!-- Ingredients -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
+                    <div class="col-12 col-md-6">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <h4>Required Ingredients</h4>
                         </div>
                         
                         <!-- Add ingredient row -->
-                        <div class="flex gap-2 mb-4">
-                            <select @bind="selectedIngredientId" class="w-full">
+                        <div class="d-flex gap-2 mb-4">
+                            <select @bind="selectedIngredientId" class="form-select">
                                 <option value="">-- Select Ingredient --</option>
                                 @foreach(var ing in Inventory.ActiveIngredients.Where(i => i.Type == "Ingredient"))
                                 {
                                     <option value="@ing.Guid">@ing.Name (@ing.Stock @ing.Unit)</option>
                                 }
                             </select>
-                            <input type="number" step="0.1" @bind="newQuantity" placeholder="Qty" style="width: 80px" />
-                            <button class="btn btn-secondary" @onclick="AddRequirement"><i class="fa-solid fa-plus"></i></button>
+                            <input type="number" class="form-control" step="0.1" @bind="newQuantity" placeholder="Qty" style="width: 80px" />
+                            <button class="btn btn-outline-secondary" @onclick="AddRequirement"><i class="fa-solid fa-plus"></i></button>
                         </div>
 
                         <div style="max-height: 250px; overflow-y: auto;">
                             @foreach(var req in currentProduct.RequiredIngredients)
                             {
-                                <div class="glass-card flex justify-between items-center mb-2" style="padding: 0.5rem 1rem">
+                                <div class="glass-card d-flex justify-content-between align-items-center mb-2" style="padding: 0.5rem 1rem">
                                     <div>
                                         <strong>@req.Ingredient?.Name</strong>
                                         <div class="text-muted" style="font-size:0.8rem">
@@ -289,7 +289,7 @@ else
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-outline-secondary" @onclick="CloseModal">Cancel</button>
                 <button class="btn btn-primary" @onclick="Save">Save Product</button>
             </div>
         </div>

@@ -2,17 +2,17 @@
 
 <PageTitle>Admin Dashboard | @AppSettings.CompanyName</PageTitle>
 
-<div class="page-header">
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
     <div>
         <h1>Admin Dashboard</h1>
-        <p class="text-muted">Manage system users and subscription statuses.</p>
+        <p class="text-muted mb-0">Manage system users and subscription statuses.</p>
     </div>
 </div>
 
-<div class="grid grid-cols-1 gap-6">
+<div class="d-flex flex-column gap-4">
     <!-- User Management Table -->
     <div class="glass-panel">
-        <div class="flex justify-between items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Account Management</h2>
             <div class="text-sm text-muted">Total Accounts: @Users.Count</div>
         </div>
@@ -24,7 +24,7 @@
         else
         {
         <div class="table-responsive table-view">
-        <table>
+        <table class="table table-hover mb-0">
             <thead>
                 <tr>
                     <th>Email Address</th>
@@ -32,7 +32,7 @@
                     <th>Status</th>
                     <th>Created Date</th>
                     <th>Subscription Expiry</th>
-                    <th class="text-right">Actions</th>
+                    <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -42,22 +42,22 @@
                     <tr style="@(!user.IsActive || isExpired ? "opacity: 0.6" : "")">
                         <td><strong>@user.Email</strong></td>
                         <td>
-                            <span class="badge @(user.IsAdmin ? "badge-primary" : "badge-secondary")">
+                            <span class="badge @(user.IsAdmin ? "bg-primary-subtle" : "bg-secondary")">
                                 @(user.IsAdmin ? "Admin" : "User")
                             </span>
                         </td>
                         <td>
                             @if (!user.IsActive)
                             {
-                                <span class="badge badge-danger">Deactivated</span>
+                                <span class="badge bg-danger-subtle">Deactivated</span>
                             }
                             else if (isExpired)
                             {
-                                <span class="badge badge-danger">Expired</span>
+                                <span class="badge bg-danger-subtle">Expired</span>
                             }
                             else
                             {
-                                <span class="badge badge-success">Active</span>
+                                <span class="badge bg-success-subtle">Active</span>
                             }
                         </td>
                         <td class="text-muted">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
@@ -71,11 +71,11 @@
                                 <span class="text-muted">N/A</span>
                             }
                         </td>
-                        <td class="text-right">
-                            <button class="btn btn-sm btn-secondary" @onclick="() => EditUser(user)">
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditUser(user)">
                                 <i class="fa-solid fa-user-pen"></i> Manage
                             </button>
-                            <button class="btn btn-sm @(user.IsActive ? "btn-danger" : "btn-success") ml-2" @onclick="() => ToggleUserStatusAsync(user)">
+                            <button class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-success") ms-2" @onclick="() => ToggleUserStatusAsync(user)">
                                 <i class="fa-solid @(user.IsActive ? "fa-user-slash" : "fa-user-check")"></i>
                                 @(user.IsActive ? " Deactivate" : " Activate")
                             </button>
@@ -92,22 +92,22 @@
                 <div class="stock-card" style="@(!user.IsActive || isExpiredCard ? "opacity: 0.7" : "")">
                     <div class="stock-card-header">
                         <span class="stock-card-name">@user.Email</span>
-                        <span class="badge @(user.IsAdmin ? "badge-primary" : "badge-secondary")">@(user.IsAdmin ? "Admin" : "User")</span>
+                        <span class="badge @(user.IsAdmin ? "bg-primary-subtle" : "bg-secondary")">@(user.IsAdmin ? "Admin" : "User")</span>
                     </div>
                     <div class="stock-card-body">
                         <div class="stock-card-row">
                             <span class="stock-card-label">Status</span>
                             @if (!user.IsActive)
                             {
-                                <span class="badge badge-danger">Deactivated</span>
+                                <span class="badge bg-danger-subtle">Deactivated</span>
                             }
                             else if (isExpiredCard)
                             {
-                                <span class="badge badge-danger">Expired</span>
+                                <span class="badge bg-danger-subtle">Expired</span>
                             }
                             else
                             {
-                                <span class="badge badge-success">Active</span>
+                                <span class="badge bg-success-subtle">Active</span>
                             }
                         </div>
                         <div class="stock-card-row">
@@ -127,8 +127,8 @@
                         </div>
                     </div>
                     <div class="stock-card-actions">
-                        <button class="btn btn-sm btn-secondary" @onclick="() => EditUser(user)"><i class="fa-solid fa-user-pen"></i> Manage</button>
-                        <button class="btn btn-sm @(user.IsActive ? "btn-danger" : "btn-success")" @onclick="() => ToggleUserStatusAsync(user)">
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditUser(user)"><i class="fa-solid fa-user-pen"></i> Manage</button>
+                        <button class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-success")" @onclick="() => ToggleUserStatusAsync(user)">
                             <i class="fa-solid @(user.IsActive ? "fa-user-slash" : "fa-user-check")"></i>
                             @(user.IsActive ? "Deactivate" : "Activate")
                         </button>
@@ -151,18 +151,24 @@
             <i class="fa-solid fa-check-circle"></i> All services are online (Supabase, Database, Hosting).
         </div>
         
-        <div class="grid grid-cols-3 gap-4 mt-4">
+        <div class="row g-3 mt-3">
+            <div class="col-12 col-md-4">
             <div class="stat-mini">
-                <span class="text-muted text-xs">Total Products</span>
-                <div class="font-bold">@AppSettings.CompanyName System</div>
+                <span class="text-muted" style="font-size: 0.75rem">Total Products</span>
+                <div class="fw-bold">@AppSettings.CompanyName System</div>
             </div>
-            <div class="stat-mini">
-                <span class="text-muted text-xs">Auth Provider</span>
-                <div class="font-bold">Supabase</div>
             </div>
+            <div class="col-12 col-md-4">
             <div class="stat-mini">
-                <span class="text-muted text-xs">Currency</span>
-                <div class="font-bold">₱ (Philippine Peso)</div>
+                <span class="text-muted" style="font-size: 0.75rem">Auth Provider</span>
+                <div class="fw-bold">Supabase</div>
+            </div>
+            </div>
+            <div class="col-12 col-md-4">
+            <div class="stat-mini">
+                <span class="text-muted" style="font-size: 0.75rem">Currency</span>
+                <div class="fw-bold">₱ (Philippine Peso)</div>
+            </div>
             </div>
         </div>
     </div>
@@ -179,13 +185,13 @@
             <div class="modal-body">
                 <p class="text-muted mb-4"><strong>@selectedUser.Email</strong></p>
 
-                <div class="form-group">
-                    <label>Current Subscription Expiry</label>
+                <div class="mb-3">
+                    <label class="form-label">Current Subscription Expiry</label>
                     <div class="mt-1">
                         @if (selectedUser.SubscriptionExpiresAt.HasValue)
                         {
                             var expired = selectedUser.SubscriptionExpiresAt.Value < DateTime.UtcNow;
-                            <span class="badge @(expired ? "badge-danger" : "badge-success")">
+                            <span class="badge @(expired ? "bg-danger-subtle" : "bg-success-subtle")">
                                 @selectedUser.SubscriptionExpiresAt.Value.ToString("MMM dd, yyyy")
                                 @(expired ? " (Expired)" : "")
                             </span>
@@ -197,17 +203,17 @@
                     </div>
                 </div>
 
-                <div class="form-group mt-4">
-                    <label>Renewal Plan</label>
-                    <div class="flex gap-2 mt-2">
-                        <button class="btn @(selectedPlan == "1month" ? "btn-primary" : "btn-secondary")" @onclick='() => selectedPlan = "1month"'>
+                <div class="mb-3 mt-4">
+                    <label class="form-label">Renewal Plan</label>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn @(selectedPlan == "1month" ? "btn-primary" : "btn-outline-secondary")" @onclick='() => selectedPlan = "1month"'>
                             1 Month
                         </button>
-                        <button class="btn @(selectedPlan == "1year" ? "btn-primary" : "btn-secondary")" @onclick='() => selectedPlan = "1year"'>
+                        <button class="btn @(selectedPlan == "1year" ? "btn-primary" : "btn-outline-secondary")" @onclick='() => selectedPlan = "1year"'>
                             1 Year
                         </button>
                     </div>
-                    <button class="btn btn-secondary mt-2" @onclick="ApplyPlan">
+                    <button class="btn btn-outline-secondary mt-2" @onclick="ApplyPlan">
                         <i class="fa-solid fa-calendar-plus"></i> Apply Plan
                     </button>
                     @if (selectedUser.SubscriptionExpiresAt.HasValue)
@@ -216,25 +222,25 @@
                     }
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mt-4">
-                    <div class="form-group">
-                        <label>User Role</label>
-                        <div class="flex items-center gap-2 mt-2">
-                            <input type="checkbox" id="isAdmin" @bind="selectedUser.IsAdmin" />
+                <div class="row g-3 mt-3">
+                    <div class="col-6">
+                        <label class="form-label">User Role</label>
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <input type="checkbox" class="form-check-input" id="isAdmin" @bind="selectedUser.IsAdmin" />
                             <label for="isAdmin">Administrator</label>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Account Status</label>
-                        <div class="flex items-center gap-2 mt-2">
-                            <input type="checkbox" id="isActive" @bind="selectedUser.IsActive" />
+                    <div class="col-6">
+                        <label class="form-label">Account Status</label>
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <input type="checkbox" class="form-check-input" id="isActive" @bind="selectedUser.IsActive" />
                             <label for="isActive">Account is Active</label>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" @onclick="CloseModal">Cancel</button>
+                <button class="btn btn-outline-secondary" @onclick="CloseModal">Cancel</button>
                 <button class="btn btn-primary" @onclick="SaveUserAsync" disabled="@isSaving">
                     @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> }
                     Save Changes

@@ -6,8 +6,8 @@
 
 <PageTitle>Contact Us | @AppSettings.CompanyName</PageTitle>
 
-<div class="contact-container">
-    <div class="glass-panel contact-panel">
+<div class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 80px); padding: 2rem; background: radial-gradient(circle at center, rgba(168, 85, 247, 0.1) 0%, transparent 60%);">
+    <div class="glass-panel" style="width: 100%; max-width: 600px; padding: 3rem; box-shadow: var(--shadow);">
         <h2 style="font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Get in touch</h2>
         <p class="text-muted" style="margin-bottom: 2rem">We'd love to hear from you. Fill out the form below and we'll reply ASAP!</p>
         
@@ -17,32 +17,32 @@
                 <div class="empty-state-icon text-success"><i class="fa-solid fa-circle-check"></i></div>
                 <h3 class="empty-state-title">Message Sent!</h3>
                 <p class="empty-state-message">Thanks for reaching out. We'll get back to you soon.</p>
-                <button class="btn btn-secondary mt-4" @onclick="() => submitted = false">Send another</button>
+                <button class="btn btn-outline-secondary mt-4" @onclick="() => submitted = false">Send another</button>
             </div>
         }
         else
         {
-            <div class="form-group">
-                <label>Name</label>
+            <div class="mb-3">
+                <label class="form-label">Name</label>
                 <input type="text" class="form-control" placeholder="Your Name" @bind="contactName" />
             </div>
             
-            <div class="form-group">
-                <label>Email</label>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
                 <input type="email" class="form-control" placeholder="your@email.com" @bind="contactEmail" />
             </div>
             
-            <div class="form-group">
-                <label>Message</label>
+            <div class="mb-3">
+                <label class="form-label">Message</label>
                 <textarea class="form-control" rows="5" placeholder="How can we help?" @bind="contactMessage"></textarea>
             </div>
             
             @if (!string.IsNullOrEmpty(errorMsg))
             {
-                <div class="alert alert-error">@errorMsg</div>
+                <div class="alert alert-danger">@errorMsg</div>
             }
 
-            <button class="btn btn-primary btn-lg mt-2" style="width: 100%" @onclick="HandleSubmit" disabled="@sending">
+            <button class="btn btn-primary btn-lg mt-2 w-100" @onclick="HandleSubmit" disabled="@sending">
                 @if (sending) { <i class="fa-solid fa-spinner fa-spin"></i> }
                 <i class="fa-solid fa-paper-plane"></i> Send Message
             </button>

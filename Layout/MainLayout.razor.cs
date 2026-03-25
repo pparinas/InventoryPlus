@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using InventoryPlus.Services;
-using Microsoft.AspNetCore.Components.Web;
 using Supabase;
 
 namespace InventoryPlus.Layout
@@ -19,6 +19,12 @@ namespace InventoryPlus.Layout
         protected bool showMobileNav = false;
         protected bool showOnboarding = false;
         protected string? currentUserEmail;
+        private ErrorBoundary? errorBoundary;
+
+        protected void ResetError()
+        {
+            errorBoundary?.Recover();
+        }
 
         protected void ToggleMobileNav()
         {

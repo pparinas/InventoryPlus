@@ -7,194 +7,203 @@
 
 <!-- HERO -->
 <section class="hero-section">
-    <div class="hero-content">
+    <div>
         <div class="hero-badge"><i class="fa-solid fa-bolt"></i> Trusted by growing businesses</div>
         <h1 class="hero-title">Run Your Business<br/><span class="text-gradient">Smarter, Not Harder</span></h1>
         <p class="hero-subtitle">All-in-one inventory management and point of sale system. Track stock, record sales, and get real-time insights — from any device.</p>
-        <div class="hero-actions">
-            <a href="register" class="btn btn-primary btn-lg"><i class="fa-solid fa-rocket"></i> Start Free Trial</a>
-            <a href="#features" class="btn btn-secondary btn-lg"><i class="fa-solid fa-play"></i> See How It Works</a>
+        <div class="d-flex flex-column flex-sm-row gap-2 mb-3">
+            <a href="register" class="btn btn-primary btn-lg"><i class="fa-solid fa-rocket me-1"></i> Start Free Trial</a>
+            <a href="#features" class="btn btn-outline-secondary btn-lg"><i class="fa-solid fa-play me-1"></i> See How It Works</a>
         </div>
-        <div class="hero-trust">
-            <div class="hero-trust-item"><i class="fa-solid fa-circle-check text-success"></i> No credit card required</div>
-            <div class="hero-trust-item"><i class="fa-solid fa-circle-check text-success"></i> Setup in 2 minutes</div>
-            <div class="hero-trust-item"><i class="fa-solid fa-circle-check text-success"></i> Works on any device</div>
+        <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 gap-sm-3 flex-wrap small text-muted">
+            <span><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> No credit card required</span>
+            <span><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> Setup in 2 minutes</span>
+            <span><i class="fa-solid fa-circle-check" style="color: var(--success);"></i> Works on any device</span>
         </div>
     </div>
-    <div class="hero-image">
+    <div class="d-none d-md-block" style="flex: 1; max-width: 480px;">
         <div class="hero-mockup glass-panel">
             <div class="mockup-header">
                 <div class="dot red"></div><div class="dot yellow"></div><div class="dot green"></div>
-                <span class="text-muted" style="font-size: 0.7rem; margin-left: auto;">Dashboard</span>
+                <span class="text-muted ms-auto" style="font-size: 0.7rem;">Dashboard</span>
             </div>
-            <div class="mockup-body">
-                <div class="mockup-stats-row">
-                    <div class="mockup-stat-card">
-                        <div class="mockup-stat-num text-success">₱12,450</div>
-                        <div class="mockup-stat-label">Revenue</div>
-                    </div>
-                    <div class="mockup-stat-card">
-                        <div class="mockup-stat-num text-primary">48</div>
-                        <div class="mockup-stat-label">Sales Today</div>
-                    </div>
+            <div class="mockup-stats-row">
+                <div class="mockup-stat-card">
+                    <div class="mockup-stat-num" style="color: var(--success);">₱12,450</div>
+                    <div class="mockup-stat-label">Revenue</div>
                 </div>
-                <div class="mockup-chart-bars">
-                    <div class="mockup-bar" style="height: 40%"></div>
-                    <div class="mockup-bar" style="height: 65%"></div>
-                    <div class="mockup-bar" style="height: 50%"></div>
-                    <div class="mockup-bar active" style="height: 85%"></div>
-                    <div class="mockup-bar" style="height: 60%"></div>
-                    <div class="mockup-bar" style="height: 75%"></div>
-                    <div class="mockup-bar" style="height: 45%"></div>
+                <div class="mockup-stat-card">
+                    <div class="mockup-stat-num" style="color: var(--primary);">48</div>
+                    <div class="mockup-stat-label">Sales Today</div>
                 </div>
+            </div>
+            <div class="mockup-chart-bars">
+                <div class="mockup-bar" style="height: 40%"></div>
+                <div class="mockup-bar" style="height: 65%"></div>
+                <div class="mockup-bar" style="height: 50%"></div>
+                <div class="mockup-bar" style="height: 85%"></div>
+                <div class="mockup-bar" style="height: 60%"></div>
+                <div class="mockup-bar" style="height: 75%"></div>
+                <div class="mockup-bar" style="height: 45%"></div>
             </div>
         </div>
     </div>
 </section>
 
 <!-- HOW IT WORKS -->
-<section class="how-it-works-section" id="how-it-works">
-    <div class="section-title">
-        <h2>Up and Running in 3 Steps</h2>
-        <p class="text-muted text-lg mt-2">No complex setup. No training required.</p>
-    </div>
-    <div class="steps-grid">
-        <div class="step-card">
-            <div class="step-number">1</div>
-            <div class="step-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-            <h3>Add Your Inventory</h3>
-            <p class="text-muted">Enter your raw materials, ingredients, or products with costs and quantities.</p>
-        </div>
-        <div class="step-connector"><i class="fa-solid fa-arrow-right"></i></div>
-        <div class="step-card">
-            <div class="step-number">2</div>
-            <div class="step-icon"><i class="fa-solid fa-tags"></i></div>
-            <h3>Configure Products</h3>
-            <p class="text-muted">Create sellable products with pricing, tax rates, and ingredient recipes.</p>
-        </div>
-        <div class="step-connector"><i class="fa-solid fa-arrow-right"></i></div>
-        <div class="step-card">
-            <div class="step-number">3</div>
-            <div class="step-icon"><i class="fa-solid fa-cash-register"></i></div>
-            <h3>Start Selling</h3>
-            <p class="text-muted">Use the POS to record sales. Stock auto-deducts and reports update instantly.</p>
+<section class="py-5" id="how-it-works">
+    <div class="container text-center" style="max-width: 900px;">
+        <h2 class="mb-1">Up and Running in 3 Steps</h2>
+        <p class="text-muted mb-4">No complex setup. No training required.</p>
+        <div class="row g-4">
+            <div class="col-12 col-md-4">
+                <div class="step-number">1</div>
+                <h5 class="fw-semibold">Add Your Inventory</h5>
+                <p class="text-muted small">Enter your raw materials, ingredients, or products with costs and quantities.</p>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="step-number">2</div>
+                <h5 class="fw-semibold">Configure Products</h5>
+                <p class="text-muted small">Create sellable products with pricing, tax rates, and ingredient recipes.</p>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="step-number">3</div>
+                <h5 class="fw-semibold">Start Selling</h5>
+                <p class="text-muted small">Use the POS to record sales. Stock auto-deducts and reports update instantly.</p>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- FEATURES -->
-<section id="features" class="features-section">
-    <div class="section-title">
-        <h2>Everything Your Business Needs</h2>
-        <p class="text-muted text-lg mt-2">Powerful tools in one seamless, mobile-friendly experience.</p>
-    </div>
-    
-    <div class="features-grid">
-        <div class="feature-card glass-panel">
-            <div class="feature-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-            <h3>Smart Inventory</h3>
-            <p>Track ingredients, raw materials, and supplies with automatic stock deduction when sales are made.</p>
-        </div>
-        <div class="feature-card glass-panel">
-            <div class="feature-icon"><i class="fa-solid fa-cash-register"></i></div>
-            <h3>Point of Sale</h3>
-            <p>Fast, touch-friendly POS with search, categories, discounts, and instant receipt generation.</p>
-        </div>
-        <div class="feature-card glass-panel">
-            <div class="feature-icon"><i class="fa-solid fa-chart-pie"></i></div>
-            <h3>Business Reports</h3>
-            <p>Sales summaries, profit & loss, top products, payment breakdowns — all customizable.</p>
-        </div>
-        <div class="feature-card glass-panel">
-            <div class="feature-icon"><i class="fa-solid fa-bell"></i></div>
-            <h3>Low Stock Alerts</h3>
-            <p>Get notified instantly when ingredients run low so you never miss a sale.</p>
-        </div>
-        <div class="feature-card glass-panel">
-            <div class="feature-icon"><i class="fa-solid fa-receipt"></i></div>
-            <h3>Receipt Printing</h3>
-            <p>Generate professional receipts after every sale — print or share digitally.</p>
-        </div>
-        <div class="feature-card glass-panel">
-            <div class="feature-icon"><i class="fa-solid fa-moon"></i></div>
-            <h3>Dark & Light Mode</h3>
-            <p>Work comfortably in any lighting with beautiful dark and light themes built in.</p>
+<section id="features" class="py-5">
+    <div class="container text-center" style="max-width: 1000px;">
+        <h2 class="mb-1">Everything Your Business Needs</h2>
+        <p class="text-muted mb-4">Powerful tools in one seamless, mobile-friendly experience.</p>
+        <div class="row g-3">
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="glass-panel text-start h-100">
+                    <div class="feature-icon" style="background: rgba(99,102,241,0.1); color: var(--primary);"><i class="fa-solid fa-boxes-stacked"></i></div>
+                    <h5 class="fw-semibold">Smart Inventory</h5>
+                    <p class="text-muted small mb-0">Track ingredients, raw materials, and supplies with automatic stock deduction when sales are made.</p>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="glass-panel text-start h-100">
+                    <div class="feature-icon" style="background: rgba(236,72,153,0.1); color: var(--accent);"><i class="fa-solid fa-cash-register"></i></div>
+                    <h5 class="fw-semibold">Point of Sale</h5>
+                    <p class="text-muted small mb-0">Fast, touch-friendly POS with search, categories, discounts, and instant receipt generation.</p>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="glass-panel text-start h-100">
+                    <div class="feature-icon" style="background: rgba(16,185,129,0.1); color: var(--success);"><i class="fa-solid fa-chart-pie"></i></div>
+                    <h5 class="fw-semibold">Business Reports</h5>
+                    <p class="text-muted small mb-0">Sales summaries, profit & loss, top products, payment breakdowns — all customizable.</p>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="glass-panel text-start h-100">
+                    <div class="feature-icon" style="background: rgba(245,158,11,0.1); color: var(--warning);"><i class="fa-solid fa-bell"></i></div>
+                    <h5 class="fw-semibold">Low Stock Alerts</h5>
+                    <p class="text-muted small mb-0">Get notified instantly when ingredients run low so you never miss a sale.</p>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="glass-panel text-start h-100">
+                    <div class="feature-icon" style="background: rgba(99,102,241,0.1); color: var(--primary);"><i class="fa-solid fa-receipt"></i></div>
+                    <h5 class="fw-semibold">Receipt Printing</h5>
+                    <p class="text-muted small mb-0">Generate professional receipts after every sale — print or share digitally.</p>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="glass-panel text-start h-100">
+                    <div class="feature-icon" style="background: rgba(236,72,153,0.1); color: var(--accent);"><i class="fa-solid fa-moon"></i></div>
+                    <h5 class="fw-semibold">Dark & Light Mode</h5>
+                    <p class="text-muted small mb-0">Work comfortably in any lighting with beautiful dark and light themes built in.</p>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- PRICING -->
-<section id="pricing" class="pricing-section">
-    <div class="section-title">
-        <h2>Simple, Transparent Pricing</h2>
-        <p class="text-muted text-lg mt-2">Start free. Upgrade when you're ready.</p>
-    </div>
-    
-    <div class="pricing-grid">
-        <div class="pricing-card glass-panel">
-            <div class="pricing-header">
-                <h3>Monthly</h3>
-                <div class="pricing-price">₱488<span>/mo</span></div>
+<section id="pricing" class="py-5">
+    <div class="container text-center" style="max-width: 800px;">
+        <h2 class="mb-1">Simple, Transparent Pricing</h2>
+        <p class="text-muted mb-4">Start free. Upgrade when you're ready.</p>
+        <div class="row g-4">
+            <div class="col-12 col-sm-6">
+                <div class="glass-panel h-100 text-start">
+                    <h6 class="text-uppercase small fw-bold" style="letter-spacing: 0.1em; color: var(--text-secondary);">Monthly</h6>
+                    <div class="fs-1 fw-bold mb-2" style="color: var(--text-primary); -webkit-text-fill-color: unset; background: none;">₱488<small class="fs-6 fw-normal text-muted">/mo</small></div>
+                    <ul class="list-unstyled mb-3">
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Full Inventory Management</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Unlimited Products & Sales</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Point of Sale System</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Basic Reports & Analytics</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Receipt Generation</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Dark/Light Mode</li>
+                    </ul>
+                    <a href="register" class="btn btn-outline-secondary w-100">Start Monthly</a>
+                </div>
             </div>
-            <ul class="pricing-features">
-                <li><i class="fa-solid fa-check text-success"></i> Full Inventory Management</li>
-                <li><i class="fa-solid fa-check text-success"></i> Unlimited Products & Sales</li>
-                <li><i class="fa-solid fa-check text-success"></i> Point of Sale System</li>
-                <li><i class="fa-solid fa-check text-success"></i> Basic Reports & Analytics</li>
-                <li><i class="fa-solid fa-check text-success"></i> Receipt Generation</li>
-                <li><i class="fa-solid fa-check text-success"></i> Dark/Light Mode</li>
-            </ul>
-            <a href="register" class="btn btn-secondary w-full">Start Monthly</a>
-        </div>
-
-        <div class="pricing-card glass-panel popular">
-            <div class="popular-badge">Best Value</div>
-            <div class="pricing-header">
-                <h3>Annual</h3>
-                <div class="pricing-price">₱4,880<span>/yr</span></div>
-                <div class="pricing-savings">Save ₱976 (2 months free!)</div>
+            <div class="col-12 col-sm-6">
+                <div class="glass-panel h-100 text-start position-relative" style="border-color: var(--primary);">
+                    <div class="popular-badge">Best Value</div>
+                    <h6 class="text-uppercase small fw-bold mt-2" style="letter-spacing: 0.1em; color: var(--text-secondary);">Annual</h6>
+                    <div class="fs-1 fw-bold mb-1" style="color: var(--text-primary); -webkit-text-fill-color: unset; background: none;">₱4,880<small class="fs-6 fw-normal text-muted">/yr</small></div>
+                    <div class="small fw-semibold mb-2" style="color: var(--success);">Save ₱976 (2 months free!)</div>
+                    <ul class="list-unstyled mb-3">
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Everything in Monthly</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Advanced Reports & CSV Export</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Dashboard Customization</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Priority Support</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Multi-device Sync</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Onboarding Wizard</li>
+                    </ul>
+                    <a href="register" class="btn btn-primary w-100">Get Best Value</a>
+                </div>
             </div>
-            <ul class="pricing-features">
-                <li><i class="fa-solid fa-check text-success"></i> Everything in Monthly</li>
-                <li><i class="fa-solid fa-check text-success"></i> Advanced Reports & CSV Export</li>
-                <li><i class="fa-solid fa-check text-success"></i> Dashboard Customization</li>
-                <li><i class="fa-solid fa-check text-success"></i> Priority Support</li>
-                <li><i class="fa-solid fa-check text-success"></i> Multi-device Sync</li>
-                <li><i class="fa-solid fa-check text-success"></i> Onboarding Wizard</li>
-            </ul>
-            <a href="register" class="btn btn-primary w-full">Get Best Value</a>
         </div>
     </div>
 </section>
 
 <!-- FAQ -->
-<section class="faq-section" id="faq">
-    <div class="section-title">
-        <h2>Frequently Asked Questions</h2>
-    </div>
-    <div class="faq-list">
-        @foreach (var faq in faqs)
-        {
-            <div class="faq-item glass-panel @(faq.Open ? "open" : "")" @onclick="() => faq.Open = !faq.Open">
-                <div class="faq-question">
-                    <span>@faq.Question</span>
-                    <i class="fa-solid @(faq.Open ? "fa-minus" : "fa-plus")"></i>
+<section class="py-5" id="faq">
+    <div class="container" style="max-width: 800px;">
+        <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+        <div class="accordion" id="faqAccordion">
+            @for (int i = 0; i < faqs.Count; i++)
+            {
+                var faq = faqs[i];
+                var collapseId = $"faq-{i}";
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button @(faq.Open ? "" : "collapsed")" type="button" @onclick="() => faq.Open = !faq.Open">
+                            @faq.Question
+                        </button>
+                    </h2>
+                    @if (faq.Open)
+                    {
+                        <div class="accordion-collapse collapse show">
+                            <div class="accordion-body text-muted">@faq.Answer</div>
+                        </div>
+                    }
                 </div>
-                @if (faq.Open)
-                {
-                    <div class="faq-answer text-muted">@faq.Answer</div>
-                }
-            </div>
-        }
+            }
+        </div>
     </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-section">
-    <div class="glass-panel cta-panel">
-        <h2>Ready to streamline your business?</h2>
-        <p class="text-muted">Join hundreds of small businesses already using @AppSettings.CompanyName to manage inventory and boost sales.</p>
-        <a href="register" class="btn btn-primary btn-lg mt-4"><i class="fa-solid fa-rocket"></i> Start Your Free Trial</a>
+<section class="py-5">
+    <div class="container" style="max-width: 600px;">
+        <div class="glass-panel text-center p-4 p-md-5" style="background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(236,72,153,0.08)); border: 1px solid rgba(99,102,241,0.2);">
+            <h2>Ready to streamline your business?</h2>
+            <p class="text-muted">Join hundreds of small businesses already using @AppSettings.CompanyName to manage inventory and boost sales.</p>
+            <a href="register" class="btn btn-primary btn-lg mt-3"><i class="fa-solid fa-rocket me-1"></i> Start Your Free Trial</a>
+        </div>
     </div>
 </section>
 

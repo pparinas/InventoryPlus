@@ -1,61 +1,73 @@
 @inherits LayoutComponentBase
 @inject SettingsService AppSettings
 
-<div class="landing-layout">
-    <header class="landing-header">
-        <div class="landing-brand">
-            @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
-            {
-                <img src="@AppSettings.CustomLogoUrl" style="height: 32px; width: auto; max-width: 120px; object-fit: contain;" alt="@AppSettings.CompanyName" />
-            }
-            else
-            {
-                <i class="fa-solid fa-cube"></i> @AppSettings.CompanyName
-            }
+<div class="d-flex flex-column min-vh-100">
+    <nav class="navbar navbar-expand-md fixed-top" style="background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: var(--glass-border); box-shadow: var(--shadow);">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="" style="color: var(--brand-color);">
+                @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
+                {
+                    <img src="@AppSettings.CustomLogoUrl" style="height: 32px; width: auto; max-width: 120px; object-fit: contain;" alt="@AppSettings.CompanyName" />
+                }
+                else
+                {
+                    <i class="fa-solid fa-cube" style="color: var(--accent);"></i> @AppSettings.CompanyName
+                }
+            </a>
+            <button class="navbar-toggler border-0" type="button" @onclick="() => showMobileMenu = !showMobileMenu" style="color: var(--text-primary);">
+                <i class="fa-solid @(showMobileMenu ? "fa-xmark" : "fa-bars")"></i>
+            </button>
+            <div class="@(showMobileMenu ? "show" : "") collapse navbar-collapse">
+                <ul class="navbar-nav ms-auto align-items-center gap-1">
+                    <li class="nav-item"><a class="nav-link" href="" style="color: var(--text-primary);" @onclick="() => showMobileMenu = false">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#features" style="color: var(--text-secondary);" @onclick="() => showMobileMenu = false">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#pricing" style="color: var(--text-secondary);" @onclick="() => showMobileMenu = false">Pricing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="contact" style="color: var(--text-secondary);" @onclick="() => showMobileMenu = false">Contact</a></li>
+                    <li class="nav-item ms-md-2"><a class="btn btn-primary btn-sm" href="login" @onclick="() => showMobileMenu = false"><i class="fa-solid fa-right-to-bracket me-1"></i> Sign In</a></li>
+                </ul>
+            </div>
         </div>
-        <button class="landing-hamburger" @onclick="() => showMobileMenu = !showMobileMenu">
-            <i class="fa-solid @(showMobileMenu ? "fa-xmark" : "fa-bars")"></i>
-        </button>
-        <nav class="landing-nav @(showMobileMenu ? "open" : "")">
-            <a href="" @onclick="() => showMobileMenu = false">Home</a>
-            <a href="#features" @onclick="() => showMobileMenu = false">Features</a>
-            <a href="#pricing" @onclick="() => showMobileMenu = false">Pricing</a>
-            <a href="contact" @onclick="() => showMobileMenu = false">Contact</a>
-            <a href="login" class="btn btn-primary btn-sm" @onclick="() => showMobileMenu = false">Sign In</a>
-        </nav>
-    </header>
+    </nav>
     
-    <main class="landing-main">
+    <main style="margin-top: 64px;">
         @Body
     </main>
     
-    <footer class="landing-footer">
-        <div class="landing-footer-grid">
-            <div class="footer-col">
-                <div class="landing-brand footer-logo">
-                    <i class="fa-solid fa-cube"></i> @AppSettings.CompanyName
+    <footer class="border-top mt-auto" style="border-color: var(--border) !important; padding: 3rem 0 2rem;">
+        <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-sm-6 col-md-4">
+                    <div class="d-flex align-items-center gap-2 fw-bold fs-5 mb-2" style="color: var(--brand-color);">
+                        <i class="fa-solid fa-cube" style="color: var(--accent);"></i> @AppSettings.CompanyName
+                    </div>
+                    <p class="text-muted small" style="max-width: 280px;">Smart inventory and POS system built for small businesses that want to grow.</p>
                 </div>
-                <p class="text-muted" style="font-size: 0.9rem; max-width: 280px;">Smart inventory and POS system built for small businesses that want to grow.</p>
+                <div class="col-6 col-md-2">
+                    <h6 class="text-uppercase small fw-bold mb-2" style="letter-spacing: 0.1em;">Product</h6>
+                    <div class="d-flex flex-column gap-1">
+                        <a href="#features" class="text-decoration-none small" style="color: var(--text-secondary);">Features</a>
+                        <a href="#pricing" class="text-decoration-none small" style="color: var(--text-secondary);">Pricing</a>
+                        <a href="register" class="text-decoration-none small" style="color: var(--text-secondary);">Free Trial</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <h6 class="text-uppercase small fw-bold mb-2" style="letter-spacing: 0.1em;">Company</h6>
+                    <div class="d-flex flex-column gap-1">
+                        <a href="contact" class="text-decoration-none small" style="color: var(--text-secondary);">Contact Us</a>
+                        <a href="login" class="text-decoration-none small" style="color: var(--text-secondary);">Sign In</a>
+                    </div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <h6 class="text-uppercase small fw-bold mb-2" style="letter-spacing: 0.1em;">Support</h6>
+                    <div class="d-flex flex-column gap-1">
+                        <a href="contact" class="text-decoration-none small" style="color: var(--text-secondary);">Help Center</a>
+                        <a href="contact" class="text-decoration-none small" style="color: var(--text-secondary);">Report a Bug</a>
+                    </div>
+                </div>
             </div>
-            <div class="footer-col">
-                <h4>Product</h4>
-                <a href="#features">Features</a>
-                <a href="#pricing">Pricing</a>
-                <a href="register">Free Trial</a>
+            <div class="border-top pt-3 text-muted small" style="border-color: var(--border) !important;">
+                &copy; @DateTime.Now.Year @AppSettings.CompanyName. All rights reserved.
             </div>
-            <div class="footer-col">
-                <h4>Company</h4>
-                <a href="contact">Contact Us</a>
-                <a href="login">Sign In</a>
-            </div>
-            <div class="footer-col">
-                <h4>Support</h4>
-                <a href="contact">Help Center</a>
-                <a href="contact">Report a Bug</a>
-            </div>
-        </div>
-        <div class="landing-footer-bottom">
-            <p>&copy; @DateTime.Now.Year @AppSettings.CompanyName. All rights reserved.</p>
         </div>
     </footer>
 </div>
