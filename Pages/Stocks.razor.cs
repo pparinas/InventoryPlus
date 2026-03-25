@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
+using BlazorStrap;
+using BlazorStrap.V5;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
 
@@ -14,6 +16,7 @@ namespace InventoryPlus.Pages
         protected bool showModal;
         protected bool isEditing;
         protected Ingredient currentIngredient = new();
+        protected BSModal? _stockModal;
         protected int _page = 1;
         protected const int PageSize = 10;
 

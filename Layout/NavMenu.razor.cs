@@ -12,7 +12,7 @@ namespace InventoryPlus.Layout
             AppSettings.OnStateChanged += HandleStateChanged;
         }
 
-        private void HandleStateChanged() => StateHasChanged();
+        private void HandleStateChanged() => InvokeAsync(StateHasChanged);
 
         public void Dispose()
         {

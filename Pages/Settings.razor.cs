@@ -52,7 +52,7 @@ namespace InventoryPlus.Pages
             newLogoUrl = AppSettings.CustomLogoUrl;
         }
 
-        private void HandleStateChanged() => StateHasChanged();
+        private void HandleStateChanged() => InvokeAsync(StateHasChanged);
 
         public void Dispose()
         {

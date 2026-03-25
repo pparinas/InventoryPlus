@@ -174,15 +174,12 @@
     </div>
 </div>
 
-@if (showEditModal)
-{
-    <div class="modal-overlay">
-        <div class="modal-content" @onclick:stopPropagation>
-            <div class="modal-header">
-                <h3>Manage Account</h3>
-                <button class="btn-close" @onclick="CloseModal"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="modal-body">
+<BSModal IsOpen="showEditModal" IsCentered="true" Size="Size.Large">
+    <Header>
+        <h5 class="modal-title">Manage Account</h5>
+        <button type="button" class="btn-close" @onclick="CloseModal"></button>
+    </Header>
+    <Content>
                 <p class="text-muted mb-4"><strong>@selectedUser.Email</strong></p>
 
                 <div class="mb-3">
@@ -238,14 +235,12 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
+    </Content>
+    <Footer>
                 <button class="btn btn-outline-secondary" @onclick="CloseModal">Cancel</button>
                 <button class="btn btn-primary" @onclick="SaveUserAsync" disabled="@isSaving">
                     @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> }
                     Save Changes
                 </button>
-            </div>
-        </div>
-    </div>
-}
+    </Footer>
+</BSModal>
