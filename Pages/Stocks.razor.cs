@@ -16,7 +16,6 @@ namespace InventoryPlus.Pages
         protected bool showModal;
         protected bool isEditing;
         protected Ingredient currentIngredient = new();
-        protected BSModal? _stockModal;
         protected int _page = 1;
         protected const int PageSize = 10;
 
