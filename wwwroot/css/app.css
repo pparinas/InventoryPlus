@@ -439,61 +439,62 @@ h1 { background: linear-gradient(to right, var(--grad-start), var(--grad-end)); 
 /* ===== Hide on mobile ===== */
 @media (max-width: 640px) { .hide-mobile { display: none !important; } }
 
-/* ===== Modal Overlay ===== */
-.modal-overlay {
+/* ===== App Modal Overlay ===== */
+.app-modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
     display: flex; align-items: center; justify-content: center;
     z-index: 1000; overscroll-behavior-y: contain;
 }
-.modal-overlay .modal-content {
+.app-modal-panel {
     width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;
+    background: var(--glass-bg); border: 1px solid var(--border);
     border-radius: var(--radius); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     animation: slideUp 0.3s ease;
 }
-.modal-overlay .modal-header {
+.app-modal-header {
     padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
 }
-.modal-overlay .modal-header h3, .modal-overlay .modal-header h5 { margin-bottom: 0; -webkit-text-fill-color: unset; background: none; }
-.modal-overlay .modal-body { padding: 1.25rem 1.5rem; }
-.modal-overlay .modal-footer { padding: 1rem 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem; }
-.modal-overlay .btn-close {
+.app-modal-header h3, .app-modal-header h5 { margin-bottom: 0; -webkit-text-fill-color: unset; background: none; }
+.app-modal-body { padding: 1.25rem 1.5rem; }
+.app-modal-footer { padding: 1rem 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border); }
+.app-modal-close {
     background: transparent; border: none; color: var(--text-secondary);
-    font-size: 1.25rem; cursor: pointer; padding: 0.25rem; line-height: 1;
-    filter: invert(1) grayscale(100%) brightness(200%);
+    font-size: 1.5rem; cursor: pointer; padding: 0.25rem; line-height: 1;
 }
-.modal-overlay .btn-close:hover { color: var(--text-primary); }
-.modal-overlay .modal-content.modal-sm { max-width: 400px; }
-.modal-overlay .modal-content.modal-lg { max-width: 800px; }
-.modal-overlay .modal-content.modal-xl { max-width: 1000px; }
+.app-modal-close:hover { color: var(--text-primary); }
+.app-modal-panel.app-modal-sm { max-width: 400px; }
+.app-modal-panel.app-modal-lg { max-width: 800px; }
+.app-modal-panel.app-modal-xl { max-width: 1000px; }
 
-/* ===== OffCanvas Overlay ===== */
-.offcanvas-overlay {
+/* ===== App OffCanvas ===== */
+.app-offcanvas-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px);
     z-index: 1050;
 }
-.offcanvas-panel {
+.app-offcanvas-panel {
     position: fixed; z-index: 1051;
     background: var(--glass-bg); border: 1px solid var(--border);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     display: flex; flex-direction: column;
     overflow: hidden;
 }
-.offcanvas-panel.placement-right {
+.app-offcanvas-panel.placement-right {
     top: 0; right: 0; bottom: 0; width: 380px; max-width: 90vw;
     animation: slideInRight 0.3s ease;
 }
-.offcanvas-panel.placement-bottom {
+.app-offcanvas-panel.placement-bottom {
     left: 0; right: 0; bottom: 0;
     max-height: 85vh; border-radius: var(--radius) var(--radius) 0 0;
     animation: slideUp 0.3s ease;
 }
-.offcanvas-panel .offcanvas-header {
+.app-offcanvas-header {
     padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center;
     border-bottom: 1px solid var(--border);
 }
-.offcanvas-panel .offcanvas-body { padding: 1rem 1.25rem; overflow-y: auto; flex: 1; }
+.app-offcanvas-body { padding: 1rem 1.25rem; overflow-y: auto; flex: 1; }
 @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
 /* ===== Report Filter Bar ===== */

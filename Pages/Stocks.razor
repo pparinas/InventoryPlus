@@ -141,7 +141,6 @@ else
 <AppModal IsOpen="showModal" IsOpenChanged="@((v) => { showModal = v; })" Size="Large">
     <Header>
         <h5 class="modal-title">@(isEditing ? "Edit Stock Item" : "New Stock Item")</h5>
-        <button type="button" class="btn-close" @onclick="CloseModal"></button>
     </Header>
     <Content>
                 <div class="mb-3">

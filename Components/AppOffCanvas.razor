@@ -1,15 +1,15 @@
 @if (IsOpen)
 {
-<div class="offcanvas-overlay" @onclick="Close"></div>
-<div class="offcanvas-panel @PlacementClass">
+<div class="app-offcanvas-overlay" @onclick="Close"></div>
+<div class="app-offcanvas-panel @PlacementClass">
     @if (Header != null)
     {
-    <div class="offcanvas-header">
+    <div class="app-offcanvas-header">
         @Header
-        <button type="button" class="btn-close" @onclick="Close"></button>
+        <button type="button" class="app-modal-close" @onclick="Close">&times;</button>
     </div>
     }
-    <div class="offcanvas-body">
+    <div class="app-offcanvas-body">
         @if (Content != null)
         {
             @Content
