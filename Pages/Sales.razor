@@ -189,7 +189,7 @@
 </div>
 
 <!-- Mobile cart bottom sheet -->
-<BSOffCanvas IsOpen="showMobileCart" Placement="Placement.Bottom" @ref="_mobileCartOffCanvas">
+<AppOffCanvas IsOpen="showMobileCart" IsOpenChanged="@((v) => showMobileCart = v)" Placement="Bottom">
     <Header>
         <h5 class="offcanvas-title"><i class="fa-solid fa-cart-shopping"></i> Cart (@Cart.Sum(c => c.Quantity) items)</h5>
     </Header>
@@ -254,7 +254,7 @@
             <i class="fa-solid fa-check"></i> Complete Sale (₱@Total.ToString("0.00"))
         </button>
     </Content>
-</BSOffCanvas>
+</AppOffCanvas>
 
 <!-- Receipt -->
 @if (lastSaleItems != null)

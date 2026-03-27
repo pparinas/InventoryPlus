@@ -174,7 +174,7 @@
     </div>
 </div>
 
-<BSModal IsOpen="showEditModal" IsCentered="true" Size="Size.Large">
+<AppModal IsOpen="showEditModal" IsOpenChanged="@((v) => { showEditModal = v; })" Size="Large">
     <Header>
         <h5 class="modal-title">Manage Account</h5>
         <button type="button" class="btn-close" @onclick="CloseModal"></button>
@@ -243,4 +243,4 @@
                     Save Changes
                 </button>
     </Footer>
-</BSModal>
+</AppModal>

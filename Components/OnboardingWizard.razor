@@ -4,7 +4,7 @@
 @inject Supabase.Client SupabaseClient
 @inject NavigationManager Nav
 
-<BSModal IsOpen="IsVisible" IsCentered="true" Size="Size.Large" IsStaticBackdrop="true" HasCloseButton="false">
+<AppModal IsOpen="IsVisible" Size="Large" IsStaticBackdrop="true" HasCloseButton="false">
     <Content>
         <div class="onboarding-container">
             <div class="onboarding-progress">
@@ -120,7 +120,7 @@
             }
         </div>
     </Content>
-</BSModal>
+</AppModal>
 
 @code {
     [Parameter] public bool IsVisible { get; set; }

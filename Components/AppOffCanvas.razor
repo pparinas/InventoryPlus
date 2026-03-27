@@ -1,0 +1,39 @@
+@if (IsOpen)
+{
+<div class="offcanvas-overlay" @onclick="Close"></div>
+<div class="offcanvas-panel @PlacementClass">
+    @if (Header != null)
+    {
+    <div class="offcanvas-header">
+        @Header
+        <button type="button" class="btn-close" @onclick="Close"></button>
+    </div>
+    }
+    <div class="offcanvas-body">
+        @if (Content != null)
+        {
+            @Content
+        }
+    </div>
+</div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public RenderFragment? Header { get; set; }
+    [Parameter] public RenderFragment? Content { get; set; }
+    [Parameter] public string Placement { get; set; } = "Right";
+
+    private string PlacementClass => Placement switch
+    {
+        "Bottom" => "placement-bottom",
+        "Left" => "placement-left",
+        _ => "placement-right"
+    };
+
+    private async Task Close()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+    }
+}

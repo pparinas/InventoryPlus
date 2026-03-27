@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using InventoryPlus;
 using Microsoft.AspNetCore.Components.Authorization;
 using Supabase;
-using BlazorStrap;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -36,6 +35,5 @@ builder.Services.AddSingleton<InventoryPlus.Services.InventoryService>();
 builder.Services.AddSingleton<InventoryPlus.Services.SettingsService>();
 builder.Services.AddSingleton<InventoryPlus.Services.UserManagementService>();
 builder.Services.AddSingleton<InventoryPlus.Services.ToastService>();
-builder.Services.AddBlazorStrap();
 
 await builder.Build().RunAsync();

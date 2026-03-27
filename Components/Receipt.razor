@@ -1,6 +1,6 @@
 @inject Microsoft.JSInterop.IJSRuntime JS
 
-<BSModal IsOpen="IsVisible" IsCentered="true" Size="Size.Large">
+<AppModal IsOpen="IsVisible" IsOpenChanged="@(async (v) => { if (!v) await Close(); })" Size="Large">
     <Header>
         <div class="d-flex gap-2">
             <button class="btn btn-primary btn-sm" @onclick="PrintReceipt"><i class="fa-solid fa-print"></i> Print</button>
@@ -77,7 +77,7 @@
             </div>
         </div>
     </Content>
-</BSModal>
+</AppModal>
 
 @code {
     [Parameter] public bool IsVisible { get; set; }

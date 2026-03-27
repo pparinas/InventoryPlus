@@ -1,4 +1,4 @@
-<BSModal IsOpen="IsVisible" IsCentered="true" Size="Size.Small">
+<AppModal IsOpen="IsVisible" IsOpenChanged="@(async (v) => { if (!v) await Cancel(); })" Size="Small" HasCloseButton="false">
     <Content>
         <div style="padding: 2rem; text-align: center;">
             <div class="@IconClass" style="font-size: 3rem; margin-bottom: 1rem;">
@@ -12,7 +12,7 @@
             </div>
         </div>
     </Content>
-</BSModal>
+</AppModal>
 
 @code {
     [Parameter] public bool IsVisible { get; set; }

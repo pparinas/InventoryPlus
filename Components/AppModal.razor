@@ -1,0 +1,60 @@
+@if (IsOpen)
+{
+<div class="modal-overlay @(IsStaticBackdrop ? "" : "")" @onclick="HandleBackdropClick">
+<div class="modal-content @SizeClass" @onclick:stopPropagation="true">
+    @if (Header != null)
+    {
+    <div class="modal-header">
+        @Header
+        @if (HasCloseButton)
+        {
+            <button type="button" class="btn-close" @onclick="Close"></button>
+        }
+    </div>
+    }
+    @if (Content != null)
+    {
+    <div class="modal-body">
+        @Content
+    </div>
+    }
+    @if (Footer != null)
+    {
+    <div class="modal-footer">
+        @Footer
+    </div>
+    }
+</div>
+</div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public RenderFragment? Header { get; set; }
+    [Parameter] public RenderFragment? Content { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public bool IsCentered { get; set; } = true;
+    [Parameter] public bool IsStaticBackdrop { get; set; }
+    [Parameter] public bool HasCloseButton { get; set; } = true;
+    [Parameter] public string Size { get; set; } = "Default";
+
+    private string SizeClass => Size switch
+    {
+        "Small" => "modal-sm",
+        "Large" => "modal-lg",
+        "ExtraLarge" => "modal-xl",
+        _ => ""
+    };
+
+    private async Task HandleBackdropClick()
+    {
+        if (!IsStaticBackdrop)
+            await Close();
+    }
+
+    private async Task Close()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+    }
+}
