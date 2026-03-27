@@ -2,7 +2,7 @@
 @inject SettingsService AppSettings
 
 <div class="d-flex flex-column min-vh-100">
-    <nav class="navbar navbar-expand-md fixed-top" style="background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: var(--glass-border); box-shadow: var(--shadow);">
+    <nav class="navbar navbar-expand-md fixed-top" style="background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: var(--glass-border); box-shadow: var(--shadow); padding-top: env(safe-area-inset-top, 0px);">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="" style="color: var(--brand-color);">
                 @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
@@ -29,7 +29,7 @@
         </div>
     </nav>
     
-    <main style="margin-top: 64px;">
+    <main style="margin-top: calc(64px + env(safe-area-inset-top, 0px));">
         @Body
     </main>
     
