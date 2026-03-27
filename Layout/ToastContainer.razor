@@ -25,7 +25,10 @@
         ToastSvc.OnChanged += HandleChanged;
     }
 
-    private void HandleChanged() => InvokeAsync(StateHasChanged);
+    private async void HandleChanged()
+    {
+        try { await InvokeAsync(StateHasChanged); } catch { }
+    }
 
     public void Dispose()
     {

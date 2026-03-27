@@ -41,9 +41,22 @@
                 <i class="fa-solid fa-right-to-bracket me-1"></i> <span>Sign In</span>
             }
         </button>
+
+        <div class="d-flex align-items-center gap-3 my-3">
+            <hr class="flex-grow-1" style="border-color: var(--border);" />
+            <span class="text-muted small">or</span>
+            <hr class="flex-grow-1" style="border-color: var(--border);" />
+        </div>
+
+        <button @onclick="HandleGuestMode" class="btn btn-outline-secondary w-100" disabled="@IsLoading">
+            <i class="fa-solid fa-user-secret me-1"></i> Continue as Guest
+        </button>
+        <p class="text-center mt-2 small text-muted" style="font-size: 0.75rem;">
+            <i class="fa-solid fa-circle-info me-1"></i> Guest data is stored locally on this device only
+        </p>
         
         <div class="text-center mt-3 small text-muted">
-            <p>Don't have an account? <a href="register" class="fw-semibold text-decoration-none" style="color: var(--primary);">Create one</a></p>
+            <p>Don't have an account? <a href="contact" class="fw-semibold text-decoration-none" style="color: var(--primary);">Contact us to subscribe</a></p>
             <p><a href="/" class="text-decoration-none" style="color: var(--primary);">Back to home</a></p>
         </div>
     </div>

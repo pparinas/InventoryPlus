@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.JSInterop;
 using InventoryPlus.Services;
@@ -12,6 +13,7 @@ namespace InventoryPlus.Pages
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
+        [Inject] public AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
         protected string Email { get; set; } = string.Empty;
         protected string Password { get; set; } = string.Empty;
@@ -99,6 +101,14 @@ namespace InventoryPlus.Pages
             {
                 IsLoading = false;
             }
+        }
+
+        protected async Task HandleGuestMode()
+        {
+            AppSettings.IsGuestMode = true;
+            var authProvider = (SupabaseAuthenticationStateProvider)AuthStateProvider;
+            await authProvider.EnableGuestModeAsync();
+            NavigationManager.NavigateTo("dashboard");
         }
     }
 }

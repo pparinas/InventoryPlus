@@ -13,6 +13,7 @@ namespace InventoryPlus.Pages
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public IJSRuntime JS { get; set; } = default!;
+        [Inject] public NavigationManager Nav { get; set; } = default!;
 
         protected string selectedFilter = "All";
         protected DateTime? stockDateFilter = null;
@@ -32,6 +33,7 @@ namespace InventoryPlus.Pages
 
         protected override void OnInitialized()
         {
+            if (AppSettings.IsGuestMode) { Nav.NavigateTo("dashboard"); return; }
             Inventory.OnStateChanged += HandleStateChanged;
         }
 

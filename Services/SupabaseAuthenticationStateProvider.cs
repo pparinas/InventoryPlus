@@ -13,6 +13,10 @@ namespace InventoryPlus.Services
         private readonly IJSRuntime _jsRuntime;
         private const string AccessTokenKey = "sb_access_token";
         private const string RefreshTokenKey = "sb_refresh_token";
+        private const string GuestModeKey = "guest_mode";
+
+        private bool _isGuestMode = false;
+        public bool IsGuestMode => _isGuestMode;
 
         public SupabaseAuthenticationStateProvider(Supabase.Client client, IJSRuntime jsRuntime)
         {
@@ -24,7 +28,7 @@ namespace InventoryPlus.Services
         private bool _isRestoringSession = false;
         private bool _isNotifying = false;
 
-        private void OnAuthStateChanged(IGotrueClient<User, Session> sender, Supabase.Gotrue.Constants.AuthState e)
+        private async void OnAuthStateChanged(IGotrueClient<User, Session> sender, Supabase.Gotrue.Constants.AuthState e)
         {
             if (_isRestoringSession || _isNotifying) return;
 
@@ -34,11 +38,11 @@ namespace InventoryPlus.Services
                 var session = _client.Auth.CurrentSession;
                 if (session != null && !string.IsNullOrEmpty(session.AccessToken))
                 {
-                    _ = SaveTokensAsync(session.AccessToken!, session.RefreshToken!);
+                    try { await SaveTokensAsync(session.AccessToken!, session.RefreshToken!); } catch { }
                 }
                 else if (e == Supabase.Gotrue.Constants.AuthState.SignedOut)
                 {
-                    _ = ClearTokensAsync();
+                    try { await ClearTokensAsync(); } catch { }
                 }
                 NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
             }
@@ -56,6 +60,29 @@ namespace InventoryPlus.Services
         {
             try
             {
+                // Check guest mode first
+                if (!_isGuestMode)
+                {
+                    try
+                    {
+                        var guestFlag = await _jsRuntime.InvokeAsync<string?>("localStorage.getItem", GuestModeKey);
+                        _isGuestMode = guestFlag == "true";
+                    }
+                    catch { }
+                }
+
+                if (_isGuestMode)
+                {
+                    var guestClaims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.NameIdentifier, "guest"),
+                        new Claim(ClaimTypes.Email, "Guest User"),
+                        new Claim(ClaimTypes.Role, "Guest")
+                    };
+                    var guestIdentity = new ClaimsIdentity(guestClaims, "Guest");
+                    return new AuthenticationState(new ClaimsPrincipal(guestIdentity));
+                }
+
                 var session = _client.Auth.CurrentSession;
                 var user = _client.Auth.CurrentUser;
 
@@ -159,6 +186,22 @@ namespace InventoryPlus.Services
                 await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", RefreshTokenKey);
             }
             catch { }
+        }
+
+        public async Task EnableGuestModeAsync()
+        {
+            _isGuestMode = true;
+            try { await _jsRuntime.InvokeVoidAsync("localStorage.setItem", GuestModeKey, "true"); }
+            catch { }
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
+        }
+
+        public async Task DisableGuestModeAsync()
+        {
+            _isGuestMode = false;
+            try { await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", GuestModeKey); }
+            catch { }
+            NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
 
         public void Dispose()

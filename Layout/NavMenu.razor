@@ -4,6 +4,8 @@
         <span>Dashboard</span>
     </NavLink>
     
+    @if (!AppSettings.IsGuestMode)
+    {
     <AuthorizeView Roles="Admin">
         <Authorized>
             <div class="nav-section-title">
@@ -15,6 +17,7 @@
             </NavLink>
         </Authorized>
     </AuthorizeView>
+    }
     
     <div class="nav-section-title">
         Inventory
@@ -39,10 +42,26 @@
         <span>Point of Sale</span>
     </NavLink>
     
+    @if (AppSettings.IsGuestMode)
+    {
+        <div class="nav-item nav-item-locked" title="Sign in to access Reports">
+            <i class="fa-solid fa-lock fa-fw" style="color: var(--text-muted);"></i>
+            <span>Reports</span>
+            <span class="badge bg-primary-subtle ms-auto" style="font-size: 0.65rem;">Pro</span>
+        </div>
+        <div class="nav-item nav-item-locked" title="Sign in to access Settings">
+            <i class="fa-solid fa-lock fa-fw" style="color: var(--text-muted);"></i>
+            <span>Settings</span>
+            <span class="badge bg-primary-subtle ms-auto" style="font-size: 0.65rem;">Pro</span>
+        </div>
+    }
+    else
+    {
     <NavLink class="nav-item" href="reports">
         <i class="fa-solid fa-file-invoice-dollar fa-fw"></i>
         <span>Reports</span>
     </NavLink>
+    }
     
     <div style="flex: 1"></div>
 </nav>

@@ -59,7 +59,7 @@
         RefreshNotifications();
     }
 
-    private void RefreshNotifications()
+    private async void RefreshNotifications()
     {
         var newNotifications = new List<InventoryPlus.Models.AppNotification>();
 
@@ -128,7 +128,7 @@
         }
 
         notifications = newNotifications;
-        InvokeAsync(StateHasChanged);
+        try { await InvokeAsync(StateHasChanged); } catch { }
     }
 
     private void TogglePanel() => showPanel = !showPanel;

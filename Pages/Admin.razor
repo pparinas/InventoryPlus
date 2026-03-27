@@ -140,6 +140,58 @@
         }
     </div>
 
+    <!-- Invite Link Generator -->
+    <div class="glass-panel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2>Registration Invite</h2>
+                <p class="text-muted text-sm">Generate a one-time registration link valid for 10 minutes.</p>
+            </div>
+            <button class="btn btn-primary" @onclick="GenerateInviteLink" disabled="@isGeneratingInvite">
+                @if (isGeneratingInvite)
+                {
+                    <span class="spinner"></span> <span>Generating...</span>
+                }
+                else
+                {
+                    <i class="fa-solid fa-link me-1"></i> <span>Generate Link</span>
+                }
+            </button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(generatedInviteUrl))
+        {
+            <div class="alert @(inviteExpired ? "alert-danger" : "alert-success") d-flex flex-column gap-2">
+                @if (inviteExpired)
+                {
+                    <div><i class="fa-solid fa-clock"></i> <strong>Link expired.</strong> Generate a new one.</div>
+                }
+                else
+                {
+                    <div><i class="fa-solid fa-circle-check"></i> <strong>Invite link ready!</strong> Share this with the new user. It can only be used once.</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="text" class="form-control form-control-sm" value="@generatedInviteUrl" readonly style="font-family: monospace; font-size: 0.8rem;" />
+                        <button class="btn btn-sm btn-outline-secondary flex-shrink-0" @onclick="CopyInviteLink" title="Copy link">
+                            <i class="fa-solid @(inviteCopied ? "fa-check" : "fa-copy")"></i>
+                        </button>
+                    </div>
+                    <div class="small text-muted">
+                        <i class="fa-solid fa-stopwatch me-1"></i> Expires: <strong>@inviteExpiresAt?.ToString("hh:mm:ss tt")</strong>
+                        @if (inviteTimeRemaining.HasValue)
+                        {
+                            <span class="ms-2">(@inviteTimeRemaining.Value.Minutes min @inviteTimeRemaining.Value.Seconds sec remaining)</span>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(inviteError))
+        {
+            <div class="alert alert-danger">@inviteError</div>
+        }
+    </div>
+
     <!-- System Status -->
     <div class="glass-panel">
         <div class="mb-4">
