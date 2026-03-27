@@ -26,7 +26,9 @@ var options = new SupabaseOptions
     AutoConnectRealtime = false,
 };
 
-builder.Services.AddSingleton(provider => new Supabase.Client(supabaseUrl, supabaseKey, options));
+var supabaseClient = new Supabase.Client(supabaseUrl, supabaseKey, options);
+await supabaseClient.InitializeAsync();
+builder.Services.AddSingleton(supabaseClient);
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, InventoryPlus.Services.SupabaseAuthenticationStateProvider>();
 
@@ -34,6 +36,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddSingleton<InventoryPlus.Services.InventoryService>();
 builder.Services.AddSingleton<InventoryPlus.Services.SettingsService>();
 builder.Services.AddSingleton<InventoryPlus.Services.UserManagementService>();
+builder.Services.AddSingleton<InventoryPlus.Services.InviteTokenService>();
 builder.Services.AddSingleton<InventoryPlus.Services.ToastService>();
 
 await builder.Build().RunAsync();

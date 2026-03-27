@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.JSInterop;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
 
@@ -10,6 +11,10 @@ namespace InventoryPlus.Pages
     {
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public UserManagementService UserManagement { get; set; } = default!;
+        [Inject] public InviteTokenService InviteService { get; set; } = default!;
+        [Inject] public NavigationManager NavManager { get; set; } = default!;
+        [Inject] public Supabase.Client Supabase { get; set; } = default!;
+        [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
 
         protected List<SystemUser> Users => UserManagement.Users;
         protected bool showEditModal;
@@ -50,6 +55,7 @@ namespace InventoryPlus.Pages
         public void Dispose()
         {
             UserManagement.OnStateChanged -= HandleStateChanged;
+            _inviteTimer?.Dispose();
         }
 
         protected void EditUser(SystemUser user)
@@ -93,6 +99,89 @@ namespace InventoryPlus.Pages
         {
             user.IsActive = !user.IsActive;
             await UserManagement.UpdateUserAsync(user);
+        }
+
+        // ── Invite Link ────────────────────────────────────────────────────
+
+        protected bool isGeneratingInvite;
+        protected string? generatedInviteUrl;
+        protected string? inviteError;
+        protected DateTime? inviteExpiresAt;
+        protected TimeSpan? inviteTimeRemaining;
+        protected bool inviteExpired;
+        protected bool inviteCopied;
+        private System.Threading.Timer? _inviteTimer;
+
+        protected async Task GenerateInviteLink()
+        {
+            isGeneratingInvite = true;
+            inviteError = null;
+            generatedInviteUrl = null;
+            inviteExpired = false;
+            inviteCopied = false;
+
+            try
+            {
+                var user = Supabase.Auth.CurrentUser;
+                if (user == null || !Guid.TryParse(user.Id, out var adminId))
+                {
+                    inviteError = "Unable to identify current admin user.";
+                    return;
+                }
+
+                var invite = await InviteService.GenerateInviteAsync(adminId);
+                var baseUri = NavManager.BaseUri.TrimEnd('/');
+                generatedInviteUrl = $"{baseUri}/register?token={invite.Token}";
+                inviteExpiresAt = invite.ExpiresAt.ToLocalTime();
+                UpdateInviteCountdown();
+
+                _inviteTimer?.Dispose();
+                _inviteTimer = new System.Threading.Timer(async _ =>
+                {
+                    UpdateInviteCountdown();
+                    try { await InvokeAsync(StateHasChanged); } catch { }
+                }, null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
+            }
+            catch (Exception ex)
+            {
+                inviteError = $"Failed to generate invite: {ex.Message}";
+            }
+            finally
+            {
+                isGeneratingInvite = false;
+            }
+        }
+
+        private void UpdateInviteCountdown()
+        {
+            if (inviteExpiresAt == null) return;
+            var remaining = inviteExpiresAt.Value - DateTime.Now;
+            if (remaining <= TimeSpan.Zero)
+            {
+                inviteExpired = true;
+                inviteTimeRemaining = null;
+                _inviteTimer?.Dispose();
+                _inviteTimer = null;
+            }
+            else
+            {
+                inviteTimeRemaining = remaining;
+            }
+        }
+
+        protected async Task CopyInviteLink()
+        {
+            if (string.IsNullOrEmpty(generatedInviteUrl)) return;
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", generatedInviteUrl);
+                inviteCopied = true;
+                StateHasChanged();
+                await Task.Delay(2000);
+                inviteCopied = false;
+                StateHasChanged();
+            }
+            catch { }
         }
     }
 }

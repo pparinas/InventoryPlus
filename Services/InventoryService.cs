@@ -21,6 +21,7 @@ namespace InventoryPlus.Services
         public bool IsLoaded { get; set; }
         public bool IsLoading { get; private set; }
         public bool IsOffline { get; private set; }
+        public bool IsGuestMode { get; set; }
 
         private const string CacheKeyPrefix = "inv_cache_";
 
@@ -118,6 +119,13 @@ namespace InventoryPlus.Services
         public async Task AddIngredientAsync(Ingredient ingredient)
         {
             ingredient.OwnerGuid = _ownerGuid;
+            if (IsGuestMode)
+            {
+                if (ingredient.Guid == Guid.Empty) ingredient.Guid = Guid.NewGuid();
+                Ingredients.Add(ingredient);
+                NotifyStateChanged();
+                return;
+            }
             var resp = await _supabase.From<Ingredient>().Insert(ingredient);
             var saved = resp.Models.FirstOrDefault();
             if (saved != null)
@@ -131,14 +139,14 @@ namespace InventoryPlus.Services
         public async Task UpdateIngredientAsync(Ingredient ingredient)
         {
             ingredient.OwnerGuid = _ownerGuid;
-            await _supabase.From<Ingredient>().Upsert(ingredient);
+            if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(ingredient);
             NotifyStateChanged();
         }
 
         public async Task DeleteIngredientAsync(Ingredient ingredient)
         {
             ingredient.IsArchived = true;
-            await _supabase.From<Ingredient>().Upsert(ingredient);
+            if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(ingredient);
             NotifyStateChanged();
         }
 
@@ -147,6 +155,18 @@ namespace InventoryPlus.Services
         public async Task AddProductAsync(Product product)
         {
             product.OwnerGuid = _ownerGuid;
+            if (IsGuestMode)
+            {
+                if (product.Guid == Guid.Empty) product.Guid = Guid.NewGuid();
+                foreach (var pi in product.RequiredIngredients)
+                {
+                    pi.ProductId = product.Guid;
+                    if (pi.Guid == Guid.Empty) pi.Guid = Guid.NewGuid();
+                }
+                Products.Add(product);
+                NotifyStateChanged();
+                return;
+            }
             var requirements = product.RequiredIngredients.ToList();
 
             // Clear reference list before insert to avoid serialisation issues
@@ -172,6 +192,7 @@ namespace InventoryPlus.Services
         public async Task UpdateProductAsync(Product product)
         {
             product.OwnerGuid = _ownerGuid;
+            if (IsGuestMode) { NotifyStateChanged(); return; }
             var requirements = product.RequiredIngredients.ToList();
 
             product.RequiredIngredients = new();
@@ -205,6 +226,7 @@ namespace InventoryPlus.Services
         public async Task DeleteProductAsync(Product product)
         {
             product.IsArchived = true;
+            if (IsGuestMode) { NotifyStateChanged(); return; }
             var requirements = product.RequiredIngredients.ToList();
             product.RequiredIngredients = new();
             await _supabase.From<Product>().Upsert(product);
@@ -224,7 +246,7 @@ namespace InventoryPlus.Services
                 if (req.Ingredient != null)
                 {
                     req.Ingredient.Stock -= req.QuantityRequired * quantity;
-                    await _supabase.From<Ingredient>().Upsert(req.Ingredient);
+                    if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(req.Ingredient);
                 }
             }
 
@@ -258,6 +280,14 @@ namespace InventoryPlus.Services
                 DiscountType = discountType
             };
 
+            if (IsGuestMode)
+            {
+                sale.Guid = Guid.NewGuid();
+                Sales.Insert(0, sale);
+                NotifyStateChanged();
+                return sale;
+            }
+
             var resp = await _supabase.From<Sale>().Insert(sale);
             var saved = resp.Models.FirstOrDefault() ?? sale;
 
@@ -273,6 +303,92 @@ namespace InventoryPlus.Services
         }
 
         public void NotifyStateChanged() => OnStateChanged?.Invoke();
+
+        // ── Guest Mode ─────────────────────────────────────────────────────────
+
+        private const string GuestCacheKey = "inv_cache_guest";
+
+        public async Task LoadGuestAsync(IJSRuntime js)
+        {
+            if (IsLoading) return;
+            IsLoading = true;
+            IsGuestMode = true;
+            try
+            {
+                var json = await js.InvokeAsync<string?>("localStorage.getItem", GuestCacheKey);
+                if (!string.IsNullOrEmpty(json))
+                {
+                    using var doc = JsonDocument.Parse(json);
+                    var root = doc.RootElement;
+
+                    if (root.TryGetProperty("ingredients", out var ingEl))
+                        Ingredients = ingEl.EnumerateArray().Select(e => new Ingredient
+                        {
+                            Guid = e.GetProperty("guid").GetGuid(),
+                            OwnerGuid = Guid.Empty,
+                            Name = e.GetProperty("name").GetString() ?? "",
+                            Unit = e.GetProperty("unit").GetString() ?? "",
+                            Stock = e.GetProperty("stock").GetDouble(),
+                            CostPerUnit = e.GetProperty("costPerUnit").GetDouble(),
+                            Type = e.TryGetProperty("type", out var t) ? t.GetString() ?? "Ingredient" : "Ingredient",
+                            IsArchived = e.TryGetProperty("isArchived", out var a) && a.GetBoolean()
+                        }).ToList();
+
+                    if (root.TryGetProperty("products", out var prodEl))
+                        Products = prodEl.EnumerateArray().Select(e => new Product
+                        {
+                            Guid = e.GetProperty("guid").GetGuid(),
+                            OwnerGuid = Guid.Empty,
+                            Name = e.GetProperty("name").GetString() ?? "",
+                            SellingPrice = e.GetProperty("sellingPrice").GetDouble(),
+                            TaxRate = e.TryGetProperty("taxRate", out var tr) ? tr.GetDouble() : 0,
+                            IsArchived = e.TryGetProperty("isArchived", out var a2) && a2.GetBoolean()
+                        }).ToList();
+
+                    if (root.TryGetProperty("sales", out var saleEl))
+                        Sales = saleEl.EnumerateArray().Select(e => new Sale
+                        {
+                            Guid = e.GetProperty("guid").GetGuid(),
+                            OwnerId = Guid.Empty,
+                            ProductName = e.GetProperty("productName").GetString() ?? "",
+                            QuantitySold = e.GetProperty("quantitySold").GetInt32(),
+                            TotalAmount = e.GetProperty("totalAmount").GetDouble(),
+                            ProfitAmount = e.TryGetProperty("profitAmount", out var pa) ? pa.GetDouble() : 0,
+                            Date = e.GetProperty("date").GetDateTime(),
+                            PaymentMethod = e.TryGetProperty("paymentMethod", out var pm) ? pm.GetString() ?? "Cash" : "Cash"
+                        }).ToList();
+                }
+
+                IsLoaded = true;
+                NotifyStateChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LoadGuestAsync error: {ex.Message}");
+                IsLoaded = true;
+                NotifyStateChanged();
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        public async Task SaveGuestCacheAsync(IJSRuntime js)
+        {
+            try
+            {
+                var snapshot = new
+                {
+                    ingredients = Ingredients.Select(i => new { guid = i.Guid, name = i.Name, unit = i.Unit, stock = i.Stock, costPerUnit = i.CostPerUnit, type = i.Type, isArchived = i.IsArchived }),
+                    products = Products.Select(p => new { guid = p.Guid, name = p.Name, sellingPrice = p.SellingPrice, taxRate = p.TaxRate, isArchived = p.IsArchived }),
+                    sales = Sales.Select(s => new { guid = s.Guid, productName = s.ProductName, quantitySold = s.QuantitySold, totalAmount = s.TotalAmount, profitAmount = s.ProfitAmount, date = s.Date, paymentMethod = s.PaymentMethod })
+                };
+                var json = JsonSerializer.Serialize(snapshot);
+                await js.InvokeVoidAsync("localStorage.setItem", GuestCacheKey, json);
+            }
+            catch (Exception ex) { Console.WriteLine($"SaveGuestCacheAsync error: {ex.Message}"); }
+        }
 
         // ── Cache ──────────────────────────────────────────────────────────────
 

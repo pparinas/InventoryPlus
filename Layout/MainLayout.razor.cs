@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using InventoryPlus.Services;
@@ -13,12 +15,14 @@ namespace InventoryPlus.Layout
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public Client Supabase { get; set; } = default!;
+        [Inject] public AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
         protected bool showDropdown = false;
         protected bool isLightMode = false;
         protected bool showMobileNav = false;
         protected bool showOnboarding = false;
         protected string? currentUserEmail;
+        private string currentPath = "";
         private ErrorBoundary? errorBoundary;
 
         protected void ResetError()
@@ -83,8 +87,8 @@ namespace InventoryPlus.Layout
 
                 await LoadDataAsync();
 
-                // Check if onboarding needed after data loads
-                if (Inventory.IsLoaded && !AppSettings.OnboardingCompleted 
+                // Show onboarding wizard on first setup (no products/ingredients yet)
+                if (Inventory.IsLoaded && !AppSettings.OnboardingCompleted
                     && !Inventory.ActiveProducts.Any() && !Inventory.ActiveIngredients.Any())
                 {
                     showOnboarding = true;
@@ -97,6 +101,15 @@ namespace InventoryPlus.Layout
         private async Task LoadDataAsync()
         {
             if (Inventory.IsLoaded || Inventory.IsLoading) return;
+
+            // Guest mode: load from localStorage only, skip Supabase
+            if (AppSettings.IsGuestMode)
+            {
+                currentUserEmail = "Guest User";
+                await Inventory.LoadGuestAsync(JSRuntime);
+                return;
+            }
+
             try
             {
                 var user = Supabase.Auth.CurrentUser;
@@ -127,21 +140,53 @@ namespace InventoryPlus.Layout
         {
             AppSettings.OnStateChanged += HandleStateChanged;
             Inventory.OnStateChanged += HandleStateChanged;
+            NavManager.LocationChanged += OnLocationChanged;
+            currentPath = GetRelativePath();
         }
 
-        private void HandleStateChanged()
+        private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
         {
-            InvokeAsync(StateHasChanged);
+            currentPath = GetRelativePath();
+            try { await InvokeAsync(StateHasChanged); } catch { }
+        }
+
+        private string GetRelativePath()
+        {
+            var uri = new Uri(NavManager.Uri);
+            return uri.AbsolutePath.Trim('/').ToLowerInvariant();
+        }
+
+        protected bool IsActive(string page) => currentPath == page.ToLowerInvariant();
+
+        private async void HandleStateChanged()
+        {
+            try { await InvokeAsync(StateHasChanged); } catch { }
         }
 
         public void Dispose()
         {
             AppSettings.OnStateChanged -= HandleStateChanged;
             Inventory.OnStateChanged -= HandleStateChanged;
+            NavManager.LocationChanged -= OnLocationChanged;
         }
 
         protected async Task SignOut()
         {
+            if (AppSettings.IsGuestMode)
+            {
+                // Clear guest mode and navigate to login
+                AppSettings.IsGuestMode = false;
+                Inventory.IsGuestMode = false;
+                Inventory.IsLoaded = false;
+                Inventory.Ingredients = new();
+                Inventory.Products = new();
+                Inventory.Sales = new();
+                var authProvider = (SupabaseAuthenticationStateProvider)AuthStateProvider;
+                await authProvider.DisableGuestModeAsync();
+                NavManager.NavigateTo("login");
+                return;
+            }
+
             try
             {
                 await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_access_token");

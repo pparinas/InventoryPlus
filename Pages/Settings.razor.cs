@@ -17,6 +17,7 @@ namespace InventoryPlus.Pages
         [Inject] public Supabase.Client SupabaseClient { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public ToastService Toast { get; set; } = default!;
+        [Inject] public NavigationManager Nav { get; set; } = default!;
 
         protected string newCompanyName = string.Empty;
         protected bool useLogo;
@@ -35,6 +36,7 @@ namespace InventoryPlus.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            if (AppSettings.IsGuestMode) { Nav.NavigateTo("dashboard"); return; }
             AppSettings.OnStateChanged += HandleStateChanged;
 
             currentUser = SupabaseClient.Auth.CurrentUser;

@@ -80,6 +80,10 @@ namespace InventoryPlus.Services
 
         // Onboarding
         public bool OnboardingCompleted { get; set; } = false;
+        public bool ShowOnboardingOnLogin { get; set; } = true;
+
+        // Guest mode
+        public bool IsGuestMode { get; set; } = false;
 
         private static string? ExtractStoragePath(string? urlOrPath, string bucket)
         {
