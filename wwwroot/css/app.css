@@ -205,15 +205,16 @@ h1 { background: linear-gradient(to right, var(--grad-start), var(--grad-end)); 
 /* ===== App Layout ===== */
 .app-container { display: flex; flex-direction: column; min-height: 100vh; }
 .top-nav {
-    position: fixed; top: 0; left: 0; width: 100%; height: 64px;
+    position: fixed; top: 0; left: 0; width: 100%; height: calc(64px + env(safe-area-inset-top, 0px));
     background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border-bottom: var(--glass-border); display: flex; align-items: center; justify-content: space-between;
-    padding: 0 1rem; z-index: 1040; box-shadow: var(--shadow);
-    padding-top: env(safe-area-inset-top);
-    padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right));
+    border-bottom: var(--glass-border); display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 1rem 0; z-index: 1040; box-shadow: var(--shadow);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: max(1rem, env(safe-area-inset-left, 0px)); padding-right: max(1rem, env(safe-area-inset-right, 0px));
 }
+.top-nav > * { height: 64px; display: flex; align-items: center; }
 .sidebar {
-    position: fixed; top: 64px; left: 0; width: 280px; height: calc(100vh - 64px);
+    position: fixed; top: calc(64px + env(safe-area-inset-top, 0px)); left: 0; width: 280px; height: calc(100vh - 64px - env(safe-area-inset-top, 0px));
     background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border-right: var(--glass-border); padding: 1.5rem;
     display: flex; flex-direction: column; z-index: 1035;
@@ -222,7 +223,7 @@ h1 { background: linear-gradient(to right, var(--grad-start), var(--grad-end)); 
 .mobile-nav-open .sidebar { transform: translateX(0); }
 .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(2px); z-index: 1030; }
 .mobile-nav-open .sidebar-overlay { display: block; }
-.main-content { flex: 1; margin-top: 64px; padding: 1.25rem; }
+.main-content { flex: 1; margin-top: calc(64px + env(safe-area-inset-top, 0px)); padding: 1.25rem; }
 @media (min-width: 768px) {
     .hamburger-btn { display: none !important; }
     .sidebar { transform: translateX(0); }
