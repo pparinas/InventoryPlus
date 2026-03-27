@@ -11,15 +11,15 @@
 else
 {
 
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+<div class="page-header">
     <div>
         <h1>Stocks</h1>
-        <p class="text-muted mb-0">Manage your raw materials and shop necessities.</p>
+        <p class="text-muted">Manage your raw materials and shop necessities.</p>
     </div>
     <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="d-none d-sm-inline"> Add Stock Item</span></button>
 </div>
 
-<div class="glass-panel mb-4" style="padding:0.75rem 1rem">
+<div class="filter-bar">
     <div class="d-flex gap-2 flex-wrap align-items-center">
         <div class="flex-grow-1" style="min-width:180px">
             <input type="text" class="form-control" placeholder="Search stocks..." @bind="searchQuery" @bind:event="oninput" />
@@ -136,7 +136,9 @@ else
 
 </div>
 
-<BSModal IsOpen="showModal" IsCentered="true" Size="Size.Large" @ref="_stockModal">
+}
+
+<BSModal IsOpen="showModal" IsCentered="true" Size="Size.Large">
     <Header>
         <h5 class="modal-title">@(isEditing ? "Edit Stock Item" : "New Stock Item")</h5>
         <button type="button" class="btn-close" @onclick="CloseModal"></button>
@@ -177,7 +179,6 @@ else
                 <button class="btn btn-primary" @onclick="Save">Save Item</button>
     </Footer>
 </BSModal>
-}
 
 <InventoryPlus.Components.ConfirmDialog
     IsVisible="showDeleteConfirm"

@@ -109,6 +109,7 @@ namespace InventoryPlus.Services
             finally
             {
                 IsLoading = false;
+                NotifyStateChanged();
             }
         }
 

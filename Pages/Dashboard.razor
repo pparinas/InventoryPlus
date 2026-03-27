@@ -2,7 +2,7 @@
 
 <PageTitle>Dashboard | @AppSettings.CompanyName</PageTitle>
 
-<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-3 mb-4">
+<div class="page-header">
     <div>
         <h1>Dashboard</h1>
         <p class="text-muted">Welcome back! Here's your business overview.</p>
@@ -18,6 +18,31 @@
         <button class="btn btn-primary btn-sm" @onclick='() => Nav.NavigateTo("sales")'><i class="fa-solid fa-plus"></i><span class="d-none d-sm-inline"> New Sale</span></button>
     </div>
 </div>
+
+@* ── Quick Actions (desktop) ── *@
+@if (AppSettings.ShowQuickActions)
+{
+<div class="glass-panel mb-4 quick-actions-desktop">
+    <h2 class="mb-4"><i class="fa-solid fa-bolt" style="color: var(--warning);"></i> Quick Actions</h2>
+    <div class="quick-actions-grid">
+        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("sales")'>
+            <i class="fa-solid fa-cart-shopping"></i><span>New Sale</span>
+        </button>
+        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("products")'>
+            <i class="fa-solid fa-plus-circle"></i><span>Add Product</span>
+        </button>
+        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("stocks")'>
+            <i class="fa-solid fa-boxes-stacked"></i><span>Restock</span>
+        </button>
+        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("reports")'>
+            <i class="fa-solid fa-file-lines"></i><span>Reports</span>
+        </button>
+        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("settings")'>
+            <i class="fa-solid fa-gear"></i><span>Settings</span>
+        </button>
+    </div>
+</div>
+}
 
 @* ── Today's Snapshot ── *@
 @if (AppSettings.ShowTodaySnapshot)
@@ -282,27 +307,3 @@
     }
 </div>
 
-@* ── Quick Actions ── *@
-@if (AppSettings.ShowQuickActions)
-{
-<div class="glass-panel mb-4">
-    <h2 class="mb-4"><i class="fa-solid fa-bolt" style="color: var(--warning);"></i> Quick Actions</h2>
-    <div class="quick-actions-grid">
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("sales")'>
-            <i class="fa-solid fa-cart-shopping"></i><span>New Sale</span>
-        </button>
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("products")'>
-            <i class="fa-solid fa-plus-circle"></i><span>Add Product</span>
-        </button>
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("stocks")'>
-            <i class="fa-solid fa-boxes-stacked"></i><span>Restock</span>
-        </button>
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("reports")'>
-            <i class="fa-solid fa-file-lines"></i><span>Reports</span>
-        </button>
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("settings")'>
-            <i class="fa-solid fa-gear"></i><span>Settings</span>
-        </button>
-    </div>
-</div>
-}

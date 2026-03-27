@@ -20,7 +20,6 @@ namespace InventoryPlus.Pages
         protected bool isUploading;
         protected IBrowserFile? pendingImageFile;
         protected Product currentProduct = new();
-        protected BSModal? _productModal;
         protected Guid? selectedIngredientId;
         protected double newQuantity;
         protected int _page = 1;

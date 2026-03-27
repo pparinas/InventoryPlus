@@ -2,24 +2,29 @@
 
 <PageTitle>Point of Sale | @AppSettings.CompanyName</PageTitle>
 
+<div class="page-header">
+    <div>
+        <h1>Point of Sale</h1>
+        <p class="text-muted">Select products and complete sales.</p>
+    </div>
+</div>
+
 <div class="pos-layout">
     <!-- Product Grid Side -->
     <div class="pos-products">
-        <div class="pos-products-header">
-            <h2 style="margin: 0;">Products</h2>
-            <div class="pos-search">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" @bind="searchQuery" @bind:event="oninput" placeholder="Search products..." />
+        <div class="filter-bar">
+            <div class="d-flex gap-2 flex-wrap align-items-center">
+                <div class="flex-grow-1" style="min-width:180px">
+                    <input type="text" class="form-control" @bind="searchQuery" @bind:event="oninput" placeholder="Search products..." />
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="pos-category-btn @(selectedCategory == "All" ? "active" : "")" @onclick='() => selectedCategory = "All"'>All</button>
+                    @foreach (var cat in Categories)
+                    {
+                        <button class="pos-category-btn @(selectedCategory == cat ? "active" : "")" @onclick="() => selectedCategory = cat">@cat</button>
+                    }
+                </div>
             </div>
-        </div>
-
-        <!-- Category filter -->
-        <div class="pos-categories">
-            <button class="pos-cat-btn @(selectedCategory == "All" ? "active" : "")" @onclick='() => selectedCategory = "All"'>All</button>
-            @foreach (var cat in Categories)
-            {
-                <button class="pos-cat-btn @(selectedCategory == cat ? "active" : "")" @onclick="() => selectedCategory = cat">@cat</button>
-            }
         </div>
 
         @if (!FilteredProducts.Any())
@@ -75,8 +80,8 @@
         <h3 style="margin-bottom: 0.5rem;"><i class="fa-solid fa-cart-shopping"></i> Current Sale</h3>
         
         <!-- Customer name -->
-        <div class="mb-3" style="margin-bottom: 0.75rem;">
-            <input type="text" @bind="customerName" placeholder="Customer name (optional)" style="padding: 0.5rem 0.75rem; font-size: 0.85rem;" />
+        <div style="margin-bottom: 0.75rem;">
+            <input type="text" class="form-control" @bind="customerName" placeholder="Customer name (optional)" />
         </div>
 
         <!-- Cart items -->
@@ -112,24 +117,23 @@
 
         <!-- Discount -->
         <div class="pos-discount-section">
-            <label style="font-size: 0.8rem; margin-bottom: 0.25rem;">Discount</label>
+            <label class="form-label" style="font-size: 0.8rem; margin-bottom: 0.25rem;">Discount</label>
             <div class="d-flex gap-2">
-                <select @bind="discountType" style="padding: 0.4rem; font-size: 0.85rem; flex: 0 0 120px;">
+                <select class="form-select" @bind="discountType" style="flex: 0 0 120px;">
                     <option value="None">None</option>
                     <option value="Percentage">% Off</option>
                     <option value="Fixed">₱ Fixed</option>
                 </select>
                 @if (discountType != "None")
                 {
-                    <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="@(discountType == "Percentage" ? "e.g. 10" : "e.g. 50")" 
-                           style="padding: 0.4rem; font-size: 0.85rem;" />
+                    <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="@(discountType == "Percentage" ? "e.g. 10" : "e.g. 50")" />
                 }
             </div>
         </div>
 
         <!-- Sale note -->
         <div class="mb-2">
-            <textarea @bind="saleNote" placeholder="Sale note (optional)" rows="1" class="form-control" style="font-size: 0.85rem; padding: 0.5rem 0.75rem;"></textarea>
+            <textarea @bind="saleNote" placeholder="Sale note (optional)" rows="1" class="form-control"></textarea>
         </div>
 
         <!-- Payment -->
@@ -191,7 +195,7 @@
     </Header>
     <Content>
         <div class="mb-2">
-            <input type="text" class="form-control" @bind="customerName" placeholder="Customer name (optional)" style="padding: 0.5rem; font-size: 0.85rem;" />
+            <input type="text" class="form-control" @bind="customerName" placeholder="Customer name (optional)" />
         </div>
 
         <div class="pos-cart-items" style="max-height: 35vh; overflow-y: auto;">
@@ -214,14 +218,14 @@
 
         <div class="pos-discount-section">
             <div class="d-flex gap-2">
-                <select @bind="discountType" style="padding: 0.4rem; font-size: 0.85rem;">
+                <select class="form-select" @bind="discountType">
                     <option value="None">No Discount</option>
                     <option value="Percentage">% Off</option>
                     <option value="Fixed">₱ Fixed</option>
                 </select>
                 @if (discountType != "None")
                 {
-                    <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="Amount" style="padding: 0.4rem; font-size: 0.85rem; width: 80px;" />
+                    <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="Amount" style="width: 80px;" />
                 }
             </div>
         </div>
