@@ -9,7 +9,7 @@
     }
 </div>
 
-<BSOffCanvas IsOpen="showPanel" Placement="Placement.Right" @ref="_offCanvas">
+<AppOffCanvas IsOpen="showPanel" IsOpenChanged="@((v) => showPanel = v)" Placement="Right">
     <Header>
         <h5 class="offcanvas-title" style="margin: 0;">Notifications</h5>
         @if (notifications.Any())
@@ -46,11 +46,10 @@
             }
         </div>
     </Content>
-</BSOffCanvas>
+</AppOffCanvas>
 
 @code {
     private bool showPanel = false;
-    private BSOffCanvas? _offCanvas;
     private List<InventoryPlus.Models.AppNotification> notifications = new();
     private int UnreadCount => notifications.Count(n => !n.IsRead);
 

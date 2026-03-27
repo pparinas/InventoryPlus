@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
-using BlazorStrap;
-using BlazorStrap.V5;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
 using InventoryPlus.Components;
@@ -16,7 +14,6 @@ namespace InventoryPlus.Pages
         [Inject] public ToastService Toast { get; set; } = default!;
         [Inject] public NavigationManager Nav { get; set; } = default!;
 
-        protected BSOffCanvas? _mobileCartOffCanvas;
         protected string saleNote = "";
         protected string paymentMethod = "Cash";
         protected string customerName = "";

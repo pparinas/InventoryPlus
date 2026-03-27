@@ -55,7 +55,8 @@
         <h2><i class="fa-solid fa-receipt text-primary"></i> Sales Summary</h2>
         <i class="fa-solid @(openSections.Contains("sales") ? "fa-chevron-up" : "fa-chevron-down")"></i>
     </div>
-    <BSCollapse IsOpen="@openSections.Contains("sales")">
+    @if (openSections.Contains("sales"))
+    {
         @if (FilteredSales.Any())
         {
             <div class="table-responsive table-view mt-3">
@@ -105,7 +106,7 @@
         {
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-receipt" Title="No sales" Message="No transactions for the selected period." />
         }
-    </BSCollapse>
+    }
 </div>
 }
 
@@ -117,7 +118,8 @@
         <h2><i class="fa-solid fa-trophy text-warning"></i> Top Products</h2>
         <i class="fa-solid @(openSections.Contains("top") ? "fa-chevron-up" : "fa-chevron-down")"></i>
     </div>
-    <BSCollapse IsOpen="@openSections.Contains("top")">
+    @if (openSections.Contains("top"))
+    {
         @if (TopProductsReport.Any())
         {
             <div class="top-products-list mt-3">
@@ -139,7 +141,7 @@
         {
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-trophy" Title="No data" Message="Top products will appear after sales." />
         }
-    </BSCollapse>
+    }
 </div>
 }
 
@@ -151,7 +153,8 @@
         <h2><i class="fa-solid fa-credit-card text-accent"></i> Payment Methods</h2>
         <i class="fa-solid @(openSections.Contains("payment") ? "fa-chevron-up" : "fa-chevron-down")"></i>
     </div>
-    <BSCollapse IsOpen="@openSections.Contains("payment")">
+    @if (openSections.Contains("payment"))
+    {
         @if (PaymentMethodsReport.Any())
         {
             <div class="payment-breakdown mt-3">
@@ -171,7 +174,7 @@
         {
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-credit-card" Title="No data" Message="Payment method breakdown will appear after sales." />
         }
-    </BSCollapse>
+    }
 </div>
 }
 
@@ -183,7 +186,8 @@
         <h2><i class="fa-solid fa-scale-balanced text-success"></i> Profit & Loss</h2>
         <i class="fa-solid @(openSections.Contains("pnl") ? "fa-chevron-up" : "fa-chevron-down")"></i>
     </div>
-    <BSCollapse IsOpen="@openSections.Contains("pnl")">
+    @if (openSections.Contains("pnl"))
+    {
         <div class="pnl-grid mt-3">
             <div class="pnl-item">
                 <span class="pnl-label">Gross Revenue</span>
@@ -206,7 +210,7 @@
                 <span class="pnl-value">@AverageProfitMargin.ToString("N1")%</span>
             </div>
         </div>
-    </BSCollapse>
+    }
 </div>
 }
 
@@ -218,7 +222,8 @@
         <h2><i class="fa-solid fa-boxes-packing text-warning"></i> Inventory Valuation</h2>
         <i class="fa-solid @(openSections.Contains("inv") ? "fa-chevron-up" : "fa-chevron-down")"></i>
     </div>
-    <BSCollapse IsOpen="@openSections.Contains("inv")">
+    @if (openSections.Contains("inv"))
+    {
         <div class="d-flex align-items-center gap-2 mt-3 mb-3">
             <input type="date" @bind="stockDateFilter" @bind:format="yyyy-MM-dd"
                    class="form-control" style="width:auto" />
@@ -274,7 +279,7 @@
         {
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-boxes-stacked" Title="No items" Message="@(stockDateFilter.HasValue ? "No stock from this date." : "No inventory items.")" />
         }
-    </BSCollapse>
+    }
 </div>
 }
 
@@ -286,7 +291,8 @@
         <h2><i class="fa-solid fa-arrows-rotate text-primary"></i> Stock Movement</h2>
         <i class="fa-solid @(openSections.Contains("movement") ? "fa-chevron-up" : "fa-chevron-down")"></i>
     </div>
-    <BSCollapse IsOpen="@openSections.Contains("movement")">
+    @if (openSections.Contains("movement"))
+    {
         @if (StockMovement.Any())
         {
             <div class="table-responsive table-view mt-3">
@@ -325,6 +331,6 @@
         {
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-arrows-rotate" Title="No movement" Message="Stock movement data will appear after sales." />
         }
-    </BSCollapse>
+    }
 </div>
 }

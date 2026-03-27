@@ -463,6 +463,38 @@ h1 { background: linear-gradient(to right, var(--grad-start), var(--grad-end)); 
     filter: invert(1) grayscale(100%) brightness(200%);
 }
 .modal-overlay .btn-close:hover { color: var(--text-primary); }
+.modal-overlay .modal-content.modal-sm { max-width: 400px; }
+.modal-overlay .modal-content.modal-lg { max-width: 800px; }
+.modal-overlay .modal-content.modal-xl { max-width: 1000px; }
+
+/* ===== OffCanvas Overlay ===== */
+.offcanvas-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(2px);
+    z-index: 1050;
+}
+.offcanvas-panel {
+    position: fixed; z-index: 1051;
+    background: var(--glass-bg); border: 1px solid var(--border);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+.offcanvas-panel.placement-right {
+    top: 0; right: 0; bottom: 0; width: 380px; max-width: 90vw;
+    animation: slideInRight 0.3s ease;
+}
+.offcanvas-panel.placement-bottom {
+    left: 0; right: 0; bottom: 0;
+    max-height: 85vh; border-radius: var(--radius) var(--radius) 0 0;
+    animation: slideUp 0.3s ease;
+}
+.offcanvas-panel .offcanvas-header {
+    padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+}
+.offcanvas-panel .offcanvas-body { padding: 1rem 1.25rem; overflow-y: auto; flex: 1; }
+@keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
 
 /* ===== Report Filter Bar ===== */
 .report-filter-bar {

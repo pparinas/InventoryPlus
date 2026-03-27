@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
-using BlazorStrap;
-using BlazorStrap.V5;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
 

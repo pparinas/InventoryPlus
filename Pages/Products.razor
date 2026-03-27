@@ -177,7 +177,7 @@ else
 
 }
 
-<BSModal IsOpen="showModal" IsCentered="true" Size="Size.ExtraLarge">
+<AppModal IsOpen="showModal" IsOpenChanged="@((v) => { showModal = v; })" Size="ExtraLarge">
     <Header>
         <h5 class="modal-title">@(isEditing ? "Edit Product" : "New Product")</h5>
         <button type="button" class="btn-close" @onclick="CloseModal"></button>
@@ -291,7 +291,7 @@ else
                 <button class="btn btn-outline-secondary" @onclick="CloseModal">Cancel</button>
                 <button class="btn btn-primary" @onclick="Save">Save Product</button>
     </Footer>
-</BSModal>
+</AppModal>
 
 <InventoryPlus.Components.ConfirmDialog
     IsVisible="showDeleteConfirm"

@@ -9,8 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="BlazorStrap" Version="5.2.104" />
-    <PackageReference Include="BlazorStrap.V5" Version="5.2.104" />
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.1" PrivateAssets="all" />
