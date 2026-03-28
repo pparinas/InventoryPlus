@@ -54,18 +54,38 @@ namespace InventoryPlus.Services
             }
         }
 
-        public async Task MarkTokenUsedAsync(string token)
+        public async Task MarkTokenUsedAsync(string token, string email = "")
         {
             try
             {
-                await _supabase.From<InviteToken>()
+                var update = _supabase.From<InviteToken>()
                     .Where(t => t.Token == token)
-                    .Set(t => t.IsUsed, true)
-                    .Update();
+                    .Set(t => t.IsUsed, true);
+
+                if (!string.IsNullOrEmpty(email))
+                    update = update.Set(t => t.UsedByEmail, email);
+
+                await update.Update();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"MarkTokenUsed error: {ex.Message}");
+            }
+        }
+
+        public async Task<List<InviteToken>> GetAllTokensAsync()
+        {
+            try
+            {
+                var resp = await _supabase.From<InviteToken>()
+                    .Order(t => t.CreatedAt, Supabase.Postgrest.Constants.Ordering.Descending)
+                    .Get();
+                return resp.Models;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"GetAllTokens error: {ex.Message}");
+                return new();
             }
         }
     }

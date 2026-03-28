@@ -25,5 +25,8 @@ namespace InventoryPlus.Models
 
         [Column("created_by")]
         public Guid CreatedBy { get; set; }
+
+        [Column("used_by_email")]
+        public string UsedByEmail { get; set; } = string.Empty;
     }
 }

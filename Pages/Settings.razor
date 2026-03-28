@@ -2,21 +2,19 @@
 
 <PageTitle>Settings | @AppSettings.CompanyName</PageTitle>
 
-
-<div class="page-header">
+<div class="page-header mb-3">
     <div>
         <h1>System Settings</h1>
         <p class="text-muted">Manage your application branding and global configurations.</p>
     </div>
 </div>
 
-<div class="row g-4">
+@* ── Row 1: Brand + Account ── *@
+<div class="row g-3">
     <div class="col-12 col-lg-6">
     <div class="glass-panel">
-        <div class="mb-4">
-            <h2>Brand Settings</h2>
-            <p class="text-muted text-sm">Update how your app brand appears to all users.</p>
-        </div>
+        <h2 class="mb-1">Brand Settings</h2>
+        <p class="text-muted text-sm mb-3">Update how your app brand appears to all users.</p>
 
         <div class="mb-3">
             <label for="companyName" class="form-label">Company Name</label>
@@ -25,14 +23,14 @@
 
         <div class="mb-3">
             <label class="form-label">Brand Logo</label>
-            <div class="d-flex align-items-center gap-4 mb-2">
+            <div class="d-flex align-items-center gap-3 mb-2">
                 @if (!string.IsNullOrEmpty(newLogoUrl))
                 {
-                    <img src="@newLogoUrl" style="width: 48px; height: 48px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border)" />
+                    <img src="@newLogoUrl" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border)" />
                 }
                 else
                 {
-                    <div style="width: 48px; height: 48px; border-radius: 8px; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border)">
+                    <div style="width: 44px; height: 44px; border-radius: 8px; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border)">
                         <i class="fa-solid fa-cube text-muted"></i>
                     </div>
                 }
@@ -40,9 +38,7 @@
                     <InputFile OnChange="HandleLogoUpload" class="form-control" accept="image/*" />
                     @if (pendingLogoFile != null && !isUploading)
                     {
-                        <button class="btn btn-sm btn-primary mt-2" @onclick="UploadLogo">
-                            <i class="fa-solid fa-upload"></i> Upload Logo
-                        </button>
+                        <button class="btn btn-sm btn-primary mt-2" @onclick="UploadLogo"><i class="fa-solid fa-upload"></i> Upload</button>
                     }
                     @if (isUploading)
                     {
@@ -52,121 +48,148 @@
             </div>
             @if (!string.IsNullOrEmpty(newLogoUrl))
             {
-                <button class="btn btn-sm btn-outline-danger mt-1" style="padding: 0.25rem 0.75rem" @onclick="() => newLogoUrl = null">
-                    <i class="fa-solid fa-trash"></i> Remove Logo
-                </button>
+                <button class="btn btn-sm btn-outline-danger" style="padding: 0.2rem 0.6rem" @onclick="() => newLogoUrl = null"><i class="fa-solid fa-trash"></i> Remove</button>
             }
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Brand Display Mode</label>
+            <label class="form-label">Display Mode</label>
             <div class="d-flex gap-2">
-                <button class="btn btn-sm @(!useLogo ? "btn-primary" : "btn-outline-secondary") w-100" @onclick="() => useLogo = false">
-                    <i class="fa-solid fa-font"></i> Show Name
-                </button>
-                <button class="btn btn-sm @(useLogo ? "btn-primary" : "btn-outline-secondary") w-100" @onclick="() => useLogo = true">
-                    <i class="fa-solid fa-image"></i> Show Logo
-                </button>
+                <button class="btn btn-sm @(!useLogo ? "btn-primary" : "btn-outline-secondary") w-100" @onclick="() => useLogo = false"><i class="fa-solid fa-font"></i> Show Name</button>
+                <button class="btn btn-sm @(useLogo ? "btn-primary" : "btn-outline-secondary") w-100" @onclick="() => useLogo = true"><i class="fa-solid fa-image"></i> Logo Only</button>
             </div>
         </div>
 
-        <button class="btn btn-primary mt-2" @onclick="SaveSettings">
-            <i class="fa-solid fa-save"></i> Save Changes
-        </button>
-
-        @if (showSuccess)
-        {
-            <div class="alert alert-success mt-2">
-                Settings saved successfully!
+        <div class="mb-3">
+            <label class="form-label">Color Scheme</label>
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var scheme in colorSchemes)
+                {
+                    <button class="d-flex align-items-center justify-content-center"
+                            style="width: 36px; height: 36px; border-radius: 8px; background: @scheme.Value; border: 3px solid @(selectedColorScheme == scheme.Key ? "var(--text-primary)" : "transparent"); cursor: pointer; transition: all 0.2s;"
+                            title="@(scheme.Key[0..1].ToUpper() + scheme.Key[1..])"
+                            @onclick="() => selectedColorScheme = scheme.Key">
+                        @if (selectedColorScheme == scheme.Key)
+                        {
+                            <i class="fa-solid fa-check" style="color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.5); font-size: 0.7rem;"></i>
+                        }
+                    </button>
+                }
             </div>
-        }
+        </div>
+
+        <button class="btn btn-primary w-100" @onclick="SaveSettings"><i class="fa-solid fa-save"></i> Save Brand</button>
+        @if (showSuccess) { <div class="alert alert-success mt-2 mb-0">Saved!</div> }
     </div>
     </div>
 
     <div class="col-12 col-lg-6">
     <div class="glass-panel">
-        <div class="mb-4">
-            <h2>Account Information</h2>
-            <p class="text-muted text-sm">Your dynamic account details from the system.</p>
-        </div>
+        <h2 class="mb-1">Account Information</h2>
+        <p class="text-muted text-sm mb-3">Your account details.</p>
         
         @if (currentUser != null)
         {
-            <div class="alert alert-primary mb-4">
-                <i class="fa-solid fa-circle-user"></i> Signed in as <strong>@currentUser.Email</strong>
+            <div class="alert alert-primary mb-3 py-2">
+                <i class="fa-solid fa-circle-user"></i> <strong>@currentUser.Email</strong>
             </div>
-            
-            <div class="d-flex flex-column gap-3">
-                <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom: 1px solid var(--border)">
-                    <span class="text-muted">User ID</span>
-                    <span style="font-size: 0.75rem; font-family: monospace;">@currentUser.Id</span>
+            <div class="d-flex flex-column gap-2">
+                <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom: 1px solid var(--border)">
+                    <span class="text-muted small">User ID</span>
+                    <span style="font-size: 0.7rem; font-family: monospace;">@currentUser.Id</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom: 1px solid var(--border)">
-                    <span class="text-muted">Created At</span>
-                    <span>@currentUser.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</span>
+                <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom: 1px solid var(--border)">
+                    <span class="text-muted small">Created</span>
+                    <span class="small">@currentUser.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom: 1px solid var(--border)">
-                    <span class="text-muted">Last Sign In</span>
-                    <span>@(currentUser.LastSignInAt?.ToLocalTime().ToString("MMM dd, yyyy HH:mm") ?? "N/A")</span>
+                <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom: 1px solid var(--border)">
+                    <span class="text-muted small">Last Sign In</span>
+                    <span class="small">@(currentUser.LastSignInAt?.ToLocalTime().ToString("MMM dd, yyyy HH:mm") ?? "N/A")</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom: 1px solid var(--border)">
-                    <span class="text-muted">Role</span>
-                    <span class="badge bg-primary-subtle">Administrator</span>
+                <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom: 1px solid var(--border)">
+                    <span class="text-muted small">Subscription</span>
+                    <span class="badge bg-success-subtle text-success">Active</span>
                 </div>
             </div>
         }
         else
         {
-            <div class="d-flex flex-column align-items-center justify-content-center p-5 text-muted">
+            <div class="d-flex flex-column align-items-center justify-content-center p-4 text-muted">
                 <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
-                <p>Loading account details...</p>
+                <p>Loading...</p>
             </div>
         }
 
-        <div class="mt-5 pt-4" style="border-top: 1px solid var(--border)">
-            <h2 class="mb-4">Security</h2>
-            <p class="text-muted text-sm mb-4">Update your account password. Must be at least 6 characters.</p>
+        <hr class="my-3" style="border-color: var(--border);">
 
-            <div class="mb-3">
-                <label class="form-label">New Password</label>
-                <input type="password" class="form-control" @bind="newPassword" placeholder="Minimum 6 characters" />
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Confirm Password</label>
-                <input type="password" class="form-control" @bind="confirmPassword" placeholder="Repeat new password" />
-            </div>
-
-            @if (!string.IsNullOrEmpty(passErrorMessage))
-            {
-                <div class="alert alert-danger mt-2">@passErrorMessage</div>
-            }
-            @if (showPassSuccess)
-            {
-                <div class="alert alert-success mt-2">Password updated successfully!</div>
-            }
-
-            <button class="btn btn-outline-secondary mt-2 w-100" @onclick="HandleChangePassword" disabled="@isChangingPass">
-                @if (isChangingPass)
-                {
-                    <i class="fa-solid fa-spinner fa-spin"></i> <span>Updating...</span>
-                }
-                else
-                {
-                    <i class="fa-solid fa-lock"></i> <span>Update Password</span>
-                }
-            </button>
+        <h2 class="mb-1">Password</h2>
+        <p class="text-muted text-sm mb-2">Must be at least 6 characters.</p>
+        <div class="mb-2">
+            <input type="password" class="form-control form-control-sm" @bind="newPassword" placeholder="New password" />
         </div>
+        <div class="mb-2">
+            <input type="password" class="form-control form-control-sm" @bind="confirmPassword" placeholder="Confirm password" />
+        </div>
+        @if (!string.IsNullOrEmpty(passErrorMessage)) { <div class="alert alert-danger py-1 small">@passErrorMessage</div> }
+        @if (showPassSuccess) { <div class="alert alert-success py-1 small">Password updated!</div> }
+        <button class="btn btn-outline-secondary btn-sm w-100" @onclick="HandleChangePassword" disabled="@isChangingPass">
+            @if (isChangingPass) { <i class="fa-solid fa-spinner fa-spin"></i> } else { <i class="fa-solid fa-lock"></i> } Update Password
+        </button>
     </div>
     </div>
 </div>
 
-@* ── Dashboard & Report Preferences ── *@
-<div class="row g-4 mt-2">
+@* ── Row 2: Security/Preferences + Dashboard/Report widgets ── *@
+<div class="row g-3 mt-1">
     <div class="col-12 col-lg-6">
     <div class="glass-panel">
-        <h2 class="mb-2">Dashboard Widgets</h2>
-        <p class="text-muted text-sm mb-4">Choose which widgets appear on your dashboard.</p>
+        <h2 class="mb-1">App Security</h2>
+        <p class="text-muted text-sm mb-3">4-digit PIN to protect add/edit/void actions.</p>
 
+        @if (AppSettings.HasPin)
+        {
+            <div class="alert alert-success py-1 mb-2 small"><i class="fa-solid fa-shield-halved"></i> PIN is set.</div>
+            <div class="mb-2">
+                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="currentPin" placeholder="Current PIN" />
+            </div>
+            <div class="mb-2">
+                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="newPin" placeholder="New PIN (4 digits)" />
+            </div>
+            <div class="mb-2">
+                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="confirmPin" placeholder="Confirm new PIN" />
+            </div>
+        }
+        else
+        {
+            <div class="mb-2">
+                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="newPin" placeholder="New PIN (4 digits)" />
+            </div>
+            <div class="mb-2">
+                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="confirmPin" placeholder="Confirm PIN" />
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(pinError)) { <div class="alert alert-danger py-1 small">@pinError</div> }
+        @if (showPinSuccess) { <div class="alert alert-success py-1 small">PIN saved!</div> }
+        <button class="btn btn-outline-secondary btn-sm w-100" @onclick="SavePin"><i class="fa-solid fa-lock"></i> @(AppSettings.HasPin ? "Change PIN" : "Create PIN")</button>
+        @if (AppSettings.HasPin)
+        {
+            <button class="btn btn-outline-danger btn-sm mt-1 w-100" @onclick="RemovePin"><i class="fa-solid fa-lock-open"></i> Remove PIN</button>
+        }
+
+        <hr class="my-3" style="border-color: var(--border);">
+
+        <h2 class="mb-1">Navigation & Display</h2>
+        <p class="text-muted text-sm mb-2">Customize tabs and value formatting.</p>
+        <label class="toggle-row"><input type="checkbox" @bind="showInventoryTab" /><span>Show Inventory Tab</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowDecimals" /><span>Show Decimals (₱1,357.40 vs ₱1,357)</span></label>
+        <button class="btn btn-primary btn-sm mt-2 w-100" @onclick="SaveNavPreferences"><i class="fa-solid fa-save"></i> Save</button>
+    </div>
+    </div>
+
+    <div class="col-12 col-lg-6">
+    <div class="glass-panel">
+        <h2 class="mb-1">Dashboard Widgets</h2>
+        <p class="text-muted text-sm mb-2">Toggle widgets on your dashboard.</p>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowTodaySnapshot" /><span>Today's Snapshot</span></label>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowRevenueChart" /><span>Revenue Chart</span></label>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowTopProducts" /><span>Top Products</span></label>
@@ -175,19 +198,12 @@
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowLowStock" /><span>Low Stock Alerts</span></label>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowRecentSales" /><span>Recent Sales</span></label>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowQuickActions" /><span>Quick Actions</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowOnboardingOnLogin" /><span>Onboarding Wizard on Login</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowOnboardingOnLogin" /><span>Onboarding Wizard</span></label>
 
-        <button class="btn btn-primary mt-4 w-100" @onclick="SavePreferences">
-            <i class="fa-solid fa-save"></i> Save Preferences
-        </button>
-    </div>
-    </div>
+        <hr class="my-3" style="border-color: var(--border);">
 
-    <div class="col-12 col-lg-6">
-    <div class="glass-panel">
-        <h2 class="mb-2">Report Sections</h2>
-        <p class="text-muted text-sm mb-4">Choose which report sections are visible.</p>
-
+        <h2 class="mb-1">Report Sections</h2>
+        <p class="text-muted text-sm mb-2">Toggle report sections.</p>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportSalesSummary" /><span>Sales Summary</span></label>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportTopProducts" /><span>Top Products</span></label>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportPaymentMethods" /><span>Payment Methods</span></label>
@@ -195,9 +211,34 @@
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportInventoryValuation" /><span>Inventory Valuation</span></label>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportStockMovement" /><span>Stock Movement</span></label>
 
-        <button class="btn btn-primary mt-4 w-100" @onclick="SavePreferences">
-            <i class="fa-solid fa-save"></i> Save Preferences
-        </button>
+        <button class="btn btn-primary btn-sm mt-3 w-100" @onclick="SavePreferences"><i class="fa-solid fa-save"></i> Save Preferences</button>
     </div>
     </div>
 </div>
+
+@* ── Install App ── *@
+@if (showInstallSection && !isAppStandalone)
+{
+<div class="row g-3 mt-1">
+    <div class="col-12 col-lg-6">
+    <div class="glass-panel">
+        <h2 class="mb-1"><i class="fa-solid fa-download me-2" style="color: var(--primary);"></i>Install App</h2>
+        <p class="text-muted text-sm mb-2">Install on your device for quick access.</p>
+        @if (canInstallNative)
+        {
+            <button class="btn btn-primary btn-sm w-100" @onclick="InstallApp"><i class="fa-solid fa-download me-1"></i> Install InventoryPlus</button>
+        }
+        else if (isIosDevice)
+        {
+            <div class="p-2 rounded-3 small" style="background: var(--bg-surface); border: 1px solid var(--border);">
+                <p class="fw-semibold mb-1"><i class="fa-solid fa-mobile-screen-button me-1"></i> iPhone / iPad:</p>
+                <ol class="mb-0 text-muted ps-3">
+                    <li>Tap <i class="fa-solid fa-arrow-up-from-bracket" style="color: var(--primary);"></i> <strong>Share</strong></li>
+                    <li>Tap <strong>Add to Home Screen</strong></li>
+                </ol>
+            </div>
+        }
+    </div>
+    </div>
+</div>
+}

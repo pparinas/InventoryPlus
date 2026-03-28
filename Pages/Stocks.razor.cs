@@ -22,6 +22,8 @@ namespace InventoryPlus.Pages
         protected string sortBy = "name";
         protected bool showDeleteConfirm;
         protected Ingredient? deleteTarget;
+        protected bool showPinPrompt;
+        private Action? _pendingPinAction;
 
         protected void SetPage(int p) { _page = p; StateHasChanged(); }
 
@@ -57,12 +59,43 @@ namespace InventoryPlus.Pages
 
         protected void OpenAddModal()
         {
-            currentIngredient = new Ingredient { Type = "Ingredient" };
-            isEditing = false;
-            showModal = true;
+            if (AppSettings.HasPin)
+            {
+                _pendingPinAction = () =>
+                {
+                    currentIngredient = new Ingredient { Type = "Ingredient" };
+                    isEditing = false;
+                    showModal = true;
+                    StateHasChanged();
+                };
+                showPinPrompt = true;
+            }
+            else
+            {
+                currentIngredient = new Ingredient { Type = "Ingredient" };
+                isEditing = false;
+                showModal = true;
+            }
         }
 
         protected void Edit(Ingredient item)
+        {
+            if (AppSettings.HasPin)
+            {
+                _pendingPinAction = () =>
+                {
+                    DoEdit(item);
+                    StateHasChanged();
+                };
+                showPinPrompt = true;
+            }
+            else
+            {
+                DoEdit(item);
+            }
+        }
+
+        private void DoEdit(Ingredient item)
         {
             currentIngredient = new Ingredient
             {
@@ -75,6 +108,12 @@ namespace InventoryPlus.Pages
             };
             isEditing = true;
             showModal = true;
+        }
+
+        protected void OnPinVerified()
+        {
+            _pendingPinAction?.Invoke();
+            _pendingPinAction = null;
         }
 
         protected void ConfirmDelete(Ingredient item)

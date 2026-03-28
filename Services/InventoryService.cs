@@ -240,13 +240,30 @@ namespace InventoryPlus.Services
         {
             if (product.AvailableCount < quantity) return null;
 
-            // Deduct ingredient stock and persist
-            foreach (var req in product.RequiredIngredients)
+            // Deduct stock based on product type
+            if (product.HasIngredients)
             {
-                if (req.Ingredient != null)
+                // Deduct ingredient stock and persist
+                foreach (var req in product.RequiredIngredients)
                 {
-                    req.Ingredient.Stock -= req.QuantityRequired * quantity;
-                    if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(req.Ingredient);
+                    if (req.Ingredient != null)
+                    {
+                        req.Ingredient.Stock -= req.QuantityRequired * quantity;
+                        if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(req.Ingredient);
+                    }
+                }
+            }
+            else
+            {
+                // Deduct direct stock count
+                product.StockCount -= quantity;
+                if (product.StockCount < 0) product.StockCount = 0;
+                if (!IsGuestMode)
+                {
+                    var reqs = product.RequiredIngredients.ToList();
+                    product.RequiredIngredients = new();
+                    await _supabase.From<Product>().Upsert(product);
+                    product.RequiredIngredients = reqs;
                 }
             }
 
@@ -291,11 +308,6 @@ namespace InventoryPlus.Services
             var resp = await _supabase.From<Sale>().Insert(sale);
             var saved = resp.Models.FirstOrDefault() ?? sale;
 
-            // Re-apply in-memory-only fields (marked [JsonIgnore], not persisted to DB)
-            saved.CustomerName = customerName;
-            saved.DiscountAmount = discountAmount;
-            saved.DiscountType = discountType;
-
             Sales.Insert(0, saved);
 
             NotifyStateChanged();
@@ -303,6 +315,51 @@ namespace InventoryPlus.Services
         }
 
         public void NotifyStateChanged() => OnStateChanged?.Invoke();
+
+        // ── Void Sale ──────────────────────────────────────────────────────────
+
+        public async Task VoidSaleAsync(Sale sale)
+        {
+            if (sale.IsVoided) return;
+
+            // Restore stock
+            var product = Products.FirstOrDefault(p => p.Guid == sale.ProductId);
+            if (product != null)
+            {
+                if (product.HasIngredients)
+                {
+                    foreach (var req in product.RequiredIngredients)
+                    {
+                        if (req.Ingredient != null)
+                        {
+                            req.Ingredient.Stock += req.QuantityRequired * sale.QuantitySold;
+                            if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(req.Ingredient);
+                        }
+                    }
+                }
+                else
+                {
+                    product.StockCount += sale.QuantitySold;
+                    if (!IsGuestMode)
+                    {
+                        var reqs = product.RequiredIngredients.ToList();
+                        product.RequiredIngredients = new();
+                        await _supabase.From<Product>().Upsert(product);
+                        product.RequiredIngredients = reqs;
+                    }
+                }
+            }
+
+            sale.IsVoided = true;
+            if (!IsGuestMode) await _supabase.From<Sale>().Upsert(sale);
+            NotifyStateChanged();
+        }
+
+        public async Task UpdateSaleAsync(Sale sale)
+        {
+            if (!IsGuestMode) await _supabase.From<Sale>().Upsert(sale);
+            NotifyStateChanged();
+        }
 
         // ── Guest Mode ─────────────────────────────────────────────────────────
 

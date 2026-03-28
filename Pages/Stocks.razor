@@ -72,8 +72,8 @@ else
                             <span>@item.Stock @item.Unit</span>
                         }
                     </td>
-                    <td>₱@item.CostPerUnit.ToString("N2")</td>
-                    <td style="color: var(--primary)">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</td>
+                    <td>₱@AppSettings.FormatCurrency(item.CostPerUnit)</td>
+                    <td style="color: var(--primary)">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</td>
                     <td class="text-end">
                         <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
                         <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
@@ -117,11 +117,11 @@ else
                     </div>
                     <div class="stock-card-row">
                         <span class="stock-card-label">Cost / Unit</span>
-                        <span>₱@item.CostPerUnit.ToString("N2")</span>
+                        <span>₱@AppSettings.FormatCurrency(item.CostPerUnit)</span>
                     </div>
                     <div class="stock-card-row">
                         <span class="stock-card-label">Total Value</span>
-                        <span class="fw-bold" style="color: var(--primary)">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</span>
+                        <span class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</span>
                     </div>
                 </div>
                 <div class="stock-card-actions">
@@ -187,3 +187,8 @@ else
     ConfirmButtonClass="btn-danger"
     OnConfirm="ExecuteDelete"
     OnCancel="() => showDeleteConfirm = false" />
+
+<InventoryPlus.Components.PinPrompt
+    IsVisible="showPinPrompt"
+    IsVisibleChanged="@((v) => showPinPrompt = v)"
+    OnVerified="OnPinVerified" />

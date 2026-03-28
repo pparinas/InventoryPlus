@@ -1,0 +1,124 @@
+@inject InventoryPlus.Services.SettingsService AppSettings
+@inject InventoryPlus.Services.ToastService Toast
+@inject NavigationManager Nav
+
+@if (IsVisible)
+{
+<div class="app-modal-overlay" @onclick="Cancel">
+    <div class="app-modal-panel" style="max-width: 360px;" @onclick:stopPropagation>
+        <div class="app-modal-header">
+            <h5>@Title</h5>
+        </div>
+        <div class="app-modal-body text-center">
+            @if (!AppSettings.HasPin)
+            {
+                <div class="mb-3">
+                    <i class="fa-solid fa-lock fa-2x text-warning mb-2"></i>
+                    <p class="text-muted">You need to create a PIN first before performing this action.</p>
+                </div>
+                <button class="btn btn-primary w-100" @onclick="GoToSettings">
+                    <i class="fa-solid fa-gear me-1"></i> Go to Settings
+                </button>
+            }
+            else
+            {
+                <p class="text-muted mb-3">Enter your 4-digit PIN to continue.</p>
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    @for (int i = 0; i < 4; i++)
+                    {
+                        var idx = i;
+                        <input type="password" maxlength="1" inputmode="numeric" pattern="[0-9]"
+                               class="form-control text-center fw-bold"
+                               style="width: 48px; height: 56px; font-size: 1.5rem; letter-spacing: 0;"
+                               value="@(pinDigits.Length > idx ? pinDigits[idx].ToString() : "")"
+                               @oninput="(e) => HandlePinInput(idx, e)"
+                               @onkeydown="(e) => HandlePinKeyDown(idx, e)"
+                               id="pin-digit-@idx" />
+                    }
+                </div>
+                @if (!string.IsNullOrEmpty(error))
+                {
+                    <div class="text-danger small mb-2">@error</div>
+                }
+            }
+        </div>
+        <div class="app-modal-footer">
+            <button class="btn btn-outline-secondary" @onclick="Cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback OnVerified { get; set; }
+    [Parameter] public string Title { get; set; } = "PIN Required";
+
+    private string pinDigits = "";
+    private string error = "";
+
+    private void HandlePinInput(int idx, ChangeEventArgs e)
+    {
+        var val = e.Value?.ToString() ?? "";
+        if (val.Length > 0 && char.IsDigit(val[^1]))
+        {
+            // Build pin string
+            var c = val[^1];
+            if (idx < pinDigits.Length)
+            {
+                var arr = pinDigits.ToCharArray();
+                arr[idx] = c;
+                pinDigits = new string(arr);
+            }
+            else
+            {
+                pinDigits += c;
+            }
+
+            if (pinDigits.Length == 4)
+            {
+                VerifyPin();
+            }
+        }
+    }
+
+    private void HandlePinKeyDown(int idx, Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        if (e.Key == "Backspace" && idx > 0 && (idx >= pinDigits.Length || pinDigits.Length == 0))
+        {
+            if (pinDigits.Length > 0)
+                pinDigits = pinDigits[..^1];
+        }
+    }
+
+    private async void VerifyPin()
+    {
+        if (AppSettings.VerifyPin(pinDigits))
+        {
+            error = "";
+            pinDigits = "";
+            await IsVisibleChanged.InvokeAsync(false);
+            await OnVerified.InvokeAsync();
+        }
+        else
+        {
+            error = "Incorrect PIN. Try again.";
+            pinDigits = "";
+        }
+        StateHasChanged();
+    }
+
+    private async void Cancel()
+    {
+        pinDigits = "";
+        error = "";
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+
+    private void GoToSettings()
+    {
+        Cancel();
+        Nav.NavigateTo("settings");
+    }
+}

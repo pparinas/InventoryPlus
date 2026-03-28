@@ -2,7 +2,7 @@
 
 <PageTitle>Dashboard | @AppSettings.CompanyName</PageTitle>
 
-<div class="page-header">
+<div class="page-header mb-3">
     <div>
         <h1>Dashboard</h1>
         <p class="text-muted">Welcome back! Here's your business overview.</p>
@@ -22,8 +22,8 @@
 @* ── Quick Actions (desktop, guest-aware) ── *@
 @if (AppSettings.ShowQuickActions)
 {
-<div class="glass-panel mb-4 quick-actions-desktop">
-    <h2 class="mb-4"><i class="fa-solid fa-bolt" style="color: var(--warning);"></i> Quick Actions</h2>
+<div class="glass-panel mb-3 quick-actions-desktop" style="padding: 0.75rem 1rem;">
+    <div class="d-flex align-items-center gap-2 mb-2"><i class="fa-solid fa-bolt" style="color: var(--warning);"></i> <strong class="small">Quick Actions</strong></div>
     <div class="quick-actions-grid">
         <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("sales")'>
             <i class="fa-solid fa-cart-shopping"></i><span>New Sale</span>
@@ -50,27 +50,27 @@
 @* ── Today's Snapshot (always visible) ── *@
 @if (AppSettings.ShowTodaySnapshot)
 {
-<div class="row g-3 mb-4">
+<div class="row g-2 mb-3">
     <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card">
+        <div class="glass-panel stat-card" style="padding: 0.75rem 1rem;">
             <div class="stat-icon stat-primary"><i class="fa-solid fa-boxes-stacked"></i></div>
             <div class="stat-content"><h3>@Inventory.ActiveProducts.Count()</h3><p>Products</p></div>
         </div>
     </div>
     <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card">
+        <div class="glass-panel stat-card" style="padding: 0.75rem 1rem;">
             <div class="stat-icon stat-success"><i class="fa-solid fa-wallet"></i></div>
-            <div class="stat-content"><h3>₱@FilteredRevenue.ToString("N2")</h3><p>Revenue</p></div>
+            <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(FilteredRevenue)</h3><p>Revenue</p></div>
         </div>
     </div>
     <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card">
+        <div class="glass-panel stat-card" style="padding: 0.75rem 1rem;">
             <div class="stat-icon stat-accent"><i class="fa-solid fa-chart-pie"></i></div>
-            <div class="stat-content"><h3>₱@FilteredProfit.ToString("N2")</h3><p>Profit</p></div>
+            <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(FilteredProfit)</h3><p>Profit</p></div>
         </div>
     </div>
     <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card">
+        <div class="glass-panel stat-card" style="padding: 0.75rem 1rem;">
             <div class="stat-icon stat-warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
             <div class="stat-content"><h3>@LowStockIngredients.Count</h3><p>Low Stock</p></div>
         </div>
@@ -81,14 +81,14 @@
 @if (AppSettings.IsGuestMode)
 {
 @* ── Guest Mode: Locked widgets ── *@
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-3">
     <div class="col-12 col-md-6">
         <div class="glass-panel h-100 locked-widget">
             <div class="locked-widget-overlay">
                 <i class="fa-solid fa-lock"></i>
                 <span>Sign in to unlock</span>
             </div>
-            <h2 class="mb-4"><i class="fa-solid fa-chart-bar" style="color: var(--primary);"></i> Revenue Trend</h2>
+            <h2 class="mb-3"><i class="fa-solid fa-chart-bar" style="color: var(--primary);"></i> Revenue Trend</h2>
             <div style="height: 120px;"></div>
         </div>
     </div>
@@ -98,41 +98,19 @@
                 <i class="fa-solid fa-lock"></i>
                 <span>Sign in to unlock</span>
             </div>
-            <h2 class="mb-4"><i class="fa-solid fa-trophy" style="color: var(--warning);"></i> Top Products</h2>
-            <div style="height: 120px;"></div>
-        </div>
-    </div>
-</div>
-<div class="row g-3 mb-4">
-    <div class="col-12 col-md-6">
-        <div class="glass-panel h-100 locked-widget">
-            <div class="locked-widget-overlay">
-                <i class="fa-solid fa-lock"></i>
-                <span>Sign in to unlock</span>
-            </div>
-            <h2 class="mb-4"><i class="fa-solid fa-credit-card" style="color: var(--accent);"></i> Payment Methods</h2>
-            <div style="height: 120px;"></div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="glass-panel h-100 locked-widget">
-            <div class="locked-widget-overlay">
-                <i class="fa-solid fa-lock"></i>
-                <span>Sign in to unlock</span>
-            </div>
-            <h2 class="mb-4"><i class="fa-solid fa-arrow-trend-up" style="color: var(--success);"></i> Profit Trend</h2>
+            <h2 class="mb-3"><i class="fa-solid fa-trophy" style="color: var(--warning);"></i> Top Products</h2>
             <div style="height: 120px;"></div>
         </div>
     </div>
 </div>
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-3">
     <div class="col-12 col-md-6">
         <div class="glass-panel h-100 locked-widget">
             <div class="locked-widget-overlay">
                 <i class="fa-solid fa-lock"></i>
                 <span>Sign in to unlock</span>
             </div>
-            <h2 class="mb-4"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Recent Sales</h2>
+            <h2 class="mb-3"><i class="fa-solid fa-credit-card" style="color: var(--accent);"></i> Payment Methods</h2>
             <div style="height: 120px;"></div>
         </div>
     </div>
@@ -142,7 +120,29 @@
                 <i class="fa-solid fa-lock"></i>
                 <span>Sign in to unlock</span>
             </div>
-            <h2 class="mb-4"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Low Stock Alerts</h2>
+            <h2 class="mb-3"><i class="fa-solid fa-arrow-trend-up" style="color: var(--success);"></i> Profit Trend</h2>
+            <div style="height: 120px;"></div>
+        </div>
+    </div>
+</div>
+<div class="row g-3 mb-3">
+    <div class="col-12 col-md-6">
+        <div class="glass-panel h-100 locked-widget">
+            <div class="locked-widget-overlay">
+                <i class="fa-solid fa-lock"></i>
+                <span>Sign in to unlock</span>
+            </div>
+            <h2 class="mb-3"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Recent Sales</h2>
+            <div style="height: 120px;"></div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="glass-panel h-100 locked-widget">
+            <div class="locked-widget-overlay">
+                <i class="fa-solid fa-lock"></i>
+                <span>Sign in to unlock</span>
+            </div>
+            <h2 class="mb-3"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Low Stock Alerts</h2>
             <div style="height: 120px;"></div>
         </div>
     </div>
@@ -151,13 +151,13 @@
 else
 {
 
-<div class="row g-3 mb-4">
+<div class="row g-3 mb-3">
     @* ── Revenue Chart (CSS bar chart) ── *@
     @if (AppSettings.ShowRevenueChart)
     {
     <div class="col-12 col-md-6">
     <div class="glass-panel h-100">
-        <h2 class="mb-4"><i class="fa-solid fa-chart-bar" style="color: var(--primary);"></i> Revenue Trend</h2>
+        <h2 class="mb-3"><i class="fa-solid fa-chart-bar" style="color: var(--primary);"></i> Revenue Trend</h2>
         @if (DailyRevenue.Any())
         {
             <div class="dashboard-chart">
@@ -166,7 +166,7 @@ else
                 {
                     var pct = maxRev > 0 ? (day.Value / maxRev * 100) : 0;
                     <div class="chart-bar-group">
-                        <div class="chart-bar" style="height:@pct.ToString("0")%;" title="₱@day.Value.ToString("N2")"></div>
+                        <div class="chart-bar" style="height:@pct.ToString("0")%;" title="₱@AppSettings.FormatCurrency(day.Value)"></div>
                         <span class="chart-label">@day.Key</span>
                     </div>
                 }
@@ -185,7 +185,7 @@ else
     {
     <div class="col-12 col-md-6">
     <div class="glass-panel h-100">
-        <h2 class="mb-4"><i class="fa-solid fa-trophy" style="color: var(--warning);"></i> Top Products</h2>
+        <h2 class="mb-3"><i class="fa-solid fa-trophy" style="color: var(--warning);"></i> Top Products</h2>
         @if (TopProducts.Any())
         {
             <div class="top-products-list">
@@ -210,15 +210,13 @@ else
     </div>
     </div>
     }
-</div>
 
-<div class="row g-3 mb-4">
     @* ── Payment Breakdown ── *@
     @if (AppSettings.ShowPaymentBreakdown)
     {
     <div class="col-12 col-md-6">
     <div class="glass-panel h-100">
-        <h2 class="mb-4"><i class="fa-solid fa-credit-card" style="color: var(--accent);"></i> Payment Methods</h2>
+        <h2 class="mb-3"><i class="fa-solid fa-credit-card" style="color: var(--accent);"></i> Payment Methods</h2>
         @if (PaymentBreakdown.Any())
         {
             <div class="payment-breakdown">
@@ -234,7 +232,7 @@ else
                         <div class="payment-bar-track">
                             <div class="payment-bar" style="width:@pct.ToString("0")%"></div>
                         </div>
-                        <span class="payment-amount">₱@pm.Value.ToString("N2") (@pct.ToString("0")%)</span>
+                        <span class="payment-amount">₱@AppSettings.FormatCurrency(pm.Value) (@pct.ToString("0")%)</span>
                     </div>
                 }
             </div>
@@ -252,7 +250,7 @@ else
     {
     <div class="col-12 col-md-6">
     <div class="glass-panel h-100">
-        <h2 class="mb-4"><i class="fa-solid fa-arrow-trend-up" style="color: var(--success);"></i> Profit Trend</h2>
+        <h2 class="mb-3"><i class="fa-solid fa-arrow-trend-up" style="color: var(--success);"></i> Profit Trend</h2>
         @if (DailyProfit.Any())
         {
             <div class="dashboard-chart">
@@ -262,7 +260,7 @@ else
                     var pct = maxProf > 0 ? (Math.Abs(day.Value) / maxProf * 100) : 0;
                     var barClass = day.Value >= 0 ? "chart-bar" : "chart-bar chart-bar-negative";
                     <div class="chart-bar-group">
-                        <div class="@barClass" style="height:@pct.ToString("0")%;" title="₱@day.Value.ToString("N2")"></div>
+                        <div class="@barClass" style="height:@pct.ToString("0")%;" title="₱@AppSettings.FormatCurrency(day.Value)"></div>
                         <span class="chart-label">@day.Key</span>
                     </div>
                 }
@@ -275,15 +273,13 @@ else
     </div>
     </div>
     }
-</div>
 
-<div class="row g-3 mb-4">
     @* ── Recent Sales ── *@
     @if (AppSettings.ShowRecentSales)
     {
     <div class="col-12 col-md-6">
     <div class="glass-panel h-100">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="mb-0"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Recent Sales</h2>
             <button class="btn btn-sm btn-outline-secondary" @onclick='() => Nav.NavigateTo("reports")'>View All</button>
         </div>
@@ -298,7 +294,7 @@ else
                         <tr>
                             <td>@sale.ProductName</td>
                             <td>@sale.QuantitySold</td>
-                            <td class="text-success">₱@sale.TotalAmount.ToString("N2")</td>
+                            <td class="text-success">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
                             <td class="text-muted">@sale.Date.ToString("MMM dd h:mm tt")</td>
                         </tr>
                     }
@@ -311,7 +307,7 @@ else
                     <div class="stock-card">
                         <div class="stock-card-header">
                             <span class="stock-card-name">@sale.ProductName</span>
-                            <span class="text-success fw-bold">₱@sale.TotalAmount.ToString("N2")</span>
+                            <span class="text-success fw-bold">₱@AppSettings.FormatCurrency(sale.TotalAmount)</span>
                         </div>
                         <div class="stock-card-body">
                             <div class="stock-card-row"><span class="stock-card-label">Qty</span><span>@sale.QuantitySold</span></div>
@@ -334,7 +330,7 @@ else
     {
     <div class="col-12 col-md-6">
     <div class="glass-panel h-100">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="mb-0"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Low Stock Alerts</h2>
             <button class="btn btn-sm btn-outline-secondary" @onclick='() => Nav.NavigateTo("stocks")'>Manage</button>
         </div>

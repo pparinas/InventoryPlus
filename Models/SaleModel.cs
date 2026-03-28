@@ -41,16 +41,16 @@ namespace InventoryPlus.Models
         [Column("payment_method")]
         public string PaymentMethod { get; set; } = "Cash";
 
-        // These fields are kept in-memory only (no DB column yet).
-        // To persist them, add the columns to your Supabase 'sales' table,
-        // uncomment the [Column] attributes, and remove [JsonIgnore].
-        [JsonIgnore]
+        [Column("is_voided")]
+        public bool IsVoided { get; set; } = false;
+
+        [Column("customer_name")]
         public string CustomerName { get; set; } = string.Empty;
 
-        [JsonIgnore]
+        [Column("discount_amount")]
         public double DiscountAmount { get; set; }
 
-        [JsonIgnore]
+        [Column("discount_type")]
         public string DiscountType { get; set; } = "None"; // "None", "Percentage", "Fixed"
     }
 }
