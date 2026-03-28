@@ -3,7 +3,7 @@
   "short_name": "InventoryPlus",
   "description": "Smart inventory management and point-of-sale system for small businesses.",
   "id": "./",
-  "start_url": "./",
+  "start_url": "./login",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",

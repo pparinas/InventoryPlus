@@ -129,6 +129,43 @@
             }
         };
 
+        // Dynamic PWA icon — updates manifest + apple-touch-icon to user-uploaded logo
+        window.pwaIcon = {
+            update: function(logoUrl, appName) {
+                if (!logoUrl) return;
+                // Update apple-touch-icon links
+                document.querySelectorAll('link[rel="apple-touch-icon"]').forEach(function(link) {
+                    link.href = logoUrl;
+                });
+                // Update favicon
+                var favicon = document.querySelector('link[rel="icon"][type="image/png"]');
+                if (favicon) favicon.href = logoUrl;
+                // Create dynamic manifest with custom icon
+                var manifest = {
+                    name: (appName || 'InventoryPlus') + ' — Inventory & POS',
+                    short_name: appName || 'InventoryPlus',
+                    description: 'Smart inventory management and point-of-sale system for small businesses.',
+                    id: './',
+                    start_url: './login',
+                    scope: './',
+                    display: 'standalone',
+                    orientation: 'any',
+                    background_color: '#0f111a',
+                    theme_color: '#03173d',
+                    prefer_related_applications: false,
+                    categories: ['business', 'productivity', 'finance'],
+                    icons: [
+                        { src: logoUrl, type: 'image/png', sizes: '512x512', purpose: 'any maskable' },
+                        { src: logoUrl, type: 'image/png', sizes: '192x192', purpose: 'any maskable' }
+                    ]
+                };
+                var blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+                var url = URL.createObjectURL(blob);
+                var link = document.querySelector('link[rel="manifest"]');
+                if (link) link.href = url;
+            }
+        };
+
         // CSV export interop
         window.downloadCsv = function(filename, csvContent) {
             var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

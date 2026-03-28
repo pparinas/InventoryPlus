@@ -102,6 +102,14 @@ namespace InventoryPlus.Layout
                 }
                 catch { }
 
+                // Update PWA icon to user's logo if set
+                try
+                {
+                    if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
+                        await JSRuntime.InvokeVoidAsync("pwaIcon.update", AppSettings.CustomLogoUrl, AppSettings.CompanyName);
+                }
+                catch { }
+
                 // Show onboarding wizard on first setup (no products/ingredients yet)
                 if (Inventory.IsLoaded && !AppSettings.OnboardingCompleted
                     && !Inventory.ActiveProducts.Any() && !Inventory.ActiveIngredients.Any())
