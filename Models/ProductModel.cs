@@ -32,6 +32,12 @@ namespace InventoryPlus.Models
         [JsonIgnore]
         public string Category { get; set; } = "Other";
 
+        [Column("has_ingredients")]
+        public bool HasIngredients { get; set; } = true;
+
+        [Column("stock_count")]
+        public double StockCount { get; set; }
+
         [Column("is_archived")]
         public bool IsArchived { get; set; } = false;
 
@@ -49,6 +55,8 @@ namespace InventoryPlus.Models
 
         private int CalculateAvailableCount()
         {
+            if (!HasIngredients)
+                return (int)StockCount;
             if (RequiredIngredients == null || RequiredIngredients.Count == 0) return 0;
             var availableCounts = RequiredIngredients.Select(req =>
                 req.Ingredient != null && req.QuantityRequired > 0

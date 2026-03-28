@@ -19,6 +19,8 @@
     </AuthorizeView>
     }
     
+    @if (AppSettings.ShowInventoryTab)
+    {
     <div class="nav-section-title">
         Inventory
     </div>
@@ -27,6 +29,7 @@
         <i class="fa-solid fa-boxes-stacked fa-fw"></i>
         <span>Inventory</span>
     </NavLink>
+    }
     
     <NavLink class="nav-item" href="products">
         <i class="fa-solid fa-leaf fa-fw"></i>

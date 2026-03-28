@@ -133,7 +133,7 @@ namespace InventoryPlus.Pages
                 await Supabase.Auth.SignOut();
 
                 // Mark token as used after successful registration
-                await InviteService.MarkTokenUsedAsync(_token);
+                await InviteService.MarkTokenUsedAsync(_token, Email.Trim());
 
                 SuccessMessage = "Account created! Check your email to confirm, then sign in.";
                 _countdownTimer?.Dispose();

@@ -20,6 +20,15 @@ namespace InventoryPlus.Models
         [Column("use_logo_for_branding")]
         public bool UseLogoForBranding { get; set; } = false;
 
+        [Column("pin_hash")]
+        public string PinHash { get; set; } = string.Empty;
+
+        [Column("show_inventory_tab")]
+        public bool ShowInventoryTab { get; set; } = true;
+
+        [Column("color_scheme")]
+        public string ColorScheme { get; set; } = "indigo";
+
         // Dashboard widget visibility (in-memory only until DB columns are added)
         // To persist: add columns to Supabase, uncomment [Column], remove [JsonIgnore]
         [JsonIgnore] public bool ShowRevenueChart { get; set; } = true;
@@ -41,5 +50,8 @@ namespace InventoryPlus.Models
 
         // Onboarding (in-memory only until DB column is added)
         [JsonIgnore] public bool OnboardingCompleted { get; set; } = false;
+
+        // Currency display
+        [JsonIgnore] public bool ShowDecimals { get; set; } = true;
     }
 }

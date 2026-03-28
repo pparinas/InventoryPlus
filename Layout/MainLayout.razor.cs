@@ -87,6 +87,15 @@ namespace InventoryPlus.Layout
 
                 await LoadDataAsync();
 
+                // Apply saved color scheme
+                try
+                {
+                    var scheme = AppSettings.ColorScheme;
+                    if (!string.IsNullOrEmpty(scheme))
+                        await JSRuntime.InvokeVoidAsync("themeInterop.setScheme", scheme);
+                }
+                catch { }
+
                 // Show onboarding wizard on first setup (no products/ingredients yet)
                 if (Inventory.IsLoaded && !AppSettings.OnboardingCompleted
                     && !Inventory.ActiveProducts.Any() && !Inventory.ActiveIngredients.Any())

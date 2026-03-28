@@ -27,6 +27,10 @@ namespace InventoryPlus.Pages
         protected string categoryFilter = "All";
         protected bool showDeleteConfirm;
         protected Product? deleteTarget;
+        protected bool showPinPrompt;
+        protected double taxRatePercent;
+        private Action? _pendingPinAction;
+        protected HashSet<string> validationErrors = new();
 
         protected void SetPage(int p) { _page = p; StateHasChanged(); }
 
@@ -57,13 +61,49 @@ namespace InventoryPlus.Pages
 
         protected void OpenAddModal()
         {
-            currentProduct = new Product { Guid = Guid.NewGuid() };
-            isEditing = false;
-            showModal = true;
+            if (AppSettings.HasPin)
+            {
+                _pendingPinAction = () =>
+                {
+                    currentProduct = new Product { Guid = Guid.NewGuid() };
+                    taxRatePercent = 0;
+                    validationErrors.Clear();
+                    isEditing = false;
+                    showModal = true;
+                    StateHasChanged();
+                };
+                showPinPrompt = true;
+            }
+            else
+            {
+                currentProduct = new Product { Guid = Guid.NewGuid() };
+                taxRatePercent = 0;
+                validationErrors.Clear();
+                isEditing = false;
+                showModal = true;
+            }
         }
 
         protected void Edit(Product item)
         {
+            if (AppSettings.HasPin)
+            {
+                _pendingPinAction = () =>
+                {
+                    DoEdit(item);
+                    StateHasChanged();
+                };
+                showPinPrompt = true;
+            }
+            else
+            {
+                DoEdit(item);
+            }
+        }
+
+        private void DoEdit(Product item)
+        {
+            validationErrors.Clear();
             currentProduct = new Product 
             {
                 Guid = item.Guid,
@@ -72,6 +112,8 @@ namespace InventoryPlus.Pages
                 TaxRate = item.TaxRate,
                 ImageUrl = item.ImageUrl,
                 Category = item.Category,
+                HasIngredients = item.HasIngredients,
+                StockCount = item.StockCount,
                 RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
                 {
                     IngredientId = r.IngredientId,
@@ -79,8 +121,15 @@ namespace InventoryPlus.Pages
                     Ingredient = r.Ingredient
                 }).ToList()
             };
+            taxRatePercent = item.TaxRate * 100;
             isEditing = true;
             showModal = true;
+        }
+
+        protected void OnPinVerified()
+        {
+            _pendingPinAction?.Invoke();
+            _pendingPinAction = null;
         }
 
         protected void ConfirmDelete(Product item)
@@ -184,7 +233,23 @@ namespace InventoryPlus.Pages
 
         protected async Task Save()
         {
-            if (string.IsNullOrWhiteSpace(currentProduct.Name)) return;
+            validationErrors.Clear();
+
+            if (string.IsNullOrWhiteSpace(currentProduct.Name))
+                validationErrors.Add("Name");
+            if (currentProduct.SellingPrice <= 0)
+                validationErrors.Add("Price");
+            if (string.IsNullOrWhiteSpace(currentProduct.Category))
+                validationErrors.Add("Category");
+
+            if (validationErrors.Any())
+            {
+                Toast.Show("Please fill in all required fields.", "error");
+                return;
+            }
+
+            // Convert percentage to decimal for storage
+            currentProduct.TaxRate = taxRatePercent / 100.0;
 
             try
             {
@@ -198,13 +263,17 @@ namespace InventoryPlus.Pages
                         existing.TaxRate = currentProduct.TaxRate;
                         existing.ImageUrl = currentProduct.ImageUrl;
                         existing.Category = currentProduct.Category;
-                        existing.RequiredIngredients = currentProduct.RequiredIngredients;
+                        existing.HasIngredients = currentProduct.HasIngredients;
+                        existing.StockCount = currentProduct.StockCount;
+                        existing.RequiredIngredients = currentProduct.HasIngredients ? currentProduct.RequiredIngredients : new();
                         await Inventory.UpdateProductAsync(existing);
                         Toast.Show($"\"{existing.Name}\" updated successfully!");
                     }
                 }
                 else
                 {
+                    if (!currentProduct.HasIngredients)
+                        currentProduct.RequiredIngredients = new();
                     await Inventory.AddProductAsync(currentProduct);
                     Toast.Show($"\"{currentProduct.Name}\" added to products!");
                 }

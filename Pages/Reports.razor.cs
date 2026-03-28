@@ -12,6 +12,7 @@ namespace InventoryPlus.Pages
     {
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
+        [Inject] public ToastService Toast { get; set; } = default!;
         [Inject] public IJSRuntime JS { get; set; } = default!;
         [Inject] public NavigationManager Nav { get; set; } = default!;
 
@@ -71,16 +72,19 @@ namespace InventoryPlus.Pages
             }
         }
 
-        protected double FilteredRevenue => FilteredSales.Sum(s => s.TotalAmount);
-        protected double FilteredProfit => FilteredSales.Sum(s => s.ProfitAmount);
-        protected double FilteredTax => FilteredSales.Sum(s => s.TaxAmount);
+        // Active sales (non-voided) for computations
+        protected IEnumerable<Sale> ActiveFilteredSales => FilteredSales.Where(s => !s.IsVoided);
+
+        protected double FilteredRevenue => ActiveFilteredSales.Sum(s => s.TotalAmount);
+        protected double FilteredProfit => ActiveFilteredSales.Sum(s => s.ProfitAmount);
+        protected double FilteredTax => ActiveFilteredSales.Sum(s => s.TaxAmount);
         protected double FilteredCOGS => FilteredRevenue - FilteredTax - FilteredProfit;
 
         protected double AverageProfitMargin
         {
             get
             {
-                var subtotal = FilteredSales.Sum(s => s.TotalAmount - s.TaxAmount);
+                var subtotal = ActiveFilteredSales.Sum(s => s.TotalAmount - s.TaxAmount);
                 if (subtotal == 0) return 0;
                 return (FilteredProfit / subtotal) * 100;
             }
@@ -88,7 +92,7 @@ namespace InventoryPlus.Pages
 
         // Top products report
         protected record TopProductInfo(string Name, int TotalQty, double TotalRevenue);
-        protected List<TopProductInfo> TopProductsReport => FilteredSales
+        protected List<TopProductInfo> TopProductsReport => ActiveFilteredSales
             .GroupBy(s => s.ProductName)
             .Select(g => new TopProductInfo(g.Key, g.Sum(s => s.QuantitySold), g.Sum(s => s.TotalAmount)))
             .OrderByDescending(x => x.TotalQty)
@@ -96,13 +100,13 @@ namespace InventoryPlus.Pages
             .ToList();
 
         // Payment methods
-        protected Dictionary<string, double> PaymentMethodsReport => FilteredSales
+        protected Dictionary<string, double> PaymentMethodsReport => ActiveFilteredSales
             .GroupBy(s => string.IsNullOrEmpty(s.PaymentMethod) ? "Cash" : s.PaymentMethod)
             .ToDictionary(g => g.Key, g => g.Sum(s => s.TotalAmount));
 
         // Stock movement
         protected record StockMovementInfo(string Name, int UnitsSold, double Revenue, double AvgPrice);
-        protected List<StockMovementInfo> StockMovement => FilteredSales
+        protected List<StockMovementInfo> StockMovement => ActiveFilteredSales
             .GroupBy(s => s.ProductName)
             .Select(g =>
             {
@@ -126,5 +130,111 @@ namespace InventoryPlus.Pages
 
         private static string EscapeCsv(string val) =>
             val.Contains(',') || val.Contains('"') ? $"\"{val.Replace("\"", "\"\"")}\"" : val;
+
+        // ── Edit / Void Sales ──────────────────────────────────────────────
+
+        protected bool showPinPrompt;
+        protected bool showEditSaleModal;
+        protected bool showVoidConfirm;
+        protected Sale? editingSale;
+        protected Sale? voidingSale;
+        protected int editQty;
+        protected string editPaymentMethod = "Cash";
+        protected string editDiscountType = "None";
+        protected double editDiscountAmount;
+        private Action? _pendingPinAction;
+
+        protected void StartEditSale(Sale sale)
+        {
+            if (AppSettings.HasPin)
+            {
+                _pendingPinAction = () =>
+                {
+                    DoOpenEditSale(sale);
+                    StateHasChanged();
+                };
+                showPinPrompt = true;
+            }
+            else
+            {
+                DoOpenEditSale(sale);
+            }
+        }
+
+        private void DoOpenEditSale(Sale sale)
+        {
+            editingSale = sale;
+            editQty = sale.QuantitySold;
+            editPaymentMethod = sale.PaymentMethod;
+            editDiscountType = sale.DiscountType;
+            editDiscountAmount = sale.DiscountAmount;
+            showEditSaleModal = true;
+        }
+
+        protected async Task SaveEditSale()
+        {
+            if (editingSale == null) return;
+
+            editingSale.QuantitySold = editQty;
+            editingSale.PaymentMethod = editPaymentMethod;
+            editingSale.DiscountType = editDiscountType;
+            editingSale.DiscountAmount = editDiscountAmount;
+
+            try
+            {
+                await Inventory.UpdateSaleAsync(editingSale);
+                Toast.Show("Sale updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                Toast.Show($"Failed to update sale: {ex.Message}", "error");
+            }
+
+            showEditSaleModal = false;
+            editingSale = null;
+        }
+
+        protected void StartVoidSale(Sale sale)
+        {
+            if (AppSettings.HasPin)
+            {
+                _pendingPinAction = () =>
+                {
+                    voidingSale = sale;
+                    showVoidConfirm = true;
+                    StateHasChanged();
+                };
+                showPinPrompt = true;
+            }
+            else
+            {
+                voidingSale = sale;
+                showVoidConfirm = true;
+            }
+        }
+
+        protected async Task ConfirmVoidSale()
+        {
+            if (voidingSale == null) return;
+
+            try
+            {
+                await Inventory.VoidSaleAsync(voidingSale);
+                Toast.Show("Sale voided. Stock restored.", "info");
+            }
+            catch (Exception ex)
+            {
+                Toast.Show($"Failed to void sale: {ex.Message}", "error");
+            }
+
+            showVoidConfirm = false;
+            voidingSale = null;
+        }
+
+        protected void OnPinVerified()
+        {
+            _pendingPinAction?.Invoke();
+            _pendingPinAction = null;
+        }
     }
 }

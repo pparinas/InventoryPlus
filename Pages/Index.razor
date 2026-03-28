@@ -1,6 +1,7 @@
 @page "/"
 @layout InventoryPlus.Layout.LandingLayout
 @inject SettingsService AppSettings
+@inject IJSRuntime JSRuntime
 @attribute [AllowAnonymous]
 
 <PageTitle>@AppSettings.CompanyName - Smart Inventory & POS for Small Businesses</PageTitle>
@@ -99,7 +100,7 @@
                 <div class="glass-panel text-start h-100">
                     <div class="feature-icon" style="background: rgba(16,185,129,0.1); color: var(--success);"><i class="fa-solid fa-chart-pie"></i></div>
                     <h5 class="fw-semibold">Business Reports</h5>
-                    <p class="text-muted small mb-0">Sales summaries, profit & loss, top products, payment breakdowns — all customizable.</p>
+                    <p class="text-muted small mb-0">Sales summaries, profit & loss, top products, payment breakdowns — edit or void sales with PIN protection.</p>
                 </div>
             </div>
             <div class="col-12 col-sm-6 col-lg-4">
@@ -118,9 +119,23 @@
             </div>
             <div class="col-12 col-sm-6 col-lg-4">
                 <div class="glass-panel text-start h-100">
-                    <div class="feature-icon" style="background: rgba(236,72,153,0.1); color: var(--accent);"><i class="fa-solid fa-moon"></i></div>
-                    <h5 class="fw-semibold">Dark & Light Mode</h5>
-                    <p class="text-muted small mb-0">Work comfortably in any lighting with beautiful dark and light themes built in.</p>
+                    <div class="feature-icon" style="background: rgba(236,72,153,0.1); color: var(--accent);"><i class="fa-solid fa-palette"></i></div>
+                    <h5 class="fw-semibold">Themes & Color Schemes</h5>
+                    <p class="text-muted small mb-0">Dark & light modes plus 6 accent color schemes — each account gets their own personalized look.</p>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="glass-panel text-start h-100">
+                    <div class="feature-icon" style="background: rgba(239,68,68,0.1); color: var(--danger);"><i class="fa-solid fa-shield-halved"></i></div>
+                    <h5 class="fw-semibold">PIN Security</h5>
+                    <p class="text-muted small mb-0">Protect sensitive actions like adding products, editing stock, and voiding sales with a 4-digit PIN.</p>
+                </div>
+            </div>
+            <div class="col-12 col-sm-6 col-lg-4">
+                <div class="glass-panel text-start h-100">
+                    <div class="feature-icon" style="background: rgba(16,185,129,0.1); color: var(--success);"><i class="fa-solid fa-sliders"></i></div>
+                    <h5 class="fw-semibold">Flexible Products</h5>
+                    <p class="text-muted small mb-0">Products with ingredient recipes or simple stock counts — toggle per product to fit any business model.</p>
                 </div>
             </div>
         </div>
@@ -131,19 +146,20 @@
 <section id="pricing" class="py-5">
     <div class="container text-center" style="max-width: 800px;">
         <h2 class="mb-1">Simple, Transparent Pricing</h2>
-        <p class="text-muted mb-4">Every subscription includes a <strong style="color: var(--success);">7-day free trial</strong>. Try guest mode first, subscribe when you're ready.</p>
+        <p class="text-muted mb-4">Try the full app instantly with <strong style="color: var(--success);">Guest Mode</strong> — no sign-up needed. Subscribe when you're ready.</p>
         <div class="row g-4">
             <div class="col-12 col-sm-6">
                 <div class="glass-panel h-100 text-start">
                     <h6 class="text-uppercase small fw-bold" style="letter-spacing: 0.1em; color: var(--text-secondary);">Monthly</h6>
-                    <div class="fs-1 fw-bold mb-2" style="color: var(--text-primary); -webkit-text-fill-color: unset; background: none;">₱488<small class="fs-6 fw-normal text-muted">/mo</small></div>
+                    <div class="fs-1 fw-bold mb-2" style="color: var(--text-primary); -webkit-text-fill-color: unset; background: none;">₱199<small class="fs-6 fw-normal text-muted">/mo</small></div>
                     <ul class="list-unstyled mb-3">
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Full Inventory Management</li>
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Unlimited Products & Sales</li>
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Point of Sale System</li>
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Basic Reports & Analytics</li>
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Receipt Generation</li>
-                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Dark/Light Mode</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Dark/Light Mode & Color Schemes</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>PIN Security</li>
                     </ul>
                     <a href="contact" class="btn btn-outline-secondary w-100">Subscribe Monthly</a>
                 </div>
@@ -152,12 +168,13 @@
                 <div class="glass-panel h-100 text-start position-relative" style="border-color: var(--primary);">
                     <div class="popular-badge">Best Value</div>
                     <h6 class="text-uppercase small fw-bold mt-2" style="letter-spacing: 0.1em; color: var(--text-secondary);">Annual</h6>
-                    <div class="fs-1 fw-bold mb-1" style="color: var(--text-primary); -webkit-text-fill-color: unset; background: none;">₱4,880<small class="fs-6 fw-normal text-muted">/yr</small></div>
-                    <div class="small fw-semibold mb-2" style="color: var(--success);">Save ₱976 (2 months free!)</div>
+                    <div class="fs-1 fw-bold mb-1" style="color: var(--text-primary); -webkit-text-fill-color: unset; background: none;">₱1,990<small class="fs-6 fw-normal text-muted">/yr</small></div>
+                    <div class="small fw-semibold mb-2" style="color: var(--success);">Save ₱398 (2 months free!)</div>
                     <ul class="list-unstyled mb-3">
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Everything in Monthly</li>
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Advanced Reports & CSV Export</li>
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Dashboard Customization</li>
+                        <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Sale Edit & Void with PIN</li>
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Priority Support</li>
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Multi-device Sync</li>
                         <li class="mb-2 small"><i class="fa-solid fa-check me-2" style="color: var(--success);"></i>Onboarding Wizard</li>
@@ -201,18 +218,66 @@
     <div class="container" style="max-width: 600px;">
         <div class="glass-panel text-center p-4 p-md-5" style="background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(236,72,153,0.08)); border: 1px solid rgba(99,102,241,0.2);">
             <h2>Ready to streamline your business?</h2>
-            <p class="text-muted">Explore the full app instantly in Guest Mode — no sign-up required. When you're ready, subscribe and get a 7-day free trial.</p>
+            <p class="text-muted">Explore the full app instantly in Guest Mode — no sign-up required. Your data stays on your device until you subscribe.</p>
             <a href="login" class="btn btn-primary btn-lg mt-3"><i class="fa-solid fa-user-secret me-1"></i> Try Guest Mode</a>
+
+            @if (showInstallSection && !isStandalone)
+            {
+                <hr class="my-4" style="border-color: rgba(99,102,241,0.2);">
+                @if (canInstallNative)
+                {
+                    <button class="btn btn-outline-primary mt-2" @onclick="InstallApp"><i class="fa-solid fa-download me-1"></i> Install App</button>
+                }
+                else if (isIos)
+                {
+                    <div class="mt-2">
+                        <p class="text-muted small mb-2"><i class="fa-solid fa-mobile-screen-button me-1"></i> Install on your iPhone or iPad:</p>
+                        <p class="small mb-0">Tap <i class="fa-solid fa-arrow-up-from-bracket" style="color: var(--primary);"></i> <strong>Share</strong>, then <strong>Add to Home Screen</strong></p>
+                    </div>
+                }
+            }
         </div>
     </div>
 </section>
 
 @code {
+    private bool showInstallSection = false;
+    private bool canInstallNative = false;
+    private bool isIos = false;
+    private bool isStandalone = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                isStandalone = await JSRuntime.InvokeAsync<bool>("pwaInstall.isStandalone");
+                if (!isStandalone)
+                {
+                    canInstallNative = await JSRuntime.InvokeAsync<bool>("pwaInstall.canInstall");
+                    isIos = await JSRuntime.InvokeAsync<bool>("pwaInstall.isIos");
+                    showInstallSection = canInstallNative || isIos;
+                    StateHasChanged();
+                }
+            }
+            catch { }
+        }
+    }
+
+    private async Task InstallApp()
+    {
+        await JSRuntime.InvokeAsync<bool>("pwaInstall.prompt");
+        canInstallNative = false;
+        showInstallSection = isIos;
+        StateHasChanged();
+    }
+
     private class FaqItem { public string Question { get; set; } = ""; public string Answer { get; set; } = ""; public bool Open { get; set; } }
     
     private List<FaqItem> faqs = new()
     {
-        new() { Question = "How can I try the app?", Answer = "You can explore the full app instantly using Guest Mode — no sign-up required. Your data is stored locally on your device. When you subscribe, you also get a 7-day free trial on top of your plan." },
+        new() { Question = "How can I try the app?", Answer = "You can explore the full app instantly using Guest Mode — no sign-up required. Your data is stored locally on your device until you subscribe." },
         new() { Question = "Can I use this on my phone?", Answer = "Absolutely. InventoryPlus is a mobile-first web app that works beautifully on phones, tablets, and desktops." },
         new() { Question = "How does stock deduction work?", Answer = "When you make a sale through the POS, ingredient stocks are automatically reduced based on your product recipes. No manual tracking needed." },
         new() { Question = "Can I customize my dashboard?", Answer = "Yes! You can toggle dashboard widgets on/off in Settings to show only the reports that matter to your business." },

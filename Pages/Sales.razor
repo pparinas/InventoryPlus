@@ -53,7 +53,7 @@
                         }
                         <div class="pos-product-info">
                             <div class="pos-product-name">@prod.Name</div>
-                            <div class="pos-product-price">₱@prod.SellingPrice.ToString("0.00")</div>
+                            <div class="pos-product-price">₱@AppSettings.FormatPrice(prod.SellingPrice)</div>
                             <div class="pos-product-stock text-muted">
                                 @if (!isAvailable)
                                 {
@@ -100,7 +100,7 @@
                     <div class="pos-cart-item">
                         <div class="pos-cart-item-info">
                             <strong>@item.Product.Name</strong>
-                            <span class="text-muted" style="font-size: 0.8rem;">₱@item.Product.SellingPrice.ToString("0.00") ea</span>
+                            <span class="text-muted" style="font-size: 0.8rem;">₱@AppSettings.FormatPrice(item.Product.SellingPrice) ea</span>
                         </div>
                         <div class="pos-cart-item-controls">
                             <button class="pos-qty-btn" @onclick="() => DecreaseQty(item)"><i class="fa-solid fa-minus"></i></button>
@@ -108,7 +108,7 @@
                                    @onchange="(e) => SetQty(item, e)" class="pos-qty-input" />
                             <button class="pos-qty-btn" @onclick="() => IncreaseQty(item)"><i class="fa-solid fa-plus"></i></button>
                         </div>
-                        <div class="pos-cart-item-total">₱@((item.Product.SellingPrice * item.Quantity).ToString("0.00"))</div>
+                        <div class="pos-cart-item-total">₱@AppSettings.FormatPrice(item.Product.SellingPrice * item.Quantity)</div>
                         <button class="pos-cart-remove" @onclick="() => RemoveFromCart(item)"><i class="fa-solid fa-xmark"></i></button>
                     </div>
                 }
@@ -150,13 +150,13 @@
 
         <!-- Totals -->
         <div class="pos-totals">
-            <div class="pos-total-row"><span>Subtotal</span><span>₱@Subtotal.ToString("0.00")</span></div>
-            <div class="pos-total-row"><span>Tax</span><span>₱@TaxTotal.ToString("0.00")</span></div>
+            <div class="pos-total-row"><span>Subtotal</span><span>₱@AppSettings.FormatPrice(Subtotal)</span></div>
+            <div class="pos-total-row"><span>Tax</span><span>₱@AppSettings.FormatPrice(TaxTotal)</span></div>
             @if (DiscountDisplay > 0)
             {
                 <div class="pos-total-row text-danger"><span>Discount</span><span>-₱@DiscountDisplay.ToString("0.00")</span></div>
             }
-            <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@Total.ToString("0.00")</strong></div>
+            <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@AppSettings.FormatPrice(Total)</strong></div>
         </div>
 
         <div class="d-flex gap-2">
@@ -204,7 +204,7 @@
                 <div class="pos-cart-item">
                     <div class="pos-cart-item-info">
                         <strong>@item.Product.Name</strong>
-                        <span class="text-muted" style="font-size: 0.8rem;">₱@item.Product.SellingPrice.ToString("0.00")</span>
+                        <span class="text-muted" style="font-size: 0.8rem;">₱@AppSettings.FormatPrice(item.Product.SellingPrice)</span>
                     </div>
                     <div class="pos-cart-item-controls">
                         <button class="pos-qty-btn" @onclick="() => DecreaseQty(item)"><i class="fa-solid fa-minus"></i></button>
@@ -240,18 +240,18 @@
         </div>
 
         <div class="pos-totals">
-            <div class="pos-total-row"><span>Subtotal</span><span>₱@Subtotal.ToString("0.00")</span></div>
-            <div class="pos-total-row"><span>Tax</span><span>₱@TaxTotal.ToString("0.00")</span></div>
+            <div class="pos-total-row"><span>Subtotal</span><span>₱@AppSettings.FormatPrice(Subtotal)</span></div>
+            <div class="pos-total-row"><span>Tax</span><span>₱@AppSettings.FormatPrice(TaxTotal)</span></div>
             @if (DiscountDisplay > 0)
             {
                 <div class="pos-total-row text-danger"><span>Discount</span><span>-₱@DiscountDisplay.ToString("0.00")</span></div>
             }
-            <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@Total.ToString("0.00")</strong></div>
+            <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@AppSettings.FormatPrice(Total)</strong></div>
         </div>
 
         <button class="btn btn-primary w-100" style="padding: 0.75rem;" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
             @if (isProcessing) { <i class="fa-solid fa-spinner fa-spin"></i> }
-            <i class="fa-solid fa-check"></i> Complete Sale (₱@Total.ToString("0.00"))
+            <i class="fa-solid fa-check"></i> Complete Sale (₱@AppSettings.FormatPrice(Total))
         </button>
     </Content>
 </AppOffCanvas>

@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @inject SettingsService AppSettings
+@inject IJSRuntime JSRuntime
 
 <div class="d-flex flex-column min-vh-100">
     <nav class="navbar navbar-expand-md fixed-top" style="background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: var(--glass-border); box-shadow: var(--shadow); padding-top: env(safe-area-inset-top, 0px);">
@@ -23,6 +24,18 @@
                     <li class="nav-item"><a class="nav-link" href="#features" style="color: var(--text-secondary);" @onclick="() => showMobileMenu = false">Features</a></li>
                     <li class="nav-item"><a class="nav-link" href="#pricing" style="color: var(--text-secondary);" @onclick="() => showMobileMenu = false">Pricing</a></li>
                     <li class="nav-item"><a class="nav-link" href="contact" style="color: var(--text-secondary);" @onclick="() => showMobileMenu = false">Contact</a></li>
+                    <li class="nav-item">
+                        <button class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" @onclick="ToggleTheme" @onclick:stopPropagation style="width: 36px; height: 36px; padding: 0;" title="Toggle Dark/Light Mode">
+                            @if (isLightMode)
+                            {
+                                <i class="fa-solid fa-moon"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-sun"></i>
+                            }
+                        </button>
+                    </li>
                     <li class="nav-item ms-md-2"><a class="btn btn-primary btn-sm" href="login" @onclick="() => showMobileMenu = false"><i class="fa-solid fa-right-to-bracket me-1"></i> Sign In</a></li>
                 </ul>
             </div>
@@ -47,7 +60,7 @@
                     <div class="d-flex flex-column gap-1">
                         <a href="#features" class="text-decoration-none small" style="color: var(--text-secondary);">Features</a>
                         <a href="#pricing" class="text-decoration-none small" style="color: var(--text-secondary);">Pricing</a>
-                        <a href="register" class="text-decoration-none small" style="color: var(--text-secondary);">Free Trial</a>
+                        <a href="login" class="text-decoration-none small" style="color: var(--text-secondary);">Guest Mode</a>
                     </div>
                 </div>
                 <div class="col-6 col-md-2">
@@ -74,4 +87,35 @@
 
 @code {
     private bool showMobileMenu = false;
+    private bool isLightMode = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                // Check if user has a saved preference, otherwise default to light
+                var savedTheme = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "theme");
+                if (string.IsNullOrEmpty(savedTheme))
+                {
+                    // No saved preference — default landing page to light mode
+                    isLightMode = true;
+                    await JSRuntime.InvokeVoidAsync("themeInterop.toggle", true);
+                }
+                else
+                {
+                    isLightMode = await JSRuntime.InvokeAsync<bool>("themeInterop.isLight");
+                }
+                StateHasChanged();
+            }
+            catch { }
+        }
+    }
+
+    private async Task ToggleTheme()
+    {
+        isLightMode = !isLightMode;
+        await JSRuntime.InvokeVoidAsync("themeInterop.toggle", isLightMode);
+    }
 }

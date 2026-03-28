@@ -10,6 +10,7 @@
             <div class="d-flex align-items-center gap-2 fw-bold" style="color: var(--brand-color); flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">
                 @if(AppSettings.UseLogoForBranding)
                 {
+                    @* Logo only mode *@
                     @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
                     {
                         <img src="@AppSettings.CustomLogoUrl" style="height: 32px; width: auto; max-width: 120px; object-fit: contain;" alt="@AppSettings.CompanyName" />
@@ -21,7 +22,16 @@
                 }
                 else
                 {
-                    <i class="fa-solid fa-cube" style="color: var(--accent);"></i> <span style="font-size: 1.2rem;">@AppSettings.CompanyName</span>
+                    @* Show Name mode: logo (if uploaded) + company name *@
+                    @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
+                    {
+                        <img src="@AppSettings.CustomLogoUrl" style="height: 28px; width: auto; max-width: 80px; object-fit: contain;" alt="@AppSettings.CompanyName" />
+                    }
+                    else
+                    {
+                        <i class="fa-solid fa-cube" style="color: var(--accent);"></i>
+                    }
+                    <span style="font-size: 1.2rem;">@AppSettings.CompanyName</span>
                 }
             </div>
         </div>

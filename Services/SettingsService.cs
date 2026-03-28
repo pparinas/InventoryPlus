@@ -1,4 +1,6 @@
 using System;
+using System.Security.Cryptography;
+using System.Text;
 using InventoryPlus.Models;
 
 namespace InventoryPlus.Services
@@ -85,6 +87,69 @@ namespace InventoryPlus.Services
         // Guest mode
         public bool IsGuestMode { get; set; } = false;
 
+        // PIN
+        private string _pinHash = string.Empty;
+        public string PinHash
+        {
+            get => _pinHash;
+            set { _pinHash = value; }
+        }
+
+        public bool HasPin => !string.IsNullOrEmpty(_pinHash);
+
+        public bool VerifyPin(string pin)
+        {
+            if (string.IsNullOrEmpty(_pinHash) || string.IsNullOrEmpty(pin)) return false;
+            return _pinHash == HashPin(pin);
+        }
+
+        public void SetPin(string pin)
+        {
+            _pinHash = HashPin(pin);
+            NotifyStateChanged();
+        }
+
+        private static string HashPin(string pin)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(pin));
+            return Convert.ToHexStringLower(bytes);
+        }
+
+        // Inventory tab
+        private bool _showInventoryTab = true;
+        public bool ShowInventoryTab
+        {
+            get => _showInventoryTab;
+            set
+            {
+                if (_showInventoryTab != value)
+                {
+                    _showInventoryTab = value;
+                    NotifyStateChanged();
+                }
+            }
+        }
+
+        // Color Scheme
+        private string _colorScheme = "indigo";
+        public string ColorScheme
+        {
+            get => _colorScheme;
+            set
+            {
+                if (_colorScheme != value)
+                {
+                    _colorScheme = value;
+                    NotifyStateChanged();
+                }
+            }
+        }
+
+        // Currency display
+        public bool ShowDecimals { get; set; } = true;
+        public string FormatCurrency(double value) => ShowDecimals ? value.ToString("N2") : value.ToString("N0");
+        public string FormatPrice(double value) => ShowDecimals ? value.ToString("0.00") : value.ToString("0");
+
         private static string? ExtractStoragePath(string? urlOrPath, string bucket)
         {
             if (string.IsNullOrEmpty(urlOrPath)) return null;
@@ -115,6 +180,9 @@ namespace InventoryPlus.Services
                 {
                     _companyName = result.CompanyName;
                     _useLogoForBranding = result.UseLogoForBranding;
+                    _pinHash = result.PinHash ?? string.Empty;
+                    _showInventoryTab = result.ShowInventoryTab;
+                    _colorScheme = result.ColorScheme ?? "indigo";
 
                     // Dashboard settings
                     ShowRevenueChart = result.ShowRevenueChart;
@@ -176,6 +244,9 @@ namespace InventoryPlus.Services
                     CompanyName = _companyName,
                     LogoUrl = _customLogoPath ?? string.Empty,
                     UseLogoForBranding = _useLogoForBranding,
+                    PinHash = _pinHash,
+                    ShowInventoryTab = _showInventoryTab,
+                    ColorScheme = _colorScheme,
                     ShowRevenueChart = ShowRevenueChart,
                     ShowTopProducts = ShowTopProducts,
                     ShowPaymentBreakdown = ShowPaymentBreakdown,

@@ -40,6 +40,7 @@ namespace InventoryPlus.Pages
                 try
                 {
                     await UserManagement.LoadAsync();
+                    await LoadInviteHistory();
                 }
                 catch (Exception ex)
                 {
@@ -182,6 +183,27 @@ namespace InventoryPlus.Pages
                 StateHasChanged();
             }
             catch { }
+        }
+
+        // ── Invite History ─────────────────────────────────────────────────
+
+        protected List<InviteToken> inviteHistory = new();
+        protected bool isLoadingHistory;
+
+        protected async Task LoadInviteHistory()
+        {
+            isLoadingHistory = true;
+            StateHasChanged();
+            try
+            {
+                inviteHistory = await InviteService.GetAllTokensAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LoadInviteHistory error: {ex.Message}");
+            }
+            isLoadingHistory = false;
+            StateHasChanged();
         }
     }
 }

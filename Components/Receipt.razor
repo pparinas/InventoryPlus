@@ -1,4 +1,5 @@
 @inject Microsoft.JSInterop.IJSRuntime JS
+@inject SettingsService AppSettings
 
 <AppModal IsOpen="IsVisible" IsOpenChanged="@(async (v) => { if (!v) await Close(); })" Size="Large">
     <Header>
@@ -34,7 +35,7 @@
                         <tr>
                             <td>@item.Name</td>
                             <td class="receipt-item-qty">@item.Quantity</td>
-                            <td class="receipt-item-price">₱@((item.UnitPrice * item.Quantity).ToString("0.00"))</td>
+                            <td class="receipt-item-price">₱@AppSettings.FormatPrice(item.UnitPrice * item.Quantity)</td>
                         </tr>
                     }
                 </tbody>
@@ -45,11 +46,11 @@
             <div class="receipt-totals">
                 <div class="receipt-row">
                     <span>Subtotal</span>
-                    <span>₱@Subtotal.ToString("0.00")</span>
+                    <span>₱@AppSettings.FormatPrice(Subtotal)</span>
                 </div>
                 <div class="receipt-row">
                     <span>Tax</span>
-                    <span>₱@TaxTotal.ToString("0.00")</span>
+                    <span>₱@AppSettings.FormatPrice(TaxTotal)</span>
                 </div>
                 @if (DiscountAmount > 0)
                 {
@@ -61,7 +62,7 @@
                 <div class="receipt-divider"></div>
                 <div class="receipt-row receipt-total">
                     <strong>Total</strong>
-                    <strong>₱@Total.ToString("0.00")</strong>
+                    <strong>₱@AppSettings.FormatPrice(Total)</strong>
                 </div>
             </div>
 

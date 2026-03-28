@@ -24,13 +24,13 @@
     <div class="col-6 col-lg-3">
         <div class="glass-panel stat-card">
         <div class="stat-icon stat-success"><i class="fa-solid fa-chart-line"></i></div>
-        <div class="stat-content"><h3>₱@FilteredRevenue.ToString("N2")</h3><p>Revenue</p></div>
+        <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(FilteredRevenue)</h3><p>Revenue</p></div>
     </div>
     </div>
     <div class="col-6 col-lg-3">
     <div class="glass-panel stat-card">
         <div class="stat-icon stat-accent"><i class="fa-solid fa-money-bill-trend-up"></i></div>
-        <div class="stat-content"><h3>₱@FilteredProfit.ToString("N2")</h3><p>Profit</p></div>
+        <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(FilteredProfit)</h3><p>Profit</p></div>
     </div>
     </div>
     <div class="col-6 col-lg-3">
@@ -42,7 +42,7 @@
     <div class="col-6 col-lg-3">
     <div class="glass-panel stat-card">
         <div class="stat-icon stat-warning"><i class="fa-solid fa-boxes-packing"></i></div>
-        <div class="stat-content"><h3>₱@InventoryValue.ToString("N2")</h3><p>Inventory Value</p></div>
+        <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(InventoryValue)</h3><p>Inventory Value</p></div>
     </div>
     </div>
 </div>
@@ -62,19 +62,30 @@
             <div class="table-responsive table-view mt-3">
             <table class="table table-hover mb-0">
                 <thead>
-                    <tr><th>ID</th><th>Date</th><th>Product</th><th>Qty</th><th>Method</th><th>Amount</th><th>Profit</th></tr>
+                    <tr><th>ID</th><th>Date</th><th>Product</th><th>Qty</th><th>Method</th><th>Amount</th><th>Profit</th><th class="text-end">Actions</th></tr>
                 </thead>
                 <tbody>
                     @foreach (var sale in FilteredSales.OrderByDescending(s => s.Date).Skip((salesPage - 1) * PageSize).Take(PageSize))
                     {
-                        <tr>
+                        <tr style="@(sale.IsVoided ? "opacity: 0.5; text-decoration: line-through;" : "")">
                             <td class="text-muted" style="font-family:monospace;font-size:0.85rem">@sale.Guid.ToString()[..8]</td>
                             <td>@sale.Date.ToString("MMM dd, h:mm tt")</td>
                             <td><strong>@sale.ProductName</strong></td>
                             <td>@sale.QuantitySold</td>
                             <td><span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span></td>
-                            <td style="color: var(--primary)">₱@sale.TotalAmount.ToString("N2")</td>
-                            <td class="text-success">₱@sale.ProfitAmount.ToString("N2")</td>
+                            <td style="color: var(--primary)">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
+                            <td class="text-success">₱@AppSettings.FormatCurrency(sale.ProfitAmount)</td>
+                            <td class="text-end">
+                                @if (!sale.IsVoided)
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEditSale(sale)" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => StartVoidSale(sale)" title="Void"><i class="fa-solid fa-ban"></i></button>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle">Voided</span>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>
@@ -83,20 +94,34 @@
             <div class="card-view mt-3">
                 @foreach (var sale in FilteredSales.OrderByDescending(s => s.Date).Skip((salesPage - 1) * PageSize).Take(PageSize))
                 {
-                    <div class="stock-card">
+                    <div class="stock-card" style="@(sale.IsVoided ? "opacity: 0.5;" : "")">
                         <div class="stock-card-header">
                             <div>
                                 <span class="stock-card-name">@sale.ProductName</span>
                                 <div class="text-muted" style="font-size:0.72rem;font-family:monospace">@sale.Guid.ToString()[..8]</div>
                             </div>
-                            <span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span>
+                            @if (sale.IsVoided)
+                            {
+                                <span class="badge bg-danger-subtle">Voided</span>
+                            }
+                            else
+                            {
+                                <span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span>
+                            }
                         </div>
                         <div class="stock-card-body">
                             <div class="stock-card-row"><span class="stock-card-label">Date</span><span>@sale.Date.ToString("MMM dd, h:mm tt")</span></div>
                             <div class="stock-card-row"><span class="stock-card-label">Qty</span><span>@sale.QuantitySold</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="fw-bold" style="color: var(--primary)">₱@sale.TotalAmount.ToString("N2")</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Profit</span><span class="text-success">₱@sale.ProfitAmount.ToString("N2")</span></div>
+                            <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(sale.TotalAmount)</span></div>
+                            <div class="stock-card-row"><span class="stock-card-label">Profit</span><span class="text-success">₱@AppSettings.FormatCurrency(sale.ProfitAmount)</span></div>
                         </div>
+                        @if (!sale.IsVoided)
+                        {
+                            <div class="stock-card-actions">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEditSale(sale)"><i class="fa-solid fa-pen"></i> Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => StartVoidSale(sale)"><i class="fa-solid fa-ban"></i> Void</button>
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -132,7 +157,7 @@
                         <div class="top-product-bar-track">
                             <div class="top-product-bar" style="width:@barPct.ToString("0")%"></div>
                         </div>
-                        <span class="top-product-count">@tp.TotalQty sold &middot; ₱@tp.TotalRevenue.ToString("N2")</span>
+                        <span class="top-product-count">@tp.TotalQty sold &middot; ₱@AppSettings.FormatCurrency(tp.TotalRevenue)</span>
                     </div>
                 }
             </div>
@@ -165,7 +190,7 @@
                     <div class="payment-row">
                         <div class="payment-label"><span>@pm.Key</span></div>
                         <div class="payment-bar-track"><div class="payment-bar" style="width:@pct.ToString("0")%"></div></div>
-                        <span class="payment-amount">₱@pm.Value.ToString("N2") (@pct.ToString("0")%)</span>
+                        <span class="payment-amount">₱@AppSettings.FormatCurrency(pm.Value) (@pct.ToString("0")%)</span>
                     </div>
                 }
             </div>
@@ -191,19 +216,19 @@
         <div class="pnl-grid mt-3">
             <div class="pnl-item">
                 <span class="pnl-label">Gross Revenue</span>
-                <span class="pnl-value">₱@FilteredRevenue.ToString("N2")</span>
+                <span class="pnl-value">₱@AppSettings.FormatCurrency(FilteredRevenue)</span>
             </div>
             <div class="pnl-item">
                 <span class="pnl-label">Tax Collected</span>
-                <span class="pnl-value">₱@FilteredTax.ToString("N2")</span>
+                <span class="pnl-value">₱@AppSettings.FormatCurrency(FilteredTax)</span>
             </div>
             <div class="pnl-item">
                 <span class="pnl-label">Cost of Goods Sold</span>
-                <span class="pnl-value text-warning">₱@FilteredCOGS.ToString("N2")</span>
+                <span class="pnl-value text-warning">₱@AppSettings.FormatCurrency(FilteredCOGS)</span>
             </div>
             <div class="pnl-item pnl-total">
                 <span class="pnl-label">Net Profit</span>
-                <span class="pnl-value @(FilteredProfit >= 0 ? "text-success" : "text-danger")">₱@FilteredProfit.ToString("N2")</span>
+                <span class="pnl-value @(FilteredProfit >= 0 ? "text-success" : "text-danger")">₱@AppSettings.FormatCurrency(FilteredProfit)</span>
             </div>
             <div class="pnl-item">
                 <span class="pnl-label">Avg Profit Margin</span>
@@ -247,13 +272,13 @@
                                 @if (item.Stock < 5) { <span class="text-warning fw-bold">@item.Stock @item.Unit</span> }
                                 else { <span>@item.Stock @item.Unit</span> }
                             </td>
-                            <td>₱@item.CostPerUnit.ToString("N2")</td>
-                            <td class="fw-bold" style="color: var(--primary)">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</td>
+                            <td>₱@AppSettings.FormatCurrency(item.CostPerUnit)</td>
+                            <td class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</td>
                         </tr>
                     }
                     <tr style="border-top:2px solid var(--border);font-weight:600">
                         <td colspan="4" class="text-end">Total (@FilteredStockItems.Count() items)</td>
-                        <td class="text-success">₱@FilteredStockItems.Sum(i => i.Stock * i.CostPerUnit).ToString("N2")</td>
+                        <td class="text-success">₱@AppSettings.FormatCurrency(FilteredStockItems.Sum(i => i.Stock * i.CostPerUnit))</td>
                     </tr>
                 </tbody>
             </table>
@@ -268,7 +293,7 @@
                         </div>
                         <div class="stock-card-body">
                             <div class="stock-card-row"><span class="stock-card-label">Stock</span><span>@item.Stock @item.Unit</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Value</span><span class="fw-bold" style="color: var(--primary)">₱@((item.Stock * item.CostPerUnit).ToString("N2"))</span></div>
+                            <div class="stock-card-row"><span class="stock-card-label">Value</span><span class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</span></div>
                         </div>
                     </div>
                 }
@@ -304,8 +329,8 @@
                         <tr>
                             <td><strong>@sm.Name</strong></td>
                             <td>@sm.UnitsSold</td>
-                            <td style="color: var(--primary)">₱@sm.Revenue.ToString("N2")</td>
-                            <td>₱@sm.AvgPrice.ToString("N2")</td>
+                            <td style="color: var(--primary)">₱@AppSettings.FormatCurrency(sm.Revenue)</td>
+                            <td>₱@AppSettings.FormatCurrency(sm.AvgPrice)</td>
                         </tr>
                     }
                 </tbody>
@@ -317,11 +342,11 @@
                     <div class="stock-card">
                         <div class="stock-card-header">
                             <span class="stock-card-name">@sm.Name</span>
-                            <span style="color: var(--primary)" class="fw-bold">₱@sm.Revenue.ToString("N2")</span>
+                            <span style="color: var(--primary)" class="fw-bold">₱@AppSettings.FormatCurrency(sm.Revenue)</span>
                         </div>
                         <div class="stock-card-body">
                             <div class="stock-card-row"><span class="stock-card-label">Units Sold</span><span>@sm.UnitsSold</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Avg Price</span><span>₱@sm.AvgPrice.ToString("N2")</span></div>
+                            <div class="stock-card-row"><span class="stock-card-label">Avg Price</span><span>₱@AppSettings.FormatCurrency(sm.AvgPrice)</span></div>
                         </div>
                     </div>
                 }
@@ -334,3 +359,67 @@
     }
 </div>
 }
+
+@* ── Edit Sale Modal ── *@
+<AppModal IsOpen="showEditSaleModal" IsOpenChanged="@((v) => { showEditSaleModal = v; })" Size="Large">
+    <Header>
+        <h5 class="modal-title">Edit Sale</h5>
+    </Header>
+    <Content>
+        @if (editingSale != null)
+        {
+            <div class="mb-3">
+                <label class="form-label">Product</label>
+                <input type="text" class="form-control" value="@editingSale.ProductName" readonly />
+            </div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" class="form-control" @bind="editQty" min="1" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Payment Method</label>
+                    <select class="form-select" @bind="editPaymentMethod">
+                        <option value="Cash">Cash</option>
+                        <option value="GCash">GCash</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row g-3 mt-1">
+                <div class="col-6">
+                    <label class="form-label">Discount Type</label>
+                    <select class="form-select" @bind="editDiscountType">
+                        <option value="None">None</option>
+                        <option value="Percentage">% Off</option>
+                        <option value="Fixed">₱ Fixed</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    @if (editDiscountType != "None")
+                    {
+                        <label class="form-label">Discount Amount</label>
+                        <input type="number" class="form-control" step="0.01" @bind="editDiscountAmount" />
+                    }
+                </div>
+            </div>
+        }
+    </Content>
+    <Footer>
+        <button class="btn btn-outline-secondary" @onclick="() => showEditSaleModal = false">Cancel</button>
+        <button class="btn btn-primary" @onclick="SaveEditSale">Save Changes</button>
+    </Footer>
+</AppModal>
+
+<InventoryPlus.Components.ConfirmDialog
+    IsVisible="showVoidConfirm"
+    Title="Void Sale"
+    Message="@($"Are you sure you want to void this sale? Stock will be restored.")"
+    Icon="fa-solid fa-ban"
+    ConfirmButtonClass="btn-danger"
+    OnConfirm="ConfirmVoidSale"
+    OnCancel="() => showVoidConfirm = false" />
+
+<InventoryPlus.Components.PinPrompt
+    IsVisible="showPinPrompt"
+    IsVisibleChanged="@((v) => showPinPrompt = v)"
+    OnVerified="OnPinVerified" />
