@@ -48,7 +48,13 @@
                 }
             </button>
 
-            <NotificationPanel />
+            <button class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center position-relative" @onclick="ToggleNotifications" @onclick:stopPropagation style="width: 36px; height: 36px; padding: 0;" title="Notifications">
+                <i class="fa-solid fa-bell"></i>
+                @if ((notificationPanel?.UnreadCount ?? 0) > 0)
+                {
+                    <span class="notification-badge">@(notificationPanel!.UnreadCount > 9 ? "9+" : notificationPanel.UnreadCount.ToString())</span>
+                }
+            </button>
 
             <div class="dropdown" @onclick:stopPropagation>
                 <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" @onclick="ToggleDropdown" style="border-radius: 50px; padding: 0.5rem 1rem;">
@@ -146,10 +152,13 @@
             <i class="fa-solid fa-cart-shopping"></i>
             <span>Sales</span>
         </a>
+        @if (AppSettings.ShowInventoryTab)
+        {
         <a href="stocks" class="bottom-bar-item @(IsActive("stocks") ? "active" : "")">
             <i class="fa-solid fa-boxes-stacked"></i>
             <span>Stocks</span>
         </a>
+        }
         <a href="products" class="bottom-bar-item @(IsActive("products") ? "active" : "")">
             <i class="fa-solid fa-leaf"></i>
             <span>Products</span>
@@ -171,6 +180,7 @@
     </nav>
 
     <ToastContainer />
+    <NotificationPanel @ref="notificationPanel" />
 </div>
 
 @if (showOnboarding)

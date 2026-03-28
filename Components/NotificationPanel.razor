@@ -1,14 +1,6 @@
 @inject InventoryPlus.Services.InventoryService Inventory
 @implements IDisposable
 
-<div class="notification-bell" @onclick="TogglePanel" @onclick:stopPropagation>
-    <i class="fa-solid fa-bell"></i>
-    @if (UnreadCount > 0)
-    {
-        <span class="notification-badge">@(UnreadCount > 9 ? "9+" : UnreadCount.ToString())</span>
-    }
-</div>
-
 <AppOffCanvas IsOpen="showPanel" IsOpenChanged="@((v) => showPanel = v)" Placement="Right">
     <Header>
         <h5 class="offcanvas-title" style="margin: 0;">Notifications</h5>
@@ -51,7 +43,13 @@
 @code {
     private bool showPanel = false;
     private List<InventoryPlus.Models.AppNotification> notifications = new();
-    private int UnreadCount => notifications.Count(n => !n.IsRead);
+    public int UnreadCount => notifications.Count(n => !n.IsRead);
+
+    public void Toggle()
+    {
+        showPanel = !showPanel;
+        StateHasChanged();
+    }
 
     protected override void OnInitialized()
     {

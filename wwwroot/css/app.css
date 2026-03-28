@@ -313,7 +313,8 @@ h1 { background: linear-gradient(to right, var(--grad-start), var(--grad-end)); 
 .pos-product-price { font-size: 0.8rem; color: var(--primary); font-weight: 600; }
 .pos-product-stock { font-size: 0.7rem; color: var(--text-secondary); }
 .pos-product-qty-badge { position: absolute; top: -6px; right: -6px; background: var(--primary); color: white; min-width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
-.pos-cart-panel { display: flex; flex-direction: column; gap: 0.75rem; position: sticky; top: 80px; }
+.pos-cart-panel { display: none; flex-direction: column; gap: 0.75rem; position: sticky; top: 80px; }
+@media (min-width: 992px) { .pos-cart-panel { display: flex; } }
 .pos-cart-panel.glass-panel:hover { transform: none; }
 .pos-cart-items { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; overflow-y: auto; max-height: 35vh; }
 .pos-cart-empty { text-align: center; padding: 2rem 1rem; color: var(--text-secondary); }
@@ -332,7 +333,7 @@ h1 { background: linear-gradient(to right, var(--grad-start), var(--grad-end)); 
 .pos-totals { margin-bottom: 0.75rem; }
 .pos-total-row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.15rem 0; }
 .pos-grand-total { font-size: 1.1rem; font-weight: 700; border-top: 1px solid var(--border); padding-top: 0.5rem; margin-top: 0.25rem; }
-.pos-mobile-cart-btn { display: flex; position: fixed; bottom: 1rem; right: 1rem; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; border: none; font-size: 1.4rem; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); cursor: pointer; z-index: 100; }
+.pos-mobile-cart-btn { display: flex; position: fixed; bottom: calc(70px + env(safe-area-inset-bottom, 0px)); right: 1rem; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-hover)); color: white; border: none; font-size: 1.4rem; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); cursor: pointer; z-index: 100; }
 @media (min-width: 992px) { .pos-mobile-cart-btn { display: none; } }
 .pos-mobile-cart-badge { position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; min-width: 22px; height: 22px; border-radius: 50%; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; justify-content: center; }
 
@@ -366,7 +367,7 @@ h1 { background: linear-gradient(to right, var(--grad-start), var(--grad-end)); 
     body * { visibility: hidden !important; }
     #receipt-content, #receipt-content * { visibility: visible !important; }
     #receipt-content {
-        position: fixed !important;
+        position: absolute !important;
         top: 0;
         left: 0;
         width: 100% !important;
@@ -379,7 +380,13 @@ h1 { background: linear-gradient(to right, var(--grad-start), var(--grad-end)); 
         font-size: 0.85rem;
         z-index: 99999;
     }
-    .app-modal-overlay, .app-modal-panel { display: block !important; visibility: hidden !important; }
+    .app-modal-overlay, .app-modal-panel {
+        position: absolute !important;
+        overflow: visible !important;
+        height: auto !important;
+        visibility: hidden !important;
+    }
+    html, body { height: auto !important; overflow: visible !important; }
 }
 
 /* ===== Toast ===== */

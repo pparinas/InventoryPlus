@@ -30,6 +30,7 @@ namespace InventoryPlus.Pages
 
         // Account data
         protected User? currentUser;
+        protected string currentPassword = "";
         protected string newPassword = "";
         protected string confirmPassword = "";
         protected string passErrorMessage = "";
@@ -185,9 +186,15 @@ namespace InventoryPlus.Pages
             passErrorMessage = "";
             showPassSuccess = false;
 
+            if (string.IsNullOrWhiteSpace(currentPassword))
+            {
+                passErrorMessage = "Please enter your current password.";
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
             {
-                passErrorMessage = "Password must be at least 6 characters.";
+                passErrorMessage = "New password must be at least 6 characters.";
                 return;
             }
 
@@ -200,12 +207,31 @@ namespace InventoryPlus.Pages
             isChangingPass = true;
             try
             {
+                // Verify current password by re-authenticating
+                var email = currentUser?.Email;
+                if (string.IsNullOrEmpty(email))
+                {
+                    passErrorMessage = "Unable to verify account.";
+                    return;
+                }
+
+                try
+                {
+                    await SupabaseClient.Auth.SignIn(email, currentPassword);
+                }
+                catch
+                {
+                    passErrorMessage = "Current password is incorrect.";
+                    return;
+                }
+
                 var attrs = new UserAttributes { Password = newPassword };
                 var response = await SupabaseClient.Auth.Update(attrs);
                 
                 if (response != null)
                 {
                     showPassSuccess = true;
+                    currentPassword = "";
                     newPassword = "";
                     confirmPassword = "";
                 }
