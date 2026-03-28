@@ -171,6 +171,10 @@ namespace InventoryPlus.Pages
             AppSettings.ColorScheme = selectedColorScheme;
             await JSRuntime.InvokeVoidAsync("themeInterop.setScheme", selectedColorScheme);
 
+            // Update PWA icon to new logo
+            if (!string.IsNullOrEmpty(newLogoUrl))
+                await JSRuntime.InvokeVoidAsync("pwaIcon.update", newLogoUrl, newCompanyName);
+
             if (currentUser != null)
                 await AppSettings.SaveAsync(currentUser.Id);
 
