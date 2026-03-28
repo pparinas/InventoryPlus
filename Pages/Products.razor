@@ -235,6 +235,8 @@ else
                             </div>
                         </div>
 
+                        @if (AppSettings.ShowInventoryTab)
+                        {
                         <div class="mb-3">
                             <label class="form-label">Uses Ingredients?</label>
                             <div class="d-flex gap-2">
@@ -248,6 +250,7 @@ else
                                 </button>
                             </div>
                         </div>
+                        }
 
                         @if (!currentProduct.HasIngredients)
                         {

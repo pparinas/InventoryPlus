@@ -65,7 +65,7 @@ namespace InventoryPlus.Pages
             {
                 _pendingPinAction = () =>
                 {
-                    currentProduct = new Product { Guid = Guid.NewGuid() };
+                    currentProduct = new Product { Guid = Guid.NewGuid(), HasIngredients = AppSettings.ShowInventoryTab };
                     taxRatePercent = 0;
                     validationErrors.Clear();
                     isEditing = false;
@@ -76,7 +76,7 @@ namespace InventoryPlus.Pages
             }
             else
             {
-                currentProduct = new Product { Guid = Guid.NewGuid() };
+                currentProduct = new Product { Guid = Guid.NewGuid(), HasIngredients = AppSettings.ShowInventoryTab };
                 taxRatePercent = 0;
                 validationErrors.Clear();
                 isEditing = false;
@@ -112,7 +112,7 @@ namespace InventoryPlus.Pages
                 TaxRate = item.TaxRate,
                 ImageUrl = item.ImageUrl,
                 Category = item.Category,
-                HasIngredients = item.HasIngredients,
+                HasIngredients = AppSettings.ShowInventoryTab && item.HasIngredients,
                 StockCount = item.StockCount,
                 RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
                 {
