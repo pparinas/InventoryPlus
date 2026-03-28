@@ -20,6 +20,10 @@ namespace InventoryPlus.Pages
         protected DateTime? stockDateFilter = null;
         protected HashSet<string> openSections = new() { "sales" };
 
+        // Receipt
+        protected bool showReceipt = false;
+        protected Sale? receiptSale = null;
+
         // Pagination
         protected int salesPage = 1;
         protected int stockPage = 1;
@@ -39,6 +43,12 @@ namespace InventoryPlus.Pages
         }
 
         private void HandleStateChanged() => InvokeAsync(StateHasChanged);
+
+        protected void PrintSaleReceipt(Sale sale)
+        {
+            receiptSale = sale;
+            showReceipt = true;
+        }
 
         public void Dispose()
         {

@@ -24,6 +24,12 @@ namespace InventoryPlus.Layout
         protected string? currentUserEmail;
         private string currentPath = "";
         private ErrorBoundary? errorBoundary;
+        protected Components.NotificationPanel? notificationPanel;
+
+        protected void ToggleNotifications()
+        {
+            notificationPanel?.Toggle();
+        }
 
         protected void ResetError()
         {

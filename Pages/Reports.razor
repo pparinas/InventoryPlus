@@ -78,7 +78,8 @@
                             <td class="text-end">
                                 @if (!sale.IsVoided)
                                 {
-                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEditSale(sale)" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => PrintSaleReceipt(sale)" title="Print Receipt"><i class="fa-solid fa-print"></i></button>
+                                    <button class="btn btn-sm btn-outline-secondary ms-1" @onclick="() => StartEditSale(sale)" title="Edit"><i class="fa-solid fa-pen"></i></button>
                                     <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => StartVoidSale(sale)" title="Void"><i class="fa-solid fa-ban"></i></button>
                                 }
                                 else
@@ -118,6 +119,7 @@
                         @if (!sale.IsVoided)
                         {
                             <div class="stock-card-actions">
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => PrintSaleReceipt(sale)"><i class="fa-solid fa-print"></i> Receipt</button>
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEditSale(sale)"><i class="fa-solid fa-pen"></i> Edit</button>
                                 <button class="btn btn-sm btn-outline-danger" @onclick="() => StartVoidSale(sale)"><i class="fa-solid fa-ban"></i> Void</button>
                             </div>
@@ -409,6 +411,17 @@
         <button class="btn btn-primary" @onclick="SaveEditSale">Save Changes</button>
     </Footer>
 </AppModal>
+
+@* ── Receipt Modal ── *@
+@if (receiptSale != null)
+{
+    <Receipt IsVisible="showReceipt" BusinessName="@AppSettings.CompanyName" SaleDate="@receiptSale.Date"
+             CustomerName="@receiptSale.CustomerName"
+             Items="@(new List<Receipt.ReceiptItem> { new() { Name = receiptSale.ProductName, Quantity = receiptSale.QuantitySold, UnitPrice = (receiptSale.TotalAmount - receiptSale.TaxAmount) / receiptSale.QuantitySold } })"
+             Subtotal="@(receiptSale.TotalAmount - receiptSale.TaxAmount)" TaxTotal="@receiptSale.TaxAmount" Total="@receiptSale.TotalAmount"
+             PaymentMethod="@receiptSale.PaymentMethod" DiscountAmount="@receiptSale.DiscountAmount" DiscountType="@receiptSale.DiscountType"
+             OnClose="() => { showReceipt = false; receiptSale = null; }" />
+}
 
 <InventoryPlus.Components.ConfirmDialog
     IsVisible="showVoidConfirm"

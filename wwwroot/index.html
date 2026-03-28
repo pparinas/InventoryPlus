@@ -21,6 +21,7 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="InventoryPlus.styles.css" rel="stylesheet" />
     <link href="manifest.webmanifest" rel="manifest" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
     <script type="importmap"></script>
@@ -104,6 +105,30 @@
         window.addEventListener('unhandledrejection', e => console.error('Unhandled promise:', e.reason));
     </script>
     <script>
+        // Receipt share interop
+        window.receiptShare = {
+            toImage: async function(elementId) {
+                var el = document.getElementById(elementId);
+                if (!el) return false;
+                var canvas = await html2canvas(el, { backgroundColor: '#ffffff', scale: 2 });
+                var blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+                var file = new File([blob], 'receipt.png', { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({ files: [file], title: 'Receipt' });
+                    return true;
+                }
+                // Fallback: download the image
+                var link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'receipt.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+                return true;
+            }
+        };
+
         // CSV export interop
         window.downloadCsv = function(filename, csvContent) {
             var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
