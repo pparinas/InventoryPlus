@@ -12,14 +12,23 @@ namespace InventoryPlus.Pages
         [Inject] public Supabase.Client Supabase { get; set; } = default!;
         [Inject] public NavigationManager NavigationManager { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
+        [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] public AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
+        [Inject] public PilotService PilotService { get; set; } = default!;
 
         protected string Email { get; set; } = string.Empty;
         protected string Password { get; set; } = string.Empty;
         protected string ErrorMessage { get; set; } = string.Empty;
         protected bool IsLoading { get; set; } = false;
         protected bool RememberMe { get; set; } = false;
+
+        // Pilot mode
+        protected bool showPilotJoin = false;
+        protected string pilotCode = "";
+        protected string pilotName = "";
+        protected string pilotError = "";
+        protected bool IsPilotJoining = false;
 
         protected async Task HandleKeyDown(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
         {
@@ -109,6 +118,39 @@ namespace InventoryPlus.Pages
             var authProvider = (SupabaseAuthenticationStateProvider)AuthStateProvider;
             await authProvider.EnableGuestModeAsync();
             NavigationManager.NavigateTo("dashboard");
+        }
+
+        protected async Task HandlePilotJoin()
+        {
+            pilotError = "";
+            IsPilotJoining = true;
+
+            try
+            {
+                var (success, error) = await PilotService.JoinSessionAsync(pilotCode.Trim(), pilotName.Trim());
+                if (success)
+                {
+                    // Load the owner's data for the operator to use
+                    var ownerGuid = PilotService.OwnerGuid;
+                    await AppSettings.LoadAsync(ownerGuid.ToString());
+                    await Inventory.LoadAsync(ownerGuid.ToString());
+                    Inventory.SetPilotService(PilotService);
+
+                    NavigationManager.NavigateTo("sales");
+                }
+                else
+                {
+                    pilotError = error;
+                }
+            }
+            catch (Exception ex)
+            {
+                pilotError = $"Connection failed: {ex.Message}";
+            }
+            finally
+            {
+                IsPilotJoining = false;
+            }
         }
     }
 }

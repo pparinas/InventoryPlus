@@ -16,6 +16,7 @@ namespace InventoryPlus.Layout
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public Client Supabase { get; set; } = default!;
         [Inject] public AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
+        [Inject] public PilotService PilotService { get; set; } = default!;
 
         protected bool showDropdown = false;
         protected bool isLightMode = false;
@@ -169,6 +170,7 @@ namespace InventoryPlus.Layout
 
                 await AppSettings.LoadAsync(user.Id);
                 await Inventory.LoadAsync(user.Id, JSRuntime);
+                Inventory.SetPilotService(PilotService);
             }
             catch (Exception ex)
             {

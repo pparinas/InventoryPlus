@@ -38,5 +38,6 @@ builder.Services.AddSingleton<InventoryPlus.Services.SettingsService>();
 builder.Services.AddSingleton<InventoryPlus.Services.UserManagementService>();
 builder.Services.AddSingleton<InventoryPlus.Services.InviteTokenService>();
 builder.Services.AddSingleton<InventoryPlus.Services.ToastService>();
+builder.Services.AddSingleton<InventoryPlus.Services.PilotService>();
 
 await builder.Build().RunAsync();
