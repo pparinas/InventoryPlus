@@ -85,6 +85,9 @@ namespace InventoryPlus.Services
                         pi.Ingredient = Ingredients.FirstOrDefault(i => i.Guid == pi.IngredientId);
                 }
 
+                // Refresh product image signed URLs
+                await RefreshProductImageUrlsAsync();
+
                 // Load sales
                 var salesResp = await _supabase.From<Sale>()
                     .Where(s => s.OwnerId == _ownerGuid)
@@ -529,7 +532,8 @@ namespace InventoryPlus.Services
                     {
                         guid = p.Guid, ownerGuid = p.OwnerGuid, name = p.Name,
                         sellingPrice = p.SellingPrice, taxRate = p.TaxRate,
-                        imageUrl = p.ImageUrl, isArchived = p.IsArchived
+                        imageUrl = ExtractProductImagePath(p.ImageUrl) ?? p.ImageUrl,
+                        isArchived = p.IsArchived
                     }),
                     productIngredients = Products.SelectMany(p => p.RequiredIngredients).Select(pi => new
                     {
@@ -609,6 +613,9 @@ namespace InventoryPlus.Services
                     return product;
                 }).ToList();
 
+                // Refresh product image signed URLs from cache paths
+                await RefreshProductImageUrlsAsync();
+
                 Sales = root.GetProperty("sales").EnumerateArray().Select(e => new Sale
                 {
                     Guid = e.GetProperty("guid").GetGuid(),
@@ -645,6 +652,45 @@ namespace InventoryPlus.Services
             {
                 Console.WriteLine($"LoadFromCacheAsync error: {ex.Message}");
                 return false;
+            }
+        }
+
+        // ── Image URL helpers ──────────────────────────────────────────────────
+
+        private static string? ExtractProductImagePath(string? urlOrPath)
+        {
+            if (string.IsNullOrEmpty(urlOrPath)) return null;
+            if (!urlOrPath.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) return urlOrPath;
+            foreach (var marker in new[] { "/object/public/product-images/", "/object/sign/product-images/" })
+            {
+                var idx = urlOrPath.IndexOf(marker, StringComparison.Ordinal);
+                if (idx >= 0)
+                {
+                    var p = urlOrPath.Substring(idx + marker.Length);
+                    var q = p.IndexOf('?');
+                    return q >= 0 ? p.Substring(0, q) : p;
+                }
+            }
+            return null;
+        }
+
+        private async Task RefreshProductImageUrlsAsync()
+        {
+            foreach (var product in Products)
+            {
+                if (string.IsNullOrEmpty(product.ImageUrl)) continue;
+                var path = ExtractProductImagePath(product.ImageUrl);
+                if (string.IsNullOrEmpty(path)) continue;
+                try
+                {
+                    product.ImageUrl = await _supabase.Storage
+                        .From("product-images")
+                        .CreateSignedUrl(path, 60 * 60 * 24 * 7);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to refresh image URL for {product.Name}: {ex.Message}");
+                }
             }
         }
     }
