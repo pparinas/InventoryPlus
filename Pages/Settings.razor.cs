@@ -135,12 +135,12 @@ namespace InventoryPlus.Pages
             isUploading = true;
             try
             {
-                var format = "image/png";
-                var resizedImage = await pendingLogoFile.RequestImageFileAsync(format, 200, 200);
+                var format = "image/jpeg";
+                var resizedImage = await pendingLogoFile.RequestImageFileAsync(format, 150, 150);
                 var buffer = new byte[resizedImage.Size];
                 await resizedImage.OpenReadStream().ReadAsync(buffer);
 
-                var path = $"{currentUser.Id}/logo.png";
+                var path = $"{currentUser.Id}/logo.jpg";
                 await SupabaseClient.Storage
                     .From("branding")
                     .Upload(buffer, path, new Supabase.Storage.FileOptions { ContentType = format, Upsert = true });

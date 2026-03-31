@@ -172,18 +172,18 @@ namespace InventoryPlus.Pages
                 var userId = SupabaseClient.Auth.CurrentUser?.Id;
                 if (string.IsNullOrEmpty(userId)) return;
 
-                var format = "image/png";
-                var resizedImage = await pendingImageFile.RequestImageFileAsync(format, 300, 300);
+                var format = "image/jpeg";
+                var resizedImage = await pendingImageFile.RequestImageFileAsync(format, 200, 200);
                 var buffer = new byte[resizedImage.Size];
                 await resizedImage.OpenReadStream().ReadAsync(buffer);
 
-                var path = $"{userId}/{currentProduct.Guid}.png";
+                var path = $"{userId}/{currentProduct.Guid}.jpg";
                 await SupabaseClient.Storage
                     .From("product-images")
                     .Upload(buffer, path, new Supabase.Storage.FileOptions { ContentType = format, Upsert = true });
                 currentProduct.ImageUrl = await SupabaseClient.Storage
                     .From("product-images")
-                    .CreateSignedUrl(path, 60 * 60 * 24 * 365);
+                    .CreateSignedUrl(path, 60 * 60 * 24 * 7);
 
                 pendingImageFile = null;
                 Toast.Show("Product image uploaded!");
