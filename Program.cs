@@ -22,7 +22,7 @@ if (string.IsNullOrEmpty(supabaseKey) || supabaseKey.StartsWith("__"))
 
 var options = new SupabaseOptions
 {
-    AutoRefreshToken = false,
+    AutoRefreshToken = true,
     AutoConnectRealtime = false,
 };
 

@@ -127,6 +127,34 @@ namespace InventoryPlus.Pages
             .OrderByDescending(x => x.UnitsSold)
             .ToList();
 
+        // OPEX
+        protected IEnumerable<Opex> FilteredOpex
+        {
+            get
+            {
+                var now = DateTime.Now;
+                var items = Inventory.ActiveOpex;
+                return selectedFilter switch
+                {
+                    "Daily" => items.Where(o => o.Date.Date == now.Date),
+                    "Weekly" => items.Where(o => o.Date >= now.AddDays(-7)),
+                    "Monthly" => items.Where(o => o.Date >= now.AddDays(-30)),
+                    "Yearly" => items.Where(o => o.Date >= now.AddDays(-365)),
+                    _ => items
+                };
+            }
+        }
+
+        protected double FilteredOpexTotal => FilteredOpex.Sum(o => o.Amount);
+
+        protected double NetProfitAfterOpex => AppSettings.ShowOpexTab
+            ? FilteredProfit - FilteredOpexTotal
+            : FilteredProfit;
+
+        protected Dictionary<string, double> OpexByCategory => FilteredOpex
+            .GroupBy(o => o.Category)
+            .ToDictionary(g => g.Key, g => g.Sum(o => o.Amount));
+
         protected async Task ExportCsv()
         {
             var sb = new StringBuilder();
@@ -135,6 +163,17 @@ namespace InventoryPlus.Pages
             {
                 sb.AppendLine($"{s.Date:yyyy-MM-dd HH:mm},{EscapeCsv(s.ProductName)},{s.QuantitySold},{s.PaymentMethod},{s.TotalAmount:F2},{s.TaxAmount:F2},{s.ProfitAmount:F2}");
             }
+
+            if (AppSettings.ShowOpexTab && FilteredOpex.Any())
+            {
+                sb.AppendLine();
+                sb.AppendLine("OPEX Date,Name,Category,Amount,Note");
+                foreach (var o in FilteredOpex.OrderByDescending(o => o.Date))
+                {
+                    sb.AppendLine($"{o.Date:yyyy-MM-dd},{EscapeCsv(o.Name)},{EscapeCsv(o.Category)},{o.Amount:F2},{EscapeCsv(o.Note)}");
+                }
+            }
+
             await JS.InvokeVoidAsync("downloadCsv", $"report_{selectedFilter}_{DateTime.Now:yyyyMMdd}.csv", sb.ToString());
         }
 

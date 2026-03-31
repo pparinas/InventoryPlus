@@ -141,9 +141,32 @@ namespace InventoryPlus.Layout
                     var session = await Supabase.Auth.RetrieveSessionAsync();
                     user = session?.User;
                 }
-                if (user == null) return;
+
+                // If still no user, try to get userId from localStorage to load cached data
+                if (user == null)
+                {
+                    try
+                    {
+                        var cachedUserId = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", "inv_last_user_id");
+                        if (!string.IsNullOrEmpty(cachedUserId))
+                        {
+                            Console.WriteLine("Session expired — loading cached data for offline use");
+                            await Inventory.LoadAsync(cachedUserId, JSRuntime);
+                        }
+                    }
+                    catch { }
+                    return;
+                }
 
                 currentUserEmail = user.Email;
+
+                // Persist userId so we can load cache even when auth fails on refresh
+                try
+                {
+                    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "inv_last_user_id", user.Id);
+                }
+                catch { }
+
                 await AppSettings.LoadAsync(user.Id);
                 await Inventory.LoadAsync(user.Id, JSRuntime);
             }
@@ -214,6 +237,7 @@ namespace InventoryPlus.Layout
             {
                 await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_access_token");
                 await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_refresh_token");
+                await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "inv_last_user_id");
             }
             catch { }
 

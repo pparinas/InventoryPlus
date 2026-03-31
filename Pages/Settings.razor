@@ -184,6 +184,7 @@
         <h2 class="mb-1">Navigation & Display</h2>
         <p class="text-muted text-sm mb-2">Customize tabs and value formatting.</p>
         <label class="toggle-row"><input type="checkbox" @bind="showInventoryTab" /><span>Show Inventory Tab</span></label>
+        <label class="toggle-row"><input type="checkbox" @bind="showOpexTab" /><span>Show OPEX Tab (Operating Expenses)</span></label>
         <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowDecimals" /><span>Show Decimals (₱1,357.40 vs ₱1,357)</span></label>
         <button class="btn btn-primary btn-sm mt-2 w-100" @onclick="SaveNavPreferences"><i class="fa-solid fa-save"></i> Save</button>
     </div>

@@ -59,6 +59,7 @@ namespace InventoryPlus.Pages
 
         // Inventory toggle
         protected bool showInventoryTab = true;
+        protected bool showOpexTab = false;
 
         // Install App
         protected bool showInstallSection = false;
@@ -86,6 +87,7 @@ namespace InventoryPlus.Pages
             newLogoUrl = AppSettings.CustomLogoUrl;
             selectedColorScheme = AppSettings.ColorScheme;
             showInventoryTab = AppSettings.ShowInventoryTab;
+            showOpexTab = AppSettings.ShowOpexTab;
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -330,6 +332,7 @@ namespace InventoryPlus.Pages
         protected async Task SaveNavPreferences()
         {
             AppSettings.ShowInventoryTab = showInventoryTab;
+            AppSettings.ShowOpexTab = showOpexTab;
             if (currentUser != null)
                 await AppSettings.SaveAsync(currentUser.Id);
             Toast.Show("Navigation preferences saved!");

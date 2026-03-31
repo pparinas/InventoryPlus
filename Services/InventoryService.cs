@@ -17,6 +17,9 @@ namespace InventoryPlus.Services
         public List<Ingredient> Ingredients { get; set; } = new();
         public List<Product> Products { get; set; } = new();
         public List<Sale> Sales { get; set; } = new();
+        public List<Opex> OpexItems { get; set; } = new();
+
+        public IEnumerable<Opex> ActiveOpex => OpexItems.Where(o => !o.IsArchived);
 
         public bool IsLoaded { get; set; }
         public bool IsLoading { get; private set; }
@@ -87,6 +90,12 @@ namespace InventoryPlus.Services
                     .Where(s => s.OwnerId == _ownerGuid)
                     .Get();
                 Sales = salesResp.Models.OrderByDescending(s => s.Date).ToList();
+
+                // Load OPEX
+                var opexResp = await _supabase.From<Opex>()
+                    .Where(o => o.OwnerGuid == _ownerGuid)
+                    .Get();
+                OpexItems = opexResp.Models.OrderByDescending(o => o.Date).ToList();
 
                 IsOffline = false;
                 IsLoaded = true;
@@ -316,6 +325,39 @@ namespace InventoryPlus.Services
 
         public void NotifyStateChanged() => OnStateChanged?.Invoke();
 
+        // ── OPEX ───────────────────────────────────────────────────────────────
+
+        public async Task AddOpexAsync(Opex opex)
+        {
+            opex.OwnerGuid = _ownerGuid;
+            if (IsGuestMode)
+            {
+                if (opex.Guid == Guid.Empty) opex.Guid = Guid.NewGuid();
+                OpexItems.Insert(0, opex);
+                NotifyStateChanged();
+                return;
+            }
+            var resp = await _supabase.From<Opex>().Insert(opex);
+            var saved = resp.Models.FirstOrDefault();
+            if (saved != null) opex.Guid = saved.Guid;
+            OpexItems.Insert(0, opex);
+            NotifyStateChanged();
+        }
+
+        public async Task UpdateOpexAsync(Opex opex)
+        {
+            opex.OwnerGuid = _ownerGuid;
+            if (!IsGuestMode) await _supabase.From<Opex>().Upsert(opex);
+            NotifyStateChanged();
+        }
+
+        public async Task DeleteOpexAsync(Opex opex)
+        {
+            opex.IsArchived = true;
+            if (!IsGuestMode) await _supabase.From<Opex>().Upsert(opex);
+            NotifyStateChanged();
+        }
+
         // ── Void Sale ──────────────────────────────────────────────────────────
 
         public async Task VoidSaleAsync(Sale sale)
@@ -414,6 +456,21 @@ namespace InventoryPlus.Services
                             Date = e.GetProperty("date").GetDateTime(),
                             PaymentMethod = e.TryGetProperty("paymentMethod", out var pm) ? pm.GetString() ?? "Cash" : "Cash"
                         }).ToList();
+
+                    if (root.TryGetProperty("opex", out var opexGuestEl))
+                        OpexItems = opexGuestEl.EnumerateArray().Select(e => new Opex
+                        {
+                            Guid = e.GetProperty("guid").GetGuid(),
+                            OwnerGuid = Guid.Empty,
+                            Name = e.GetProperty("name").GetString() ?? "",
+                            Category = e.TryGetProperty("category", out var c) ? c.GetString() ?? "Other" : "Other",
+                            Amount = e.GetProperty("amount").GetDouble(),
+                            Date = e.GetProperty("date").GetDateTime(),
+                            Note = e.TryGetProperty("note", out var n) ? n.GetString() ?? "" : "",
+                            IsRecurring = e.TryGetProperty("isRecurring", out var ir) && ir.GetBoolean(),
+                            Recurrence = e.TryGetProperty("recurrence", out var r) ? r.GetString() ?? "None" : "None",
+                            IsArchived = e.TryGetProperty("isArchived", out var ar) && ar.GetBoolean()
+                        }).OrderByDescending(o => o.Date).ToList();
                 }
 
                 IsLoaded = true;
@@ -439,7 +496,8 @@ namespace InventoryPlus.Services
                 {
                     ingredients = Ingredients.Select(i => new { guid = i.Guid, name = i.Name, unit = i.Unit, stock = i.Stock, costPerUnit = i.CostPerUnit, type = i.Type, isArchived = i.IsArchived }),
                     products = Products.Select(p => new { guid = p.Guid, name = p.Name, sellingPrice = p.SellingPrice, taxRate = p.TaxRate, isArchived = p.IsArchived }),
-                    sales = Sales.Select(s => new { guid = s.Guid, productName = s.ProductName, quantitySold = s.QuantitySold, totalAmount = s.TotalAmount, profitAmount = s.ProfitAmount, date = s.Date, paymentMethod = s.PaymentMethod })
+                    sales = Sales.Select(s => new { guid = s.Guid, productName = s.ProductName, quantitySold = s.QuantitySold, totalAmount = s.TotalAmount, profitAmount = s.ProfitAmount, date = s.Date, paymentMethod = s.PaymentMethod }),
+                    opex = OpexItems.Select(o => new { guid = o.Guid, name = o.Name, category = o.Category, amount = o.Amount, date = o.Date, note = o.Note, isRecurring = o.IsRecurring, recurrence = o.Recurrence, isArchived = o.IsArchived })
                 };
                 var json = JsonSerializer.Serialize(snapshot);
                 await js.InvokeVoidAsync("localStorage.setItem", GuestCacheKey, json);
@@ -485,6 +543,13 @@ namespace InventoryPlus.Services
                         totalAmount = s.TotalAmount, taxAmount = s.TaxAmount,
                         profitAmount = s.ProfitAmount, date = s.Date,
                         note = s.Note, paymentMethod = s.PaymentMethod
+                    }),
+                    opex = OpexItems.Select(o => new
+                    {
+                        guid = o.Guid, ownerGuid = o.OwnerGuid, name = o.Name,
+                        category = o.Category, amount = o.Amount, date = o.Date,
+                        note = o.Note, isRecurring = o.IsRecurring,
+                        recurrence = o.Recurrence, isArchived = o.IsArchived
                     })
                 };
                 var json = JsonSerializer.Serialize(snapshot);
@@ -558,6 +623,21 @@ namespace InventoryPlus.Services
                     Note = e.GetProperty("note").GetString() ?? "",
                     PaymentMethod = e.GetProperty("paymentMethod").GetString() ?? "Cash"
                 }).OrderByDescending(s => s.Date).ToList();
+
+                if (root.TryGetProperty("opex", out var opexEl))
+                    OpexItems = opexEl.EnumerateArray().Select(e => new Opex
+                    {
+                        Guid = e.GetProperty("guid").GetGuid(),
+                        OwnerGuid = e.GetProperty("ownerGuid").GetGuid(),
+                        Name = e.GetProperty("name").GetString() ?? "",
+                        Category = e.GetProperty("category").GetString() ?? "Other",
+                        Amount = e.GetProperty("amount").GetDouble(),
+                        Date = e.GetProperty("date").GetDateTime(),
+                        Note = e.GetProperty("note").GetString() ?? "",
+                        IsRecurring = e.GetProperty("isRecurring").GetBoolean(),
+                        Recurrence = e.GetProperty("recurrence").GetString() ?? "None",
+                        IsArchived = e.GetProperty("isArchived").GetBoolean()
+                    }).OrderByDescending(o => o.Date).ToList();
 
                 return true;
             }
