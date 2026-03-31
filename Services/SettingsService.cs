@@ -87,6 +87,37 @@ namespace InventoryPlus.Services
         // Guest mode
         public bool IsGuestMode { get; set; } = false;
 
+        // POS Mode
+        private bool _isPosMode = false;
+        public bool IsPosMode
+        {
+            get => _isPosMode;
+            set
+            {
+                if (_isPosMode != value)
+                {
+                    _isPosMode = value;
+                    if (!value) PosActiveView = "pos";
+                    NotifyStateChanged();
+                }
+            }
+        }
+
+        // POS active view: "pos" or "history"
+        private string _posActiveView = "pos";
+        public string PosActiveView
+        {
+            get => _posActiveView;
+            set
+            {
+                if (_posActiveView != value)
+                {
+                    _posActiveView = value;
+                    NotifyStateChanged();
+                }
+            }
+        }
+
         // PIN
         private string _pinHash = string.Empty;
         public string PinHash

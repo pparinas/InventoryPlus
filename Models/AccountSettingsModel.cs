@@ -54,6 +54,9 @@ namespace InventoryPlus.Models
         // Onboarding (in-memory only until DB column is added)
         [JsonIgnore] public bool OnboardingCompleted { get; set; } = false;
 
+        // POS Mode
+        [JsonIgnore] public bool IsPosMode { get; set; } = false;
+
         // Currency display
         [JsonIgnore] public bool ShowDecimals { get; set; } = true;
     }

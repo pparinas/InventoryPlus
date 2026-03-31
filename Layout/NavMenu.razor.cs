@@ -21,5 +21,8 @@ namespace InventoryPlus.Layout
         {
             AppSettings.OnStateChanged -= HandleStateChanged;
         }
+
+        protected void SetViewPos() => AppSettings.PosActiveView = "pos";
+        protected void SetViewHistory() => AppSettings.PosActiveView = "history";
     }
 }

@@ -26,6 +26,29 @@ namespace InventoryPlus.Pages
         protected bool showClearConfirm = false;
         protected bool isProcessing = false;
 
+        // Sales history
+        protected bool showSalesHistory = false;
+        protected string historyFilter = "Daily";
+        protected int historyPage = 1;
+        protected const int HistoryPageSize = 10;
+
+        // POS mode exit PIN
+        protected bool showExitPinPrompt = false;
+
+        // POS mode edit/void
+        protected bool showActionPinPrompt = false;
+        protected bool showEditSaleModal = false;
+        protected bool showVoidConfirm = false;
+        protected bool showHistoryReceipt = false;
+        protected Sale? editingSale;
+        protected Sale? voidingSale;
+        protected Sale? historyReceiptSale;
+        protected int editQty;
+        protected string editPaymentMethod = "Cash";
+        protected string editDiscountType = "None";
+        protected double editDiscountAmount;
+        private Action? _pendingPinAction;
+
         // Receipt data
         protected List<Receipt.ReceiptItem>? lastSaleItems;
         protected DateTime lastSaleDate;
@@ -45,6 +68,7 @@ namespace InventoryPlus.Pages
         protected override void OnInitialized()
         {
             Inventory.OnStateChanged += HandleStateChanged;
+            AppSettings.OnStateChanged += HandleStateChanged;
         }
 
         private void HandleStateChanged() => InvokeAsync(StateHasChanged);
@@ -52,6 +76,7 @@ namespace InventoryPlus.Pages
         public void Dispose()
         {
             Inventory.OnStateChanged -= HandleStateChanged;
+            AppSettings.OnStateChanged -= HandleStateChanged;
         }
 
         protected IEnumerable<string> Categories => Inventory.ActiveProducts
@@ -183,6 +208,154 @@ namespace InventoryPlus.Pages
             {
                 isProcessing = false;
             }
+        }
+
+        // ── POS Mode: Today's stats ──
+        protected IEnumerable<Sale> TodaySales => Inventory.Sales
+            .Where(s => !s.IsVoided && s.Date.ToLocalTime().Date == DateTime.Today);
+
+        protected double TodayRevenue => TodaySales.Sum(s => s.TotalAmount);
+        protected double TodayProfit => TodaySales.Sum(s => s.ProfitAmount);
+        protected int TodayTransactions => TodaySales.Count();
+        protected int TodayItemsSold => TodaySales.Sum(s => s.QuantitySold);
+
+        // ── POS Mode: Sales history ──
+        protected IEnumerable<Sale> HistorySales
+        {
+            get
+            {
+                var now = DateTime.Now;
+                return historyFilter switch
+                {
+                    "Daily" => Inventory.Sales.Where(s => s.Date.ToLocalTime().Date == now.Date),
+                    "Weekly" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-7)),
+                    "Monthly" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-30)),
+                    _ => Inventory.Sales.Where(s => s.Date.ToLocalTime().Date == now.Date)
+                };
+            }
+        }
+
+        protected void SetHistoryPage(int p) { historyPage = p; }
+
+        // ── POS Mode: PIN-protected exit ──
+        protected void RequestExitPosMode()
+        {
+            if (AppSettings.HasPin)
+            {
+                showExitPinPrompt = true;
+            }
+            else
+            {
+                AppSettings.IsPosMode = false;
+                Nav.NavigateTo("dashboard");
+            }
+        }
+
+        protected void OnExitPinVerified()
+        {
+            showExitPinPrompt = false;
+            AppSettings.IsPosMode = false;
+            Nav.NavigateTo("dashboard");
+        }
+
+        // ── POS Mode: Edit / Void / Receipt ──
+        protected void PrintHistoryReceipt(Sale sale)
+        {
+            historyReceiptSale = sale;
+            showHistoryReceipt = true;
+        }
+
+        protected void StartEditSale(Sale sale)
+        {
+            if (AppSettings.HasPin)
+            {
+                _pendingPinAction = () =>
+                {
+                    DoOpenEditSale(sale);
+                    InvokeAsync(StateHasChanged);
+                };
+                showActionPinPrompt = true;
+            }
+            else
+            {
+                DoOpenEditSale(sale);
+            }
+        }
+
+        private void DoOpenEditSale(Sale sale)
+        {
+            editingSale = sale;
+            editQty = sale.QuantitySold;
+            editPaymentMethod = sale.PaymentMethod;
+            editDiscountType = sale.DiscountType;
+            editDiscountAmount = sale.DiscountAmount;
+            showEditSaleModal = true;
+        }
+
+        protected async Task SaveEditSale()
+        {
+            if (editingSale == null) return;
+
+            editingSale.QuantitySold = editQty;
+            editingSale.PaymentMethod = editPaymentMethod;
+            editingSale.DiscountType = editDiscountType;
+            editingSale.DiscountAmount = editDiscountAmount;
+
+            try
+            {
+                await Inventory.UpdateSaleAsync(editingSale);
+                Toast.Show("Sale updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                Toast.Show($"Failed to update sale: {ex.Message}", "error");
+            }
+
+            showEditSaleModal = false;
+            editingSale = null;
+        }
+
+        protected void StartVoidSale(Sale sale)
+        {
+            if (AppSettings.HasPin)
+            {
+                _pendingPinAction = () =>
+                {
+                    voidingSale = sale;
+                    showVoidConfirm = true;
+                    InvokeAsync(StateHasChanged);
+                };
+                showActionPinPrompt = true;
+            }
+            else
+            {
+                voidingSale = sale;
+                showVoidConfirm = true;
+            }
+        }
+
+        protected async Task ConfirmVoidSale()
+        {
+            if (voidingSale == null) return;
+
+            try
+            {
+                await Inventory.VoidSaleAsync(voidingSale);
+                Toast.Show("Sale voided. Stock restored.", "info");
+            }
+            catch (Exception ex)
+            {
+                Toast.Show($"Failed to void sale: {ex.Message}", "error");
+            }
+
+            showVoidConfirm = false;
+            voidingSale = null;
+        }
+
+        protected void OnActionPinVerified()
+        {
+            _pendingPinAction?.Invoke();
+            _pendingPinAction = null;
         }
     }
 }

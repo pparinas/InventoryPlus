@@ -193,6 +193,14 @@ namespace InventoryPlus.Layout
         private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
         {
             currentPath = GetRelativePath();
+
+            // POS mode: redirect non-POS pages to sales
+            if (AppSettings.IsPosMode && currentPath != "sales" && currentPath != "login" && currentPath != "register")
+            {
+                NavManager.NavigateTo("sales");
+                return;
+            }
+
             try { await InvokeAsync(StateHasChanged); } catch { }
         }
 
