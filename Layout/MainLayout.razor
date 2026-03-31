@@ -163,6 +163,13 @@
             <i class="fa-solid fa-leaf"></i>
             <span>Products</span>
         </a>
+        @if (AppSettings.ShowOpexTab)
+        {
+        <a href="expenses" class="bottom-bar-item @(IsActive("expenses") ? "active" : "")">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>OPEX</span>
+        </a>
+        }
         @if (AppSettings.IsGuestMode)
         {
             <a href="login" class="bottom-bar-item disabled" @onclick="SignOut" @onclick:preventDefault>

@@ -117,8 +117,20 @@ namespace InventoryPlus.Services
                             }
                             catch
                             {
-                                // Token refresh failed (expired/invalid) — clear stale tokens
-                                await ClearTokensAsync();
+                                // SetSession failed — try explicit refresh with the refresh token
+                                try
+                                {
+                                    session = await _client.Auth.RefreshSession();
+                                    user = session?.User;
+                                    if (session != null && !string.IsNullOrEmpty(session.AccessToken))
+                                        await SaveTokensAsync(session.AccessToken!, session.RefreshToken!);
+                                }
+                                catch
+                                {
+                                    // Both attempts failed — tokens are truly expired
+                                    Console.WriteLine("Session restore failed: tokens expired");
+                                    await ClearTokensAsync();
+                                }
                             }
                             finally
                             {

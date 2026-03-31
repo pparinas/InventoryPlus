@@ -36,6 +36,14 @@
         <span>Products</span>
     </NavLink>
     
+    @if (AppSettings.ShowOpexTab)
+    {
+    <NavLink class="nav-item" href="expenses">
+        <i class="fa-solid fa-file-invoice-dollar fa-fw"></i>
+        <span>OPEX</span>
+    </NavLink>
+    }
+
     <div class="nav-section-title">
         Business
     </div>

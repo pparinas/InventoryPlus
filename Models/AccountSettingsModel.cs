@@ -26,6 +26,9 @@ namespace InventoryPlus.Models
         [Column("show_inventory_tab")]
         public bool ShowInventoryTab { get; set; } = true;
 
+        [Column("show_opex_tab")]
+        public bool ShowOpexTab { get; set; } = false;
+
         [Column("color_scheme")]
         public string ColorScheme { get; set; } = "indigo";
 

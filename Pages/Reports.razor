@@ -228,9 +228,16 @@
                 <span class="pnl-label">Cost of Goods Sold</span>
                 <span class="pnl-value text-warning">₱@AppSettings.FormatCurrency(FilteredCOGS)</span>
             </div>
+            @if (AppSettings.ShowOpexTab)
+            {
+            <div class="pnl-item">
+                <span class="pnl-label">Operating Expenses (OPEX)</span>
+                <span class="pnl-value text-warning">₱@AppSettings.FormatCurrency(FilteredOpexTotal)</span>
+            </div>
+            }
             <div class="pnl-item pnl-total">
-                <span class="pnl-label">Net Profit</span>
-                <span class="pnl-value @(FilteredProfit >= 0 ? "text-success" : "text-danger")">₱@AppSettings.FormatCurrency(FilteredProfit)</span>
+                <span class="pnl-label">Net Profit @(AppSettings.ShowOpexTab ? "(after OPEX)" : "")</span>
+                <span class="pnl-value @(NetProfitAfterOpex >= 0 ? "text-success" : "text-danger")">₱@AppSettings.FormatCurrency(NetProfitAfterOpex)</span>
             </div>
             <div class="pnl-item">
                 <span class="pnl-label">Avg Profit Margin</span>
@@ -357,6 +364,89 @@
         else
         {
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-arrows-rotate" Title="No movement" Message="Stock movement data will appear after sales." />
+        }
+    }
+</div>
+}
+
+@* ── 7. OPEX Summary ── *@
+@if (AppSettings.ShowOpexTab)
+{
+<div class="glass-panel report-section mb-4">
+    <div class="report-section-header" @onclick='() => ToggleSection("opex")'>
+        <h2><i class="fa-solid fa-file-invoice-dollar text-warning"></i> Operating Expenses (OPEX)</h2>
+        <i class="fa-solid @(openSections.Contains("opex") ? "fa-chevron-up" : "fa-chevron-down")"></i>
+    </div>
+    @if (openSections.Contains("opex"))
+    {
+        @if (OpexByCategory.Any())
+        {
+            <div class="row g-3 mt-3 mb-3">
+                <div class="col-6 col-lg-4">
+                    <div class="glass-panel stat-card" style="padding: 0.75rem;">
+                        <div class="stat-content text-center"><h3>₱@AppSettings.FormatCurrency(FilteredOpexTotal)</h3><p>Total OPEX</p></div>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-4">
+                    <div class="glass-panel stat-card" style="padding: 0.75rem;">
+                        <div class="stat-content text-center"><h3>@FilteredOpex.Count()</h3><p>Entries</p></div>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <div class="glass-panel stat-card" style="padding: 0.75rem;">
+                        <div class="stat-content text-center"><h3>@OpexByCategory.Count</h3><p>Categories</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="payment-breakdown">
+                @{ var totalOpex = OpexByCategory.Values.Sum(); }
+                @foreach (var cat in OpexByCategory.OrderByDescending(c => c.Value))
+                {
+                    var pct = totalOpex > 0 ? (cat.Value / totalOpex * 100) : 0;
+                    <div class="payment-row">
+                        <div class="payment-label"><span>@cat.Key</span></div>
+                        <div class="payment-bar-track"><div class="payment-bar" style="width:@pct.ToString("0")%; background: var(--warning);"></div></div>
+                        <span class="payment-amount">₱@AppSettings.FormatCurrency(cat.Value) (@pct.ToString("0")%)</span>
+                    </div>
+                }
+            </div>
+
+            <div class="table-responsive table-view mt-3">
+            <table class="table table-hover mb-0">
+                <thead><tr><th>Name</th><th>Category</th><th>Amount</th><th>Date</th></tr></thead>
+                <tbody>
+                    @foreach (var item in FilteredOpex.OrderByDescending(o => o.Date).Take(10))
+                    {
+                        <tr>
+                            <td><strong>@item.Name</strong></td>
+                            <td><span class="badge bg-primary-subtle">@item.Category</span></td>
+                            <td class="fw-bold" style="color: var(--warning)">₱@AppSettings.FormatCurrency(item.Amount)</td>
+                            <td>@item.Date.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+            <div class="card-view mt-3">
+                @foreach (var item in FilteredOpex.OrderByDescending(o => o.Date).Take(10))
+                {
+                    <div class="stock-card">
+                        <div class="stock-card-header">
+                            <span class="stock-card-name">@item.Name</span>
+                            <span class="badge bg-primary-subtle">@item.Category</span>
+                        </div>
+                        <div class="stock-card-body">
+                            <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="fw-bold" style="color: var(--warning)">₱@AppSettings.FormatCurrency(item.Amount)</span></div>
+                            <div class="stock-card-row"><span class="stock-card-label">Date</span><span>@item.Date.ToString("MMM dd, yyyy")</span></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-file-invoice-dollar" Title="No expenses" Message="Operating expenses will show here once added." />
         }
     }
 </div>

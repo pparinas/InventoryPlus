@@ -130,6 +130,21 @@ namespace InventoryPlus.Services
             }
         }
 
+        // OPEX tab
+        private bool _showOpexTab = false;
+        public bool ShowOpexTab
+        {
+            get => _showOpexTab;
+            set
+            {
+                if (_showOpexTab != value)
+                {
+                    _showOpexTab = value;
+                    NotifyStateChanged();
+                }
+            }
+        }
+
         // Color Scheme
         private string _colorScheme = "indigo";
         public string ColorScheme
@@ -182,6 +197,7 @@ namespace InventoryPlus.Services
                     _useLogoForBranding = result.UseLogoForBranding;
                     _pinHash = result.PinHash ?? string.Empty;
                     _showInventoryTab = result.ShowInventoryTab;
+                    _showOpexTab = result.ShowOpexTab;
                     _colorScheme = result.ColorScheme ?? "indigo";
 
                     // Dashboard settings
@@ -246,6 +262,7 @@ namespace InventoryPlus.Services
                     UseLogoForBranding = _useLogoForBranding,
                     PinHash = _pinHash,
                     ShowInventoryTab = _showInventoryTab,
+                    ShowOpexTab = _showOpexTab,
                     ColorScheme = _colorScheme,
                     ShowRevenueChart = ShowRevenueChart,
                     ShowTopProducts = ShowTopProducts,
