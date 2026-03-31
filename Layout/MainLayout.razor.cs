@@ -16,7 +16,6 @@ namespace InventoryPlus.Layout
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public Client Supabase { get; set; } = default!;
         [Inject] public AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
-        [Inject] public PilotService PilotService { get; set; } = default!;
 
         protected bool showDropdown = false;
         protected bool isLightMode = false;
@@ -170,7 +169,6 @@ namespace InventoryPlus.Layout
 
                 await AppSettings.LoadAsync(user.Id);
                 await Inventory.LoadAsync(user.Id, JSRuntime);
-                Inventory.SetPilotService(PilotService);
             }
             catch (Exception ex)
             {
@@ -195,6 +193,14 @@ namespace InventoryPlus.Layout
         private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
         {
             currentPath = GetRelativePath();
+
+            // POS mode: redirect non-POS pages to sales
+            if (AppSettings.IsPosMode && currentPath != "sales" && currentPath != "login" && currentPath != "register")
+            {
+                NavManager.NavigateTo("sales");
+                return;
+            }
+
             try { await InvokeAsync(StateHasChanged); } catch { }
         }
 

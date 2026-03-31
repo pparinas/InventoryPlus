@@ -2,13 +2,33 @@
 
 <PageTitle>Point of Sale | @AppSettings.CompanyName</PageTitle>
 
-<div class="page-header">
-    <div>
-        <h1>Point of Sale</h1>
-        <p class="text-muted">Select products and complete sales.</p>
+@if (AppSettings.IsPosMode)
+{
+    @* ── POS Mode: Mini daily report banner ── *@
+    <div class="page-header" style="margin-bottom: 0.5rem;">
+        <div>
+            <h1><i class="fa-solid fa-cash-register me-2" style="color: var(--primary);"></i>POS Mode</h1>
+            <p class="text-muted mb-0">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+            <button class="btn btn-outline-danger btn-sm" @onclick="RequestExitPosMode">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i><span class="d-none d-sm-inline"> Exit POS</span>
+            </button>
+        </div>
     </div>
-</div>
+}
+else
+{
+    <div class="page-header">
+        <div>
+            <h1>Point of Sale</h1>
+            <p class="text-muted">Select products and complete sales.</p>
+        </div>
+    </div>
+}
 
+@if (!AppSettings.IsPosMode || AppSettings.PosActiveView == "pos")
+{
 <div class="pos-layout">
     <!-- Product Grid Side -->
     <div class="pos-products">
@@ -256,6 +276,8 @@
     </Content>
 </AppOffCanvas>
 
+} @* end POS view *@
+
 <!-- Receipt -->
 @if (lastSaleItems != null)
 {
@@ -268,6 +290,209 @@
 <!-- Confirm clear cart -->
 <ConfirmDialog IsVisible="showClearConfirm" Title="Clear Cart?" Message="Remove all items from the cart?"
                Icon="fa-solid fa-trash" ConfirmText="Clear All" OnConfirm="ConfirmClear" OnCancel="() => showClearConfirm = false" />
+
+@* ── POS Mode: Sales History View ── *@
+@if (AppSettings.IsPosMode && AppSettings.PosActiveView == "history")
+{
+<div class="glass-panel">
+    <h3 style="margin-bottom: 0.75rem;"><i class="fa-solid fa-clock-rotate-left"></i> Sales Summary</h3>
+
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        @foreach (var f in new[] { "Daily", "Weekly", "Monthly" })
+        {
+            <button class="btn btn-sm @(historyFilter == f ? "btn-primary" : "btn-outline-secondary")" @onclick="() => { historyFilter = f; historyPage = 1; }">@f</button>
+        }
+    </div>
+
+    @if (HistorySales.Any())
+    {
+        @* Summary stats for selected period *@
+        <div class="row g-2 mb-3">
+            <div class="col-4">
+                <div class="text-center p-2" style="background: var(--bg-surface); border-radius: 8px;">
+                    <div class="text-muted" style="font-size: 0.7rem;">Revenue</div>
+                    <div class="fw-bold" style="color: var(--primary);">₱@AppSettings.FormatCurrency(HistorySales.Where(s => !s.IsVoided).Sum(s => s.TotalAmount))</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="text-center p-2" style="background: var(--bg-surface); border-radius: 8px;">
+                    <div class="text-muted" style="font-size: 0.7rem;">Profit</div>
+                    <div class="fw-bold text-success">₱@AppSettings.FormatCurrency(HistorySales.Where(s => !s.IsVoided).Sum(s => s.ProfitAmount))</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="text-center p-2" style="background: var(--bg-surface); border-radius: 8px;">
+                    <div class="text-muted" style="font-size: 0.7rem;">Sales</div>
+                    <div class="fw-bold">@HistorySales.Count()</div>
+                </div>
+            </div>
+        </div>
+
+        @* Sales table *@
+        <div class="table-responsive table-view">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr><th>Date</th><th>Product</th><th>Qty</th><th>Method</th><th>Amount</th><th class="text-end">Actions</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var sale in HistorySales.OrderByDescending(s => s.Date).Skip((historyPage - 1) * HistoryPageSize).Take(HistoryPageSize))
+                {
+                    <tr style="@(sale.IsVoided ? "opacity: 0.5; text-decoration: line-through;" : "")">
+                        <td>@sale.Date.ToLocalTime().ToString("MMM dd, h:mm tt")</td>
+                        <td><strong>@sale.ProductName</strong></td>
+                        <td>@sale.QuantitySold</td>
+                        <td><span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span></td>
+                        <td style="color: var(--primary)">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
+                        <td class="text-end">
+                            @if (!sale.IsVoided)
+                            {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => PrintHistoryReceipt(sale)" title="Receipt"><i class="fa-solid fa-print"></i></button>
+                                @if (sale.Date.ToLocalTime().Date == DateTime.Today)
+                                {
+                                    <button class="btn btn-sm btn-outline-secondary ms-1" @onclick="() => StartEditSale(sale)" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => StartVoidSale(sale)" title="Void"><i class="fa-solid fa-ban"></i></button>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger-subtle">Voided</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+        @* Card view for mobile *@
+        <div class="card-view">
+            @foreach (var sale in HistorySales.OrderByDescending(s => s.Date).Skip((historyPage - 1) * HistoryPageSize).Take(HistoryPageSize))
+            {
+                <div class="stock-card" style="@(sale.IsVoided ? "opacity: 0.5;" : "")">
+                    <div class="stock-card-header">
+                        <div>
+                            <span class="stock-card-name">@sale.ProductName</span>
+                            <div class="text-muted" style="font-size: 0.72rem;">@sale.Date.ToLocalTime().ToString("MMM dd, h:mm tt")</div>
+                        </div>
+                        @if (sale.IsVoided)
+                        {
+                            <span class="badge bg-danger-subtle">Voided</span>
+                        }
+                        else
+                        {
+                            <span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span>
+                        }
+                    </div>
+                    <div class="stock-card-body">
+                        <div class="stock-card-row"><span class="stock-card-label">Qty</span><span>@sale.QuantitySold</span></div>
+                        <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(sale.TotalAmount)</span></div>
+                    </div>
+                    @if (!sale.IsVoided)
+                    {
+                        <div class="stock-card-actions">
+                            <button class="btn btn-sm btn-outline-primary" @onclick="() => PrintHistoryReceipt(sale)"><i class="fa-solid fa-print"></i> Receipt</button>
+                            @if (sale.Date.ToLocalTime().Date == DateTime.Today)
+                            {
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEditSale(sale)"><i class="fa-solid fa-pen"></i> Edit</button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => StartVoidSale(sale)"><i class="fa-solid fa-ban"></i> Void</button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+        <PaginationBar Page="historyPage" PageSize="HistoryPageSize" TotalItems="HistorySales.Count()" OnPageChange="SetHistoryPage" />
+    }
+    else
+    {
+        <EmptyState Icon="fa-solid fa-receipt" Title="No sales yet" Message="Sales will appear here after you complete transactions." />
+    }
+</div>
+}
+
+@* ── POS Mode: PIN prompt to exit ── *@
+<InventoryPlus.Components.PinPrompt
+    IsVisible="showExitPinPrompt"
+    IsVisibleChanged="@((v) => showExitPinPrompt = v)"
+    Title="Enter PIN to Exit POS Mode"
+    OnVerified="OnExitPinVerified" />
+
+@* ── POS Mode: PIN prompt for edit/void ── *@
+<InventoryPlus.Components.PinPrompt
+    IsVisible="showActionPinPrompt"
+    IsVisibleChanged="@((v) => showActionPinPrompt = v)"
+    Title="Enter PIN to Continue"
+    OnVerified="OnActionPinVerified" />
+
+@* ── Edit Sale Modal ── *@
+<AppModal IsOpen="showEditSaleModal" IsOpenChanged="@((v) => { showEditSaleModal = v; })" Size="Large">
+    <Header>
+        <h5 class="modal-title">Edit Sale</h5>
+    </Header>
+    <Content>
+        @if (editingSale != null)
+        {
+            <div class="mb-3">
+                <label class="form-label">Product</label>
+                <input type="text" class="form-control" value="@editingSale.ProductName" readonly />
+            </div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" class="form-control" @bind="editQty" min="1" />
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Payment Method</label>
+                    <select class="form-select" @bind="editPaymentMethod">
+                        <option value="Cash">Cash</option>
+                        <option value="GCash">GCash</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row g-3 mt-1">
+                <div class="col-6">
+                    <label class="form-label">Discount Type</label>
+                    <select class="form-select" @bind="editDiscountType">
+                        <option value="None">None</option>
+                        <option value="Percentage">% Off</option>
+                        <option value="Fixed">₱ Fixed</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    @if (editDiscountType != "None")
+                    {
+                        <label class="form-label">Discount Amount</label>
+                        <input type="number" class="form-control" step="0.01" @bind="editDiscountAmount" />
+                    }
+                </div>
+            </div>
+        }
+    </Content>
+    <Footer>
+        <button class="btn btn-outline-secondary" @onclick="() => showEditSaleModal = false">Cancel</button>
+        <button class="btn btn-primary" @onclick="SaveEditSale">Save Changes</button>
+    </Footer>
+</AppModal>
+
+@* ── Void Sale Confirm ── *@
+<InventoryPlus.Components.ConfirmDialog
+    IsVisible="showVoidConfirm"
+    Title="Void Sale"
+    Message="Are you sure you want to void this sale? Stock will be restored."
+    Icon="fa-solid fa-ban"
+    ConfirmButtonClass="btn-danger"
+    OnConfirm="ConfirmVoidSale"
+    OnCancel="() => showVoidConfirm = false" />
+
+@* ── History Receipt ── *@
+@if (historyReceiptSale != null)
+{
+    <Receipt IsVisible="showHistoryReceipt" BusinessName="@AppSettings.CompanyName" SaleDate="@historyReceiptSale.Date"
+             CustomerName="@historyReceiptSale.CustomerName"
+             Items="@(new List<Receipt.ReceiptItem> { new() { Name = historyReceiptSale.ProductName, Quantity = historyReceiptSale.QuantitySold, UnitPrice = (historyReceiptSale.TotalAmount - historyReceiptSale.TaxAmount) / historyReceiptSale.QuantitySold } })"
+             Subtotal="@(historyReceiptSale.TotalAmount - historyReceiptSale.TaxAmount)" TaxTotal="@historyReceiptSale.TaxAmount" Total="@historyReceiptSale.TotalAmount"
+             PaymentMethod="@historyReceiptSale.PaymentMethod" DiscountAmount="@historyReceiptSale.DiscountAmount" DiscountType="@historyReceiptSale.DiscountType"
+             OnClose="() => { showHistoryReceipt = false; historyReceiptSale = null; }" />
+}
 
 @code {
 }

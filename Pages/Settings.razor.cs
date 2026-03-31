@@ -337,5 +337,19 @@ namespace InventoryPlus.Pages
                 await AppSettings.SaveAsync(currentUser.Id);
             Toast.Show("Navigation preferences saved!");
         }
+
+        protected void TogglePosMode()
+        {
+            AppSettings.IsPosMode = !AppSettings.IsPosMode;
+            if (AppSettings.IsPosMode)
+            {
+                Toast.Show("POS Mode activated. Only Point of Sale is accessible.", "info");
+                Nav.NavigateTo("sales");
+            }
+            else
+            {
+                Toast.Show("POS Mode deactivated.", "info");
+            }
+        }
     }
 }

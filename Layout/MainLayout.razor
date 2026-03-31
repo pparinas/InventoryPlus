@@ -48,6 +48,8 @@
                 }
             </button>
 
+            @if (!AppSettings.IsPosMode)
+            {
             <button class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center position-relative" @onclick="ToggleNotifications" @onclick:stopPropagation style="width: 36px; height: 36px; padding: 0;" title="Notifications">
                 <i class="fa-solid fa-bell"></i>
                 @if ((notificationPanel?.UnreadCount ?? 0) > 0)
@@ -100,6 +102,7 @@
                     </div>
                 }
             </div>
+            }
         </div>
     </header>
 
@@ -144,6 +147,15 @@
 
     @* ── Mobile Bottom Bar ── *@
     <nav class="mobile-bottom-bar d-md-none">
+        @if (AppSettings.IsPosMode)
+        {
+            <a href="sales" class="bottom-bar-item @(IsActive("sales") ? "active" : "")">
+                <i class="fa-solid fa-cash-register"></i>
+                <span>POS</span>
+            </a>
+        }
+        else
+        {
         <a href="dashboard" class="bottom-bar-item @(IsActive("dashboard") ? "active" : "")">
             <i class="fa-solid fa-chart-line"></i>
             <span>Home</span>
@@ -183,6 +195,7 @@
                 <i class="fa-solid fa-file-lines"></i>
                 <span>Reports</span>
             </a>
+        }
         }
     </nav>
 

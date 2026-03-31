@@ -1,83 +1,101 @@
 <nav>
-    <NavLink class="nav-item" href="dashboard" Match="NavLinkMatch.All">
-        <i class="fa-solid fa-chart-line fa-fw"></i>
-        <span>Dashboard</span>
-    </NavLink>
-    
-    @if (!AppSettings.IsGuestMode)
+    @if (AppSettings.IsPosMode)
     {
-    <AuthorizeView Roles="Admin">
-        <Authorized>
-            <div class="nav-section-title">
-                Administration
-            </div>
-            <NavLink class="nav-item" href="admin">
-                <i class="fa-solid fa-shield-halved fa-fw"></i>
-                <span>Admin Settings</span>
-            </NavLink>
-        </Authorized>
-    </AuthorizeView>
-    }
-    
-    @if (AppSettings.ShowInventoryTab)
-    {
-    <div class="nav-section-title">
-        Inventory
-    </div>
-
-    <NavLink class="nav-item" href="stocks">
-        <i class="fa-solid fa-boxes-stacked fa-fw"></i>
-        <span>Inventory</span>
-    </NavLink>
-    }
-    
-    <NavLink class="nav-item" href="products">
-        <i class="fa-solid fa-leaf fa-fw"></i>
-        <span>Products</span>
-    </NavLink>
-    
-    @if (AppSettings.ShowOpexTab)
-    {
-    <NavLink class="nav-item" href="expenses">
-        <i class="fa-solid fa-file-invoice-dollar fa-fw"></i>
-        <span>OPEX</span>
-    </NavLink>
-    }
-
-    <div class="nav-section-title">
-        Business
-    </div>
-    
-    <NavLink class="nav-item" href="sales">
-        <i class="fa-solid fa-cash-register fa-fw"></i>
-        <span>Point of Sale</span>
-    </NavLink>
-    
-    @if (AppSettings.IsGuestMode)
-    {
-        <div class="nav-item nav-item-locked" title="Sign in to access Reports">
-            <i class="fa-solid fa-lock fa-fw" style="color: var(--text-muted);"></i>
-            <span>Reports</span>
-            <span class="badge bg-primary-subtle ms-auto" style="font-size: 0.65rem;">Pro</span>
+        @* ── POS Mode: minimal nav ── *@
+        <div class="nav-section-title">
+            <i class="fa-solid fa-cash-register fa-fw" style="color: var(--primary);"></i> POS Mode
         </div>
-        <div class="nav-item nav-item-locked" title="Sign in to access Settings">
-            <i class="fa-solid fa-lock fa-fw" style="color: var(--text-muted);"></i>
-            <span>Settings</span>
-            <span class="badge bg-primary-subtle ms-auto" style="font-size: 0.65rem;">Pro</span>
-        </div>
+
+        <button class="nav-item @(AppSettings.PosActiveView == "pos" ? "active" : "")" style="border: none; background: none; cursor: pointer; width: 100%; text-align: left; color: inherit;" @onclick="SetViewPos">
+            <i class="fa-solid fa-cash-register fa-fw"></i>
+            <span>Point of Sale</span>
+        </button>
+
+        <button class="nav-item @(AppSettings.PosActiveView == "history" ? "active" : "")" style="border: none; background: none; cursor: pointer; width: 100%; text-align: left; color: inherit;" @onclick="SetViewHistory">
+            <i class="fa-solid fa-clock-rotate-left fa-fw"></i>
+            <span>Sales History</span>
+        </button>
+
+        <div style="flex: 1"></div>
     }
     else
     {
-    <NavLink class="nav-item" href="reports">
-        <i class="fa-solid fa-file-invoice-dollar fa-fw"></i>
-        <span>Reports</span>
-    </NavLink>
+        @* ── Normal navigation ── *@
+        <NavLink class="nav-item" href="dashboard" Match="NavLinkMatch.All">
+            <i class="fa-solid fa-chart-line fa-fw"></i>
+            <span>Dashboard</span>
+        </NavLink>
+        
+        @if (!AppSettings.IsGuestMode)
+        {
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <div class="nav-section-title">
+                    Administration
+                </div>
+                <NavLink class="nav-item" href="admin">
+                    <i class="fa-solid fa-shield-halved fa-fw"></i>
+                    <span>Admin Settings</span>
+                </NavLink>
+            </Authorized>
+        </AuthorizeView>
+        }
+        
+        @if (AppSettings.ShowInventoryTab)
+        {
+        <div class="nav-section-title">
+            Inventory
+        </div>
 
-    <NavLink class="nav-item" href="pilot">
-        <i class="fa-solid fa-tower-broadcast fa-fw"></i>
-        <span>Pilot Mode</span>
-    </NavLink>
+        <NavLink class="nav-item" href="stocks">
+            <i class="fa-solid fa-boxes-stacked fa-fw"></i>
+            <span>Inventory</span>
+        </NavLink>
+        }
+        
+        <NavLink class="nav-item" href="products">
+            <i class="fa-solid fa-leaf fa-fw"></i>
+            <span>Products</span>
+        </NavLink>
+        
+        @if (AppSettings.ShowOpexTab)
+        {
+        <NavLink class="nav-item" href="expenses">
+            <i class="fa-solid fa-file-invoice-dollar fa-fw"></i>
+            <span>OPEX</span>
+        </NavLink>
+        }
+
+        <div class="nav-section-title">
+            Business
+        </div>
+        
+        <NavLink class="nav-item" href="sales">
+            <i class="fa-solid fa-cash-register fa-fw"></i>
+            <span>Point of Sale</span>
+        </NavLink>
+        
+        @if (AppSettings.IsGuestMode)
+        {
+            <div class="nav-item nav-item-locked" title="Sign in to access Reports">
+                <i class="fa-solid fa-lock fa-fw" style="color: var(--text-muted);"></i>
+                <span>Reports</span>
+                <span class="badge bg-primary-subtle ms-auto" style="font-size: 0.65rem;">Pro</span>
+            </div>
+            <div class="nav-item nav-item-locked" title="Sign in to access Settings">
+                <i class="fa-solid fa-lock fa-fw" style="color: var(--text-muted);"></i>
+                <span>Settings</span>
+                <span class="badge bg-primary-subtle ms-auto" style="font-size: 0.65rem;">Pro</span>
+            </div>
+        }
+        else
+        {
+        <NavLink class="nav-item" href="reports">
+            <i class="fa-solid fa-file-invoice-dollar fa-fw"></i>
+            <span>Reports</span>
+        </NavLink>
+        }
+        
+        <div style="flex: 1"></div>
     }
-    
-    <div style="flex: 1"></div>
 </nav>
