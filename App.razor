@@ -1,10 +1,11 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.AspNetCore.Components.Web
+@inject InventoryPlus.Services.PilotService PilotService
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(App).Assembly" NotFoundPage="typeof(Pages.NotFound)">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@(PilotService.IsPilotMode ? typeof(Layout.PilotLayout) : typeof(MainLayout))">
                 <Authorizing>
                     <div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;gap:1rem;">
                         <div class="loader-pulse"></div>
