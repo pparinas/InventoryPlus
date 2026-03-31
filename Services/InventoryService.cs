@@ -13,7 +13,6 @@ namespace InventoryPlus.Services
     {
         private readonly Client _supabase;
         private Guid _ownerGuid;
-        private PilotService? _pilotService;
 
         public List<Ingredient> Ingredients { get; set; } = new();
         public List<Product> Products { get; set; } = new();
@@ -38,8 +37,6 @@ namespace InventoryPlus.Services
         {
             _supabase = supabase;
         }
-
-        public void SetPilotService(PilotService pilotService) => _pilotService = pilotService;
 
         public async Task LoadAsync(string userId, IJSRuntime? js = null)
         {
@@ -322,13 +319,6 @@ namespace InventoryPlus.Services
 
             Sales.Insert(0, saved);
 
-            // Log pilot activity if in pilot mode
-            if (_pilotService?.IsPilotMode == true)
-            {
-                await _pilotService.LogActivityAsync("sale", "sale", saved.Guid,
-                    $"Sold {saved.QuantitySold}x {saved.ProductName} for ₱{saved.TotalAmount:N2}");
-            }
-
             NotifyStateChanged();
             return saved;
         }
@@ -404,14 +394,6 @@ namespace InventoryPlus.Services
 
             sale.IsVoided = true;
             if (!IsGuestMode) await _supabase.From<Sale>().Upsert(sale);
-
-            // Log pilot activity if in pilot mode
-            if (_pilotService?.IsPilotMode == true)
-            {
-                await _pilotService.LogActivityAsync("void", "sale", sale.Guid,
-                    $"Voided {sale.QuantitySold}x {sale.ProductName} (₱{sale.TotalAmount:N2})");
-            }
-
             NotifyStateChanged();
         }
 
