@@ -1,0 +1,8 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "negosyo360",
+  "compatibility_date": "2025-09-27",
+  "assets": {
+    "directory": "publish/wwwroot"
+  }
+}
