@@ -7,10 +7,10 @@
     <meta name="theme-color" content="#03173d" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="InventoryPlus" />
+    <meta name="apple-mobile-web-app-title" content="Negosyo360" />
     <meta name="description" content="Smart inventory & POS system for small businesses" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <title>InventoryPlus</title>
+    <title>Negosyo360</title>
     <base href="/" />
     <link rel="preload" id="webassembly" />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -67,7 +67,7 @@
     <div id="app">
         <div class="initial-loader">
             <div class="loader-pulse"></div>
-            <div>Loading InventoryPlus...</div>
+            <div>Loading Negosyo360...</div>
         </div>
     </div>
 
@@ -90,8 +90,7 @@
             var redirect = sessionStorage.redirect;
             delete sessionStorage.redirect;
             if (redirect && redirect !== '/') {
-                // 404.html strips the /InventoryPlus prefix, so add it back before replaceState
-                history.replaceState(null, null, '/InventoryPlus' + redirect);
+                history.replaceState(null, null, redirect);
             }
         })();
     </script>
@@ -142,8 +141,8 @@
                 if (favicon) favicon.href = logoUrl;
                 // Create dynamic manifest with custom icon
                 var manifest = {
-                    name: (appName || 'InventoryPlus') + ' — Inventory & POS',
-                    short_name: appName || 'InventoryPlus',
+                    name: (appName || 'Negosyo360') + ' — Inventory & POS',
+                    short_name: appName || 'Negosyo360',
                     description: 'Smart inventory management and point-of-sale system for small businesses.',
                     id: './',
                     start_url: './login',
