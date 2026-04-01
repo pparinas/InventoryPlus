@@ -1,21 +1,12 @@
-name: Deploy to GitHub Pages
+name: Deploy to Cloudflare Pages
 
 on:
   push:
     branches:
       - main
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -34,13 +25,6 @@ jobs:
           sed -i 's|__SUPABASE_URL__|${{ secrets.SUPABASE_URL }}|g' publish/wwwroot/appsettings.json
           sed -i 's|__SUPABASE_KEY__|${{ secrets.SUPABASE_KEY }}|g' publish/wwwroot/appsettings.json
 
-      - name: Fix base href for GitHub Pages
-        run: |
-          sed -i 's|<base href="/" />|<base href="/InventoryPlus/" />|g' publish/wwwroot/index.html
-
-      - name: Disable Jekyll (allow _framework folder to be served)
-        run: touch publish/wwwroot/.nojekyll
-
       - name: Create non-fingerprinted entry file for static hosting
         run: |
           find publish/wwwroot/_framework -maxdepth 1 \
@@ -48,18 +32,9 @@ jobs:
             ! -name '*.gz' ! -name '*.br' \
             -exec cp {} publish/wwwroot/_framework/blazor.webassembly.js \;
 
-      - name: Upload GitHub Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
         with:
-          path: publish/wwwroot
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy publish/wwwroot --project-name=negosyo360

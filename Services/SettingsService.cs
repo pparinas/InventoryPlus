@@ -14,7 +14,7 @@ namespace InventoryPlus.Services
             _supabase = supabase;
         }
 
-        private string _companyName = "InventoryPlus";
+        private string _companyName = "Negosyo360";
         public string CompanyName 
         { 
             get => _companyName; 
