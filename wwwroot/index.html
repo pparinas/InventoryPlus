@@ -93,6 +93,17 @@
                 history.replaceState(null, null, redirect);
             }
         })();
+
+        // Intercept Supabase auth error fragments (e.g. email confirmation expired)
+        (function () {
+            var hash = window.location.hash;
+            if (hash && hash.indexOf('error=') !== -1) {
+                var params = new URLSearchParams(hash.substring(1));
+                var code = params.get('error_code') || params.get('error') || 'unknown';
+                var desc = params.get('error_description') || 'An authentication error occurred.';
+                window.location.replace('/login?auth_error=' + encodeURIComponent(code) + '&auth_error_desc=' + encodeURIComponent(desc));
+            }
+        })();
     </script>
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
     <script>

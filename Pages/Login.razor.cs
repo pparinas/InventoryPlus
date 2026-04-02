@@ -34,6 +34,19 @@ namespace InventoryPlus.Pages
             if (query["expired"] == "true")
                 ErrorMessage = "Your session has expired. Please log in again.";
 
+            // Handle Supabase auth redirect errors (e.g. expired email confirmation link)
+            var authError = query["auth_error"];
+            if (!string.IsNullOrEmpty(authError))
+            {
+                var desc = query["auth_error_desc"] ?? "";
+                ErrorMessage = authError switch
+                {
+                    "otp_expired" => "Your email confirmation link has expired. Please ask your administrator to resend the invite.",
+                    "access_denied" => !string.IsNullOrEmpty(desc) ? desc.Replace('+', ' ') : "Access denied. Please try again or contact your administrator.",
+                    _ => !string.IsNullOrEmpty(desc) ? desc.Replace('+', ' ') : "An authentication error occurred. Please try again."
+                };
+            }
+
             try
             {
                 var remembered = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", "sb_remembered_email");
