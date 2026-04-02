@@ -53,12 +53,36 @@ namespace InventoryPlus.Pages
 
             try
             {
-                var session = await Supabase.Auth.SignIn(Email.Trim(), Password);
+                var loginInput = Email.Trim();
+
+                // If input doesn't look like an email, resolve username to email
+                if (!loginInput.Contains('@'))
+                {
+                    try
+                    {
+                        var result = await Supabase.Rpc("get_email_by_username", new Dictionary<string, object> { { "username_input", loginInput } });
+                        var resolvedEmail = result?.Content?.Trim('"');
+                        if (!string.IsNullOrEmpty(resolvedEmail) && resolvedEmail != "null")
+                            loginInput = resolvedEmail;
+                        else
+                        {
+                            ErrorMessage = "No account found with that username.";
+                            return;
+                        }
+                    }
+                    catch
+                    {
+                        ErrorMessage = "Unable to look up username. Try using your email instead.";
+                        return;
+                    }
+                }
+
+                var session = await Supabase.Auth.SignIn(loginInput, Password);
                 if (session != null && session.User != null)
                 {
-                    // Save/clear remembered email
+                    // Save/clear remembered login
                     if (RememberMe)
-                        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "sb_remembered_email", Email.Trim());
+                        await JSRuntime.InvokeVoidAsync("localStorage.setItem", "sb_remembered_email", loginInput);
                     else
                         await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_remembered_email");
 
