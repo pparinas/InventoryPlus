@@ -164,12 +164,6 @@ namespace InventoryPlus.Services
                 }
                 catch { }
 
-                // Fallback: hardcoded super-admin email
-                if (user.Email?.ToLower() == "pparinas@ucpm.com" && !claims.Any(c => c.Type == ClaimTypes.Role))
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, "Admin"));
-                }
-
                 var identity = new ClaimsIdentity(claims, "Supabase");
                 return new AuthenticationState(new ClaimsPrincipal(identity));
             }

@@ -12,6 +12,7 @@ namespace InventoryPlus.Pages
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public InviteTokenService InviteService { get; set; } = default!;
 
+        protected string Username { get; set; } = string.Empty;
         protected string Email { get; set; } = string.Empty;
         protected string Password { get; set; } = string.Empty;
         protected string ConfirmPassword { get; set; } = string.Empty;
@@ -129,7 +130,14 @@ namespace InventoryPlus.Pages
 
             try
             {
-                await Supabase.Auth.SignUp(Email.Trim(), Password);
+                var signUpOptions = new Supabase.Gotrue.SignUpOptions
+                {
+                    Data = new Dictionary<string, object>
+                    {
+                        { "username", string.IsNullOrWhiteSpace(Username) ? Email.Trim().Split('@')[0] : Username.Trim() }
+                    }
+                };
+                await Supabase.Auth.SignUp(Email.Trim(), Password, signUpOptions);
                 await Supabase.Auth.SignOut();
 
                 // Mark token as used after successful registration
