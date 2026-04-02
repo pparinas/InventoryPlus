@@ -58,14 +58,11 @@ namespace InventoryPlus.Services
         {
             try
             {
-                var update = _supabase.From<InviteToken>()
-                    .Where(t => t.Token == token)
-                    .Set(t => t.IsUsed, true);
-
-                if (!string.IsNullOrEmpty(email))
-                    update = update.Set(t => t.UsedByEmail, email);
-
-                await update.Update();
+                await _supabase.Rpc("mark_invite_token_used", new Dictionary<string, object>
+                {
+                    { "token_value", token },
+                    { "used_email", email ?? "" }
+                });
             }
             catch (Exception ex)
             {

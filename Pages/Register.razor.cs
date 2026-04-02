@@ -138,10 +138,11 @@ namespace InventoryPlus.Pages
                     }
                 };
                 await Supabase.Auth.SignUp(Email.Trim(), Password, signUpOptions);
-                await Supabase.Auth.SignOut();
 
-                // Mark token as used after successful registration
+                // Mark token as used before signing out (needs auth session for RLS)
                 await InviteService.MarkTokenUsedAsync(_token, Email.Trim());
+
+                await Supabase.Auth.SignOut();
 
                 _countdownTimer?.Dispose();
                 _countdownTimer = null;
