@@ -143,9 +143,9 @@ namespace InventoryPlus.Pages
                 // Mark token as used after successful registration
                 await InviteService.MarkTokenUsedAsync(_token, Email.Trim());
 
-                SuccessMessage = "Account created! Check your email to confirm, then sign in.";
                 _countdownTimer?.Dispose();
                 _countdownTimer = null;
+                NavigationManager.NavigateTo("/login?success=" + Uri.EscapeDataString("Account created! Check your email to confirm, then sign in."), forceLoad: false);
             }
             catch (Exception ex)
             {

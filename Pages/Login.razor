@@ -11,6 +11,10 @@
         <h2>Welcome Back</h2>
         <p class="text-muted text-center" style="margin-bottom: 1.5rem; margin-top: -0.5rem;">Sign in to @AppSettings.CompanyName</p>
         
+        @if (!string.IsNullOrEmpty(SuccessMessage))
+        {
+            <div class="alert alert-success"><i class="fa-solid fa-circle-check me-1"></i> @SuccessMessage</div>
+        }
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
             <div class="alert alert-danger">@ErrorMessage</div>

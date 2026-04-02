@@ -18,6 +18,7 @@ namespace InventoryPlus.Pages
         protected string Email { get; set; } = string.Empty;
         protected string Password { get; set; } = string.Empty;
         protected string ErrorMessage { get; set; } = string.Empty;
+        protected string SuccessMessage { get; set; } = string.Empty;
         protected bool IsLoading { get; set; } = false;
         protected bool RememberMe { get; set; } = false;
 
@@ -33,6 +34,10 @@ namespace InventoryPlus.Pages
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
             if (query["expired"] == "true")
                 ErrorMessage = "Your session has expired. Please log in again.";
+
+            var successMsg = query["success"];
+            if (!string.IsNullOrEmpty(successMsg))
+                SuccessMessage = successMsg;
 
             // Handle Supabase auth redirect errors (e.g. expired email confirmation link)
             var authError = query["auth_error"];
