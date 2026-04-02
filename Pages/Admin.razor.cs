@@ -111,6 +111,7 @@ namespace InventoryPlus.Pages
         protected TimeSpan? inviteTimeRemaining;
         protected bool inviteExpired;
         protected bool inviteCopied;
+        protected int inviteExpiryHours = 24;
         private System.Threading.Timer? _inviteTimer;
 
         protected async Task GenerateInviteLink()
@@ -130,7 +131,7 @@ namespace InventoryPlus.Pages
                     return;
                 }
 
-                var invite = await InviteService.GenerateInviteAsync(adminId);
+                var invite = await InviteService.GenerateInviteAsync(adminId, inviteExpiryHours);
                 var baseUri = NavManager.BaseUri.TrimEnd('/');
                 generatedInviteUrl = $"{baseUri}/register?token={invite.Token}";
                 inviteExpiresAt = invite.ExpiresAt.ToLocalTime();

@@ -14,7 +14,7 @@ namespace InventoryPlus.Services
             _supabase = supabase;
         }
 
-        public async Task<InviteToken> GenerateInviteAsync(Guid createdBy)
+        public async Task<InviteToken> GenerateInviteAsync(Guid createdBy, int expiryHours = 24)
         {
             var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
                 .Replace("+", "-").Replace("/", "_").TrimEnd('=');
@@ -24,7 +24,7 @@ namespace InventoryPlus.Services
                 Id = Guid.NewGuid(),
                 Token = token,
                 CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
+                ExpiresAt = DateTime.UtcNow.AddHours(expiryHours),
                 IsUsed = false,
                 CreatedBy = createdBy
             };
