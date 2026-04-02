@@ -31,9 +31,8 @@ jobs:
             -exec cp {} publish/wwwroot/_framework/blazor.webassembly.js \;
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: negosyo360
-          directory: publish/wwwroot
+          command: pages deploy publish/wwwroot --project-name=negosyo360
