@@ -97,7 +97,20 @@
         // Intercept Supabase auth error fragments (e.g. email confirmation expired)
         (function () {
             var hash = window.location.hash;
-            if (hash && hash.indexOf('error=') !== -1) {
+            if (!hash) return;
+
+            // Successful email confirmation: access_token in hash fragment
+            if (hash.indexOf('access_token=') !== -1) {
+                var params = new URLSearchParams(hash.substring(1));
+                var type = params.get('type') || '';
+                if (type === 'signup' || type === 'email') {
+                    window.location.replace('/login?success=' + encodeURIComponent('Email confirmed! You can now sign in.'));
+                    return;
+                }
+            }
+
+            // Auth errors
+            if (hash.indexOf('error=') !== -1) {
                 var params = new URLSearchParams(hash.substring(1));
                 var code = params.get('error_code') || params.get('error') || 'unknown';
                 var desc = params.get('error_description') || 'An authentication error occurred.';
