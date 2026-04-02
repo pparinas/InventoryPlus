@@ -145,9 +145,18 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h2>Registration Invite</h2>
-                <p class="text-muted text-sm">Generate a one-time registration link valid for 10 minutes.</p>
+                <p class="text-muted text-sm">Generate a one-time registration link. Expires after the selected duration.</p>
             </div>
-            <button class="btn btn-primary" @onclick="GenerateInviteLink" disabled="@isGeneratingInvite">
+            <div class="d-flex align-items-center gap-2">
+                <select class="form-select form-select-sm" @bind="inviteExpiryHours" style="width: auto;">
+                    <option value="1">1 hour</option>
+                    <option value="6">6 hours</option>
+                    <option value="12">12 hours</option>
+                    <option value="24">24 hours</option>
+                    <option value="48">48 hours</option>
+                    <option value="72">72 hours</option>
+                </select>
+                <button class="btn btn-primary" @onclick="GenerateInviteLink" disabled="@isGeneratingInvite">
                 @if (isGeneratingInvite)
                 {
                     <span class="spinner"></span> <span>Generating...</span>
@@ -157,6 +166,7 @@
                     <i class="fa-solid fa-link me-1"></i> <span>Generate Link</span>
                 }
             </button>
+            </div>
         </div>
 
         @if (!string.IsNullOrEmpty(generatedInviteUrl))
@@ -176,10 +186,17 @@
                         </button>
                     </div>
                     <div class="small text-muted">
-                        <i class="fa-solid fa-stopwatch me-1"></i> Expires: <strong>@inviteExpiresAt?.ToString("hh:mm:ss tt")</strong>
+                        <i class="fa-solid fa-stopwatch me-1"></i> Expires: <strong>@inviteExpiresAt?.ToString("MMM dd, hh:mm tt")</strong>
                         @if (inviteTimeRemaining.HasValue)
                         {
-                            <span class="ms-2">(@inviteTimeRemaining.Value.Minutes min @inviteTimeRemaining.Value.Seconds sec remaining)</span>
+                            @if (inviteTimeRemaining.Value.TotalHours >= 1)
+                            {
+                                <span class="ms-2">(@((int)inviteTimeRemaining.Value.TotalHours)h @inviteTimeRemaining.Value.Minutes min remaining)</span>
+                            }
+                            else
+                            {
+                                <span class="ms-2">(@inviteTimeRemaining.Value.Minutes min @inviteTimeRemaining.Value.Seconds sec remaining)</span>
+                            }
                         }
                     </div>
                 }
