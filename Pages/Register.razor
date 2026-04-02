@@ -51,6 +51,11 @@
             }
 
             <div class="mb-3">
+                <label for="username" class="form-label small fw-medium text-muted">Display Name</label>
+                <input id="username" type="text" @bind="Username" class="form-control" placeholder="Your name or business name" />
+            </div>
+
+            <div class="mb-3">
                 <label for="email" class="form-label small fw-medium text-muted">Email</label>
                 <input id="email" type="email" @bind="Email" class="form-control" placeholder="you@example.com" />
             </div>

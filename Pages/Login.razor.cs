@@ -76,11 +76,20 @@ namespace InventoryPlus.Pages
                                 ErrorMessage = "Your account has been deactivated. Please contact an administrator.";
                                 return;
                             }
-                            if (profile.SubscriptionExpiry.HasValue && profile.SubscriptionExpiry.Value.ToUniversalTime() < DateTime.UtcNow)
+                            // Admins bypass trial/subscription checks
+                            if (!profile.IsAdmin)
                             {
-                                await Supabase.Auth.SignOut();
-                                ErrorMessage = "Your subscription has expired. Please contact an administrator to renew your plan.";
-                                return;
+                                var hasActiveTrial = profile.TrialExpiresAt.HasValue && profile.TrialExpiresAt.Value.ToUniversalTime() >= DateTime.UtcNow;
+                                var hasActiveSubscription = profile.SubscriptionExpiry.HasValue && profile.SubscriptionExpiry.Value.ToUniversalTime() >= DateTime.UtcNow;
+
+                                if (!hasActiveTrial && !hasActiveSubscription)
+                                {
+                                    await Supabase.Auth.SignOut();
+                                    ErrorMessage = profile.TrialExpiresAt.HasValue && !profile.SubscriptionExpiry.HasValue
+                                        ? "Your 7-day free trial has expired. Please contact an administrator to subscribe."
+                                        : "Your subscription has expired. Please contact an administrator to renew your plan.";
+                                    return;
+                                }
                             }
                         }
                     }
