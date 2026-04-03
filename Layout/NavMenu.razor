@@ -58,7 +58,15 @@
             <span>Products</span>
         </NavLink>
         
-        @if (AppSettings.ShowOpexTab)
+        @if (AppSettings.IsGuestMode)
+        {
+            <NavLink class="nav-item nav-item-locked" href="expenses">
+                <i class="fa-solid fa-file-invoice-dollar fa-fw" style="color: var(--text-muted);"></i>
+                <span>OPEX</span>
+                <span class="badge bg-primary-subtle ms-auto" style="font-size: 0.65rem;">Pro</span>
+            </NavLink>
+        }
+        else if (AppSettings.ShowOpexTab)
         {
         <NavLink class="nav-item" href="expenses">
             <i class="fa-solid fa-file-invoice-dollar fa-fw"></i>
@@ -77,16 +85,16 @@
         
         @if (AppSettings.IsGuestMode)
         {
-            <div class="nav-item nav-item-locked" title="Sign in to access Reports">
-                <i class="fa-solid fa-lock fa-fw" style="color: var(--text-muted);"></i>
+            <NavLink class="nav-item nav-item-locked" href="reports">
+                <i class="fa-solid fa-file-invoice-dollar fa-fw" style="color: var(--text-muted);"></i>
                 <span>Reports</span>
                 <span class="badge bg-primary-subtle ms-auto" style="font-size: 0.65rem;">Pro</span>
-            </div>
-            <div class="nav-item nav-item-locked" title="Sign in to access Settings">
-                <i class="fa-solid fa-lock fa-fw" style="color: var(--text-muted);"></i>
+            </NavLink>
+            <NavLink class="nav-item nav-item-locked" href="settings">
+                <i class="fa-solid fa-gear fa-fw" style="color: var(--text-muted);"></i>
                 <span>Settings</span>
                 <span class="badge bg-primary-subtle ms-auto" style="font-size: 0.65rem;">Pro</span>
-            </div>
+            </NavLink>
         }
         else
         {

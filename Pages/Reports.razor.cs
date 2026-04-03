@@ -38,7 +38,6 @@ namespace InventoryPlus.Pages
 
         protected override void OnInitialized()
         {
-            if (AppSettings.IsGuestMode) { Nav.NavigateTo("dashboard"); return; }
             Inventory.OnStateChanged += HandleStateChanged;
         }
 

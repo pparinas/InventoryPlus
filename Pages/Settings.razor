@@ -2,6 +2,42 @@
 
 <PageTitle>Settings | @AppSettings.CompanyName</PageTitle>
 
+@if (AppSettings.IsGuestMode)
+{
+<div class="page-header mb-3">
+    <div>
+        <h1>System Settings</h1>
+        <p class="text-muted">Manage your application branding and global configurations.</p>
+    </div>
+</div>
+<div class="guest-locked-page">
+    <div class="glass-panel text-center p-5">
+        <div style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem;"><i class="fa-solid fa-lock"></i></div>
+        <h2>Settings is a Pro Feature</h2>
+        <p class="text-muted mb-3">Sign in to customize branding, color schemes, navigation preferences, security PIN, dashboard widgets, and more.</p>
+        <div class="row g-3 mb-4" style="max-width: 500px; margin: 0 auto;">
+            <div class="col-6">
+                <div class="glass-panel p-3 locked-widget" style="position: relative;">
+                    <div class="locked-widget-overlay"><i class="fa-solid fa-lock"></i></div>
+                    <h3 class="text-sm text-muted mb-1"><i class="fa-solid fa-palette"></i> Branding</h3>
+                    <div style="height: 50px;"></div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="glass-panel p-3 locked-widget" style="position: relative;">
+                    <div class="locked-widget-overlay"><i class="fa-solid fa-lock"></i></div>
+                    <h3 class="text-sm text-muted mb-1"><i class="fa-solid fa-shield-halved"></i> Security</h3>
+                    <div style="height: 50px;"></div>
+                </div>
+            </div>
+        </div>
+        <a href="login" class="btn btn-primary btn-lg"><i class="fa-solid fa-right-to-bracket"></i> Sign In to Unlock</a>
+    </div>
+</div>
+}
+else
+{
+
 <div class="page-header mb-3">
     <div>
         <h1>System Settings</h1>
@@ -261,3 +297,5 @@
     </div>
 </div>
 }
+
+} @* end else (non-guest) *@

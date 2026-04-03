@@ -20,7 +20,7 @@
                 case 0:
                     <div class="onboarding-step">
                         <div class="onboarding-icon"><i class="fa-solid fa-rocket"></i></div>
-                        <h2>Welcome to InventoryPlus!</h2>
+                        <h2>Welcome to @AppSettings.CompanyName!</h2>
                         <p class="text-muted">Let's set up your business in just a few steps. This will only take a minute.</p>
                         <div class="onboarding-actions">
                             <button class="btn btn-primary btn-lg" @onclick="NextStep"><i class="fa-solid fa-arrow-right"></i> Let's Go!</button>
@@ -46,34 +46,28 @@
 
                 case 2:
                     <div class="onboarding-step">
-                        <div class="onboarding-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
-                        <h2>Add Your First Stock Item</h2>
-                        <p class="text-muted">Stock items are your raw materials or ingredients. Add one to get started.</p>
-                        <div style="max-width: 400px; margin: 0 auto;">
-                            <div class="mb-3">
-                                <label class="form-label">Item Name</label>
-                                <input type="text" class="form-control" @bind="stockName" placeholder="e.g. Coffee Beans, Paper Cups" />
+                        <div class="onboarding-icon"><i class="fa-solid fa-sliders"></i></div>
+                        <h2>Configure Your Modules</h2>
+                        <p class="text-muted">Choose which features to enable. You can change these anytime in Settings.</p>
+                        <div style="max-width: 420px; margin: 0 auto;">
+                            <div class="glass-panel p-3 mb-3">
+                                <label class="toggle-row mb-2" style="cursor: pointer;">
+                                    <input type="checkbox" @bind="enableInventory" />
+                                    <span><i class="fa-solid fa-boxes-stacked me-2" style="color: var(--primary);"></i><strong>Inventory / Stock Tracking</strong></span>
+                                </label>
+                                <p class="text-muted text-sm mb-0 ms-4">Track raw materials, ingredients, and stock levels separately from products. Uncheck to add stock items directly as products.</p>
                             </div>
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <label class="form-label">Unit</label>
-                                    <input type="text" class="form-control" @bind="stockUnit" placeholder="e.g. kg, pcs" />
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label">Starting Stock</label>
-                                    <input type="number" class="form-control" step="0.1" @bind="stockQty" />
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Cost per Unit (₱)</label>
-                                <input type="number" class="form-control" step="0.01" @bind="stockCost" />
+                            <div class="glass-panel p-3 mb-3">
+                                <label class="toggle-row mb-2" style="cursor: pointer;">
+                                    <input type="checkbox" @bind="enableOpex" />
+                                    <span><i class="fa-solid fa-file-invoice-dollar me-2" style="color: var(--warning);"></i><strong>OPEX (Operating Expenses)</strong></span>
+                                </label>
+                                <p class="text-muted text-sm mb-0 ms-4">Track rent, utilities, salaries, and other recurring business expenses for accurate profit calculations.</p>
                             </div>
                         </div>
                         <div class="onboarding-actions">
                             <button class="btn btn-outline-secondary" @onclick="PrevStep"><i class="fa-solid fa-arrow-left"></i> Back</button>
-                            <button class="btn btn-primary" @onclick="SaveStock" disabled="@(string.IsNullOrWhiteSpace(stockName) || isSaving)">
-                                @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> } Add & Continue <i class="fa-solid fa-arrow-right"></i>
-                            </button>
+                            <button class="btn btn-primary" @onclick="SaveModulePreferences">Continue <i class="fa-solid fa-arrow-right"></i></button>
                         </div>
                     </div>
                     break;
@@ -92,25 +86,87 @@
                                 <label class="form-label">Selling Price (₱)</label>
                                 <input type="number" class="form-control" step="0.01" @bind="productPrice" />
                             </div>
+                            @if (!enableInventory)
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label">Starting Stock</label>
+                                    <input type="number" class="form-control" step="1" @bind="productStockQty" />
+                                </div>
+                            }
                         </div>
                         <div class="onboarding-actions">
                             <button class="btn btn-outline-secondary" @onclick="PrevStep"><i class="fa-solid fa-arrow-left"></i> Back</button>
                             <button class="btn btn-primary" @onclick="SaveProduct" disabled="@(string.IsNullOrWhiteSpace(productName) || isSaving)">
                                 @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> } Add & Continue <i class="fa-solid fa-arrow-right"></i>
                             </button>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="NextStep">Skip this step</button>
                         </div>
                     </div>
                     break;
 
                 case 4:
+                    @if (enableInventory)
+                    {
+                    <div class="onboarding-step">
+                        <div class="onboarding-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+                        <h2>Add Your First Stock Item</h2>
+                        <p class="text-muted">Stock items are your raw materials or ingredients. Products can be linked to these later.</p>
+                        <div style="max-width: 400px; margin: 0 auto;">
+                            <div class="mb-3">
+                                <label class="form-label">Item Name</label>
+                                <input type="text" class="form-control" @bind="stockName" placeholder="e.g. Coffee Beans, Paper Cups" />
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-4">
+                                    <label class="form-label">Unit</label>
+                                    <input type="text" class="form-control" @bind="stockUnit" placeholder="e.g. kg" />
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label">Stock</label>
+                                    <input type="number" class="form-control" step="0.1" @bind="stockQty" />
+                                </div>
+                                <div class="col-4">
+                                    <label class="form-label">Cost/Unit (₱)</label>
+                                    <input type="number" class="form-control" step="0.01" @bind="stockCost" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="onboarding-actions">
+                            <button class="btn btn-outline-secondary" @onclick="PrevStep"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                            <button class="btn btn-primary" @onclick="SaveStock" disabled="@(string.IsNullOrWhiteSpace(stockName) || isSaving)">
+                                @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> } Add & Continue <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" @onclick="NextStep">Skip this step</button>
+                        </div>
+                    </div>
+                    }
+                    else
+                    {
+                        @* Skip stock step when inventory is disabled — auto-advance *@
+                        <div class="onboarding-step">
+                            <div class="onboarding-icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+                        </div>
+                    }
+                    break;
+
+                case 5:
                     <div class="onboarding-step">
                         <div class="onboarding-icon text-success" style="font-size: 4rem;"><i class="fa-solid fa-circle-check"></i></div>
                         <h2>You're All Set!</h2>
-                        <p class="text-muted">Your business is ready. You can now manage inventory, make sales, and track reports — all from your dashboard.</p>
+                        <p class="text-muted">Your business is ready. Here's what you can do:</p>
                         <div class="onboarding-tips">
-                            <div class="onboarding-tip"><i class="fa-solid fa-cash-register text-primary"></i> Use <strong>Point of Sale</strong> to record sales</div>
+                            <div class="onboarding-tip"><i class="fa-solid fa-cash-register text-primary"></i> Use <strong>Point of Sale</strong> to record sales quickly</div>
+                            <div class="onboarding-tip"><i class="fa-solid fa-leaf text-success"></i> Manage your <strong>Products</strong> catalog and pricing</div>
+                            @if (enableInventory)
+                            {
+                                <div class="onboarding-tip"><i class="fa-solid fa-boxes-stacked" style="color: var(--primary);"></i> Track <strong>Inventory</strong> and get low-stock alerts</div>
+                            }
+                            @if (enableOpex)
+                            {
+                                <div class="onboarding-tip"><i class="fa-solid fa-file-invoice-dollar" style="color: var(--warning);"></i> Log <strong>Operating Expenses</strong> for profit tracking</div>
+                            }
                             <div class="onboarding-tip"><i class="fa-solid fa-chart-line text-success"></i> Check <strong>Reports</strong> for business analytics</div>
-                            <div class="onboarding-tip"><i class="fa-solid fa-gear text-muted"></i> Customize widgets in <strong>Settings</strong></div>
+                            <div class="onboarding-tip"><i class="fa-solid fa-gear text-muted"></i> Customize everything in <strong>Settings</strong></div>
                         </div>
                         <div class="onboarding-actions">
                             <button class="btn btn-primary btn-lg" @onclick="CompleteOnboarding"><i class="fa-solid fa-chart-line"></i> Go to Dashboard</button>
@@ -127,30 +183,63 @@
     [Parameter] public EventCallback OnComplete { get; set; }
 
     private int step = 0;
-    private int totalSteps = 5;
+    private int totalSteps = 6;
     private bool isSaving = false;
 
-    // Step 1
+    // Step 1 — Business name
     private string businessName = "My Business";
 
-    // Step 2
+    // Step 2 — Module toggles
+    private bool enableInventory = true;
+    private bool enableOpex = false;
+
+    // Step 3 — Product
+    private string productName = "";
+    private double productPrice = 0;
+    private double productStockQty = 10;
+
+    // Step 4 — Stock item (only if inventory enabled)
     private string stockName = "";
     private string stockUnit = "pcs";
     private double stockQty = 10;
     private double stockCost = 0;
 
-    // Step 3
-    private string productName = "";
-    private double productPrice = 0;
+    private void NextStep()
+    {
+        step++;
+        // Auto-skip stock step if inventory is disabled
+        if (step == 4 && !enableInventory)
+            step++;
+    }
 
-    private void NextStep() => step++;
-    private void PrevStep() { if (step > 0) step--; }
+    private void PrevStep()
+    {
+        if (step > 0) step--;
+        // Auto-skip stock step backwards
+        if (step == 4 && !enableInventory)
+            step--;
+    }
 
     private async Task SaveBusinessName()
     {
         AppSettings.CompanyName = businessName;
         var user = SupabaseClient.Auth.CurrentUser;
-        if (user != null) await AppSettings.SaveAsync(user.Id);
+        if (user != null)
+        {
+            try { await AppSettings.SaveAsync(user.Id); } catch { }
+        }
+        NextStep();
+    }
+
+    private async Task SaveModulePreferences()
+    {
+        AppSettings.ShowInventoryTab = enableInventory;
+        AppSettings.ShowOpexTab = enableOpex;
+        var user = SupabaseClient.Auth.CurrentUser;
+        if (user != null)
+        {
+            try { await AppSettings.SaveAsync(user.Id); } catch { }
+        }
         NextStep();
     }
 
@@ -186,10 +275,18 @@
                 Guid = Guid.NewGuid(),
                 Name = productName,
                 SellingPrice = productPrice,
-                Category = "Other"
+                Category = "Other",
+                HasIngredients = enableInventory
             };
+
+            // When inventory is disabled, store stock directly on the product
+            if (!enableInventory)
+            {
+                product.StockCount = productStockQty;
+            }
+
             await Inventory.AddProductAsync(product);
-            Toast.Show($"\"{productName}\" created as a product!");
+            Toast.Show($"\"{productName}\" created!");
             NextStep();
         }
         finally { isSaving = false; }
@@ -201,7 +298,10 @@
     {
         AppSettings.OnboardingCompleted = true;
         var user = SupabaseClient.Auth.CurrentUser;
-        if (user != null) await AppSettings.SaveAsync(user.Id);
+        if (user != null)
+        {
+            try { await AppSettings.SaveAsync(user.Id); } catch { }
+        }
         await OnComplete.InvokeAsync();
     }
 }
