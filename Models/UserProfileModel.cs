@@ -7,7 +7,7 @@ namespace InventoryPlus.Models
     [Table("user_profiles")]
     public class UserProfile : BaseModel
     {
-        [PrimaryKey("guid", false)]
+        [PrimaryKey("guid", true)]
         public Guid Guid { get; set; }
 
         [Column("email")]

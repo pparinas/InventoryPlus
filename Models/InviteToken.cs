@@ -7,7 +7,7 @@ namespace InventoryPlus.Models
     [Table("invite_tokens")]
     public class InviteToken : BaseModel
     {
-        [PrimaryKey("id", false)]
+        [PrimaryKey("id", true)]
         [Column("id")]
         public Guid Id { get; set; } = Guid.NewGuid();
 

@@ -10,7 +10,7 @@ namespace InventoryPlus.Models
     [Table("products")]
     public class Product : BaseModel
     {
-        [PrimaryKey("guid", false)]
+        [PrimaryKey("guid", true)]
         public Guid Guid { get; set; } = Guid.NewGuid();
 
         [Column("owner_guid")]
