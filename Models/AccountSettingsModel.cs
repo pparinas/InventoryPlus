@@ -8,7 +8,7 @@ namespace InventoryPlus.Models
     [Table("account_settings")]
     public class AccountSettings : BaseModel
     {
-        [PrimaryKey("owner_guid", false)]
+        [PrimaryKey("owner_guid", true)]
         public Guid OwnerGuid { get; set; }
 
         [Column("company_name")]
