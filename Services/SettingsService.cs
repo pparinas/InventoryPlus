@@ -316,6 +316,7 @@ namespace InventoryPlus.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Settings save error: {ex.Message}");
+                throw;
             }
         }
 

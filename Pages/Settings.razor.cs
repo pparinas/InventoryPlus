@@ -177,13 +177,21 @@ namespace InventoryPlus.Pages
             if (!string.IsNullOrEmpty(newLogoUrl))
                 await JSRuntime.InvokeVoidAsync("pwaIcon.update", newLogoUrl, newCompanyName);
 
-            if (currentUser != null)
-                await AppSettings.SaveAsync(currentUser.Id);
+            try
+            {
+                if (currentUser != null)
+                    await AppSettings.SaveAsync(currentUser.Id);
 
-            Toast.Show("Settings saved successfully!");
-            showSuccess = true;
-            await Task.Delay(3000);
-            showSuccess = false;
+                Toast.Show("Settings saved successfully!");
+                showSuccess = true;
+                await Task.Delay(3000);
+                showSuccess = false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SaveSettings error: {ex.Message}");
+                Toast.Show("Failed to save settings.", "error");
+            }
             StateHasChanged();
         }
 
@@ -254,9 +262,17 @@ namespace InventoryPlus.Pages
 
         protected async Task SavePreferences()
         {
-            if (currentUser != null)
-                await AppSettings.SaveAsync(currentUser.Id);
-            Toast.Show("Preferences saved!");
+            try
+            {
+                if (currentUser != null)
+                    await AppSettings.SaveAsync(currentUser.Id);
+                Toast.Show("Preferences saved!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SavePreferences error: {ex.Message}");
+                Toast.Show("Failed to save preferences.", "error");
+            }
         }
 
         protected async Task SavePin()
@@ -324,18 +340,34 @@ namespace InventoryPlus.Pages
         {
             AppSettings.ColorScheme = selectedColorScheme;
             await JSRuntime.InvokeVoidAsync("themeInterop.setScheme", selectedColorScheme);
-            if (currentUser != null)
-                await AppSettings.SaveAsync(currentUser.Id);
-            Toast.Show("Color scheme applied!");
+            try
+            {
+                if (currentUser != null)
+                    await AppSettings.SaveAsync(currentUser.Id);
+                Toast.Show("Color scheme applied!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SaveColorScheme error: {ex.Message}");
+                Toast.Show("Failed to save color scheme.", "error");
+            }
         }
 
         protected async Task SaveNavPreferences()
         {
             AppSettings.ShowInventoryTab = showInventoryTab;
             AppSettings.ShowOpexTab = showOpexTab;
-            if (currentUser != null)
-                await AppSettings.SaveAsync(currentUser.Id);
-            Toast.Show("Navigation preferences saved!");
+            try
+            {
+                if (currentUser != null)
+                    await AppSettings.SaveAsync(currentUser.Id);
+                Toast.Show("Navigation preferences saved!");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"SaveNavPreferences error: {ex.Message}");
+                Toast.Show("Failed to save navigation preferences.", "error");
+            }
         }
 
         protected void TogglePosMode()
