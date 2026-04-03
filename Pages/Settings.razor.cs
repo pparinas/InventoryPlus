@@ -69,7 +69,7 @@ namespace InventoryPlus.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            if (AppSettings.IsGuestMode) { Nav.NavigateTo("dashboard"); return; }
+            if (AppSettings.IsGuestMode) return;
             AppSettings.OnStateChanged += HandleStateChanged;
 
             currentUser = SupabaseClient.Auth.CurrentUser;
