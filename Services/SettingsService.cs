@@ -213,6 +213,8 @@ namespace InventoryPlus.Services
             return null;
         }
 
+        public bool IsLoaded { get; private set; } = false;
+
         public async Task LoadAsync(string userId)
         {
             if (!Guid.TryParse(userId, out var ownerGuid)) return;
@@ -271,7 +273,13 @@ namespace InventoryPlus.Services
                         _customLogoUrl = null;
                     }
 
+                    IsLoaded = true;
                     NotifyStateChanged();
+                }
+                else
+                {
+                    // No row exists yet — mark as loaded with defaults
+                    IsLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -311,7 +319,10 @@ namespace InventoryPlus.Services
                     ShowReportStockMovement = ShowReportStockMovement,
                     OnboardingCompleted = OnboardingCompleted
                 };
-                await _supabase.From<AccountSettings>().Upsert(settings);
+                var response = await _supabase.From<AccountSettings>().Upsert(settings);
+                if (response.Models.Count == 0)
+                    throw new Exception("Upsert returned no rows — check RLS policies on account_settings.");
+                IsLoaded = true;
             }
             catch (Exception ex)
             {

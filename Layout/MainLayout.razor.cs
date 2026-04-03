@@ -101,7 +101,6 @@ namespace InventoryPlus.Layout
                         await JSRuntime.InvokeVoidAsync("themeInterop.setScheme", scheme);
                 }
                 catch { }
-
                 // Update PWA icon to user's logo if set
                 try
                 {
@@ -123,13 +122,12 @@ namespace InventoryPlus.Layout
 
         private async Task LoadDataAsync()
         {
-            if (Inventory.IsLoaded || Inventory.IsLoading) return;
-
             // Guest mode: load from localStorage only, skip Supabase
             if (AppSettings.IsGuestMode)
             {
                 currentUserEmail = "Guest User";
-                await Inventory.LoadGuestAsync(JSRuntime);
+                if (!Inventory.IsLoaded && !Inventory.IsLoading)
+                    await Inventory.LoadGuestAsync(JSRuntime);
                 return;
             }
 
@@ -151,7 +149,10 @@ namespace InventoryPlus.Layout
                         if (!string.IsNullOrEmpty(cachedUserId))
                         {
                             Console.WriteLine("Session expired — loading cached data for offline use");
-                            await Inventory.LoadAsync(cachedUserId, JSRuntime);
+                            if (!AppSettings.IsLoaded)
+                                await AppSettings.LoadAsync(cachedUserId);
+                            if (!Inventory.IsLoaded && !Inventory.IsLoading)
+                                await Inventory.LoadAsync(cachedUserId, JSRuntime);
                         }
                     }
                     catch { }
@@ -167,8 +168,10 @@ namespace InventoryPlus.Layout
                 }
                 catch { }
 
-                await AppSettings.LoadAsync(user.Id);
-                await Inventory.LoadAsync(user.Id, JSRuntime);
+                if (!AppSettings.IsLoaded)
+                    await AppSettings.LoadAsync(user.Id!);
+                if (!Inventory.IsLoaded && !Inventory.IsLoading)
+                    await Inventory.LoadAsync(user.Id!, JSRuntime);
             }
             catch (Exception ex)
             {
