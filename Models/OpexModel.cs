@@ -8,7 +8,7 @@ namespace InventoryPlus.Models
     [Table("opex")]
     public class Opex : BaseModel
     {
-        [PrimaryKey("guid", false)]
+        [PrimaryKey("guid", true)]
         public Guid Guid { get; set; } = Guid.NewGuid();
 
         [Column("owner_guid")]
