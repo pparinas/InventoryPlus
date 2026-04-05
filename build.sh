@@ -6,6 +6,15 @@ curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel 10.0
 export PATH="$HOME/.dotnet:$PATH"
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 
+# Replace Supabase config from environment variables
+if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_KEY" ]; then
+  sed -i "s|__SUPABASE_URL__|$SUPABASE_URL|g" wwwroot/appsettings.json
+  sed -i "s|__SUPABASE_KEY__|$SUPABASE_KEY|g" wwwroot/appsettings.json
+  echo "Supabase config replaced from environment variables"
+else
+  echo "WARNING: SUPABASE_URL or SUPABASE_KEY not set — appsettings.json will have placeholders"
+fi
+
 # Publish the app
 dotnet publish InventoryPlus.csproj -c Release -o publish
 

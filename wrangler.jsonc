@@ -1,9 +1,8 @@
 {
   "name": "negosyo360",
-  "type": "javascript",
   "compatibility_date": "2025-09-27",
-  "pages_build_caching": true,
-  "observability": {
-    "enabled": true
+  "assets": {
+    "directory": "publish/wwwroot",
+    "not_found_handling": "single-page-application"
   }
 }
