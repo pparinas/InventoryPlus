@@ -149,10 +149,9 @@ namespace InventoryPlus.Layout
                         if (!string.IsNullOrEmpty(cachedUserId))
                         {
                             Console.WriteLine("Session expired — loading cached data for offline use");
-                            if (!AppSettings.IsLoaded)
-                                await AppSettings.LoadAsync(cachedUserId);
-                            if (!Inventory.IsLoaded && !Inventory.IsLoading)
-                                await Inventory.LoadAsync(cachedUserId, JSRuntime);
+                            var settingsTask = !AppSettings.IsLoaded ? AppSettings.LoadAsync(cachedUserId) : Task.CompletedTask;
+                            var inventoryTask = !Inventory.IsLoaded && !Inventory.IsLoading ? Inventory.LoadAsync(cachedUserId, JSRuntime) : Task.CompletedTask;
+                            await Task.WhenAll(settingsTask, inventoryTask);
                         }
                     }
                     catch { }
@@ -168,10 +167,12 @@ namespace InventoryPlus.Layout
                 }
                 catch { }
 
-                if (!AppSettings.IsLoaded)
-                    await AppSettings.LoadAsync(user.Id!);
-                if (!Inventory.IsLoaded && !Inventory.IsLoading)
-                    await Inventory.LoadAsync(user.Id!, JSRuntime);
+                // Load settings and inventory data in parallel
+                {
+                    var settingsTask = !AppSettings.IsLoaded ? AppSettings.LoadAsync(user.Id!) : Task.CompletedTask;
+                    var inventoryTask = !Inventory.IsLoaded && !Inventory.IsLoading ? Inventory.LoadAsync(user.Id!, JSRuntime) : Task.CompletedTask;
+                    await Task.WhenAll(settingsTask, inventoryTask);
+                }
             }
             catch (Exception ex)
             {
