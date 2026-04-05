@@ -5,6 +5,36 @@ using Supabase.Postgrest.Models;
 
 namespace InventoryPlus.Models
 {
+    [Flags]
+    public enum DashboardWidgets
+    {
+        None                = 0,
+        TodaySnapshot       = 1 << 0,
+        RevenueChart        = 1 << 1,
+        TopProducts         = 1 << 2,
+        PaymentBreakdown    = 1 << 3,
+        ProfitTrend         = 1 << 4,
+        LowStock            = 1 << 5,
+        RecentSales         = 1 << 6,
+        QuickActions        = 1 << 7,
+        All                 = TodaySnapshot | RevenueChart | TopProducts | PaymentBreakdown
+                            | ProfitTrend | LowStock | RecentSales | QuickActions
+    }
+
+    [Flags]
+    public enum ReportWidgets
+    {
+        None                    = 0,
+        SalesSummary            = 1 << 0,
+        TopProducts             = 1 << 1,
+        PaymentMethods          = 1 << 2,
+        ProfitLoss              = 1 << 3,
+        InventoryValuation      = 1 << 4,
+        StockMovement           = 1 << 5,
+        All                     = SalesSummary | TopProducts | PaymentMethods
+                                | ProfitLoss | InventoryValuation | StockMovement
+    }
+
     [Table("account_settings")]
     public class AccountSettings : BaseModel
     {
@@ -32,47 +62,18 @@ namespace InventoryPlus.Models
         [Column("color_scheme")]
         public string ColorScheme { get; set; } = "indigo";
 
-        // Dashboard widget visibility
-        [Column("show_revenue_chart")]
-        public bool ShowRevenueChart { get; set; } = true;
-        [Column("show_top_products")]
-        public bool ShowTopProducts { get; set; } = true;
-        [Column("show_payment_breakdown")]
-        public bool ShowPaymentBreakdown { get; set; } = true;
-        [Column("show_today_snapshot")]
-        public bool ShowTodaySnapshot { get; set; } = true;
-        [Column("show_profit_trend")]
-        public bool ShowProfitTrend { get; set; } = true;
-        [Column("show_low_stock")]
-        public bool ShowLowStock { get; set; } = true;
-        [Column("show_recent_sales")]
-        public bool ShowRecentSales { get; set; } = true;
-        [Column("show_quick_actions")]
-        public bool ShowQuickActions { get; set; } = true;
+        [Column("dashboard_widgets")]
+        public int DashboardWidgetFlags { get; set; } = (int)DashboardWidgets.All;
 
-        // Report visibility
-        [Column("show_report_sales_summary")]
-        public bool ShowReportSalesSummary { get; set; } = true;
-        [Column("show_report_top_products")]
-        public bool ShowReportTopProducts { get; set; } = true;
-        [Column("show_report_payment_methods")]
-        public bool ShowReportPaymentMethods { get; set; } = true;
-        [Column("show_report_profit_loss")]
-        public bool ShowReportProfitLoss { get; set; } = true;
-        [Column("show_report_inventory_valuation")]
-        public bool ShowReportInventoryValuation { get; set; } = true;
-        [Column("show_report_stock_movement")]
-        public bool ShowReportStockMovement { get; set; } = true;
+        [Column("report_widgets")]
+        public int ReportWidgetFlags { get; set; } = (int)ReportWidgets.All;
 
-        // Onboarding
         [Column("onboarding_completed")]
         public bool OnboardingCompleted { get; set; } = false;
 
-        // POS Mode
-        [JsonIgnore] public bool IsPosMode { get; set; } = false;
-
-        // Currency display
         [Column("show_decimals")]
         public bool ShowDecimals { get; set; } = true;
+
+        [JsonIgnore] public bool IsPosMode { get; set; } = false;
     }
 }
