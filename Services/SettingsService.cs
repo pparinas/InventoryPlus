@@ -264,31 +264,56 @@ namespace InventoryPlus.Services
                     _reportWidgets = (ReportWidgets)result.ReportWidgetFlags;
 
                     OnboardingCompleted = result.OnboardingCompleted;
+                    ShowDecimals = result.ShowDecimals;
 
                     var path = ExtractStoragePath(result.LogoUrl, "branding");
                     _customLogoPath = path;
                     if (!string.IsNullOrEmpty(path))
                     {
+                        // Try public URL first (no expiry, no extra round trip)
+                        // Requires the 'branding' bucket to be set to Public in Supabase Storage
                         try
                         {
-                            // Use cached signed URL if still valid for the same path
-                            if (path == _cachedLogoPath && _cachedLogoSignedUrl != null && _logoUrlExpiry > DateTime.UtcNow)
+                            var publicUrl = _supabase.Storage.From("branding").GetPublicUrl(path);
+                            if (!string.IsNullOrEmpty(publicUrl))
                             {
-                                _customLogoUrl = _cachedLogoSignedUrl;
+                                _customLogoUrl = publicUrl;
+                                _cachedLogoPath = path;
+                                _cachedLogoSignedUrl = publicUrl;
+                                _logoUrlExpiry = DateTime.MaxValue; // public URLs never expire
                             }
                             else
                             {
-                                _customLogoUrl = await _supabase.Storage
-                                    .From("branding")
-                                    .CreateSignedUrl(path, 60 * 60 * 24 * 7);
-                                _cachedLogoPath = path;
-                                _cachedLogoSignedUrl = _customLogoUrl;
-                                _logoUrlExpiry = DateTime.UtcNow.AddDays(6);
+                                throw new Exception("Empty public URL");
                             }
                         }
                         catch
                         {
-                            _customLogoUrl = null;
+                            // Bucket is private — fall back to signed URL with long TTL
+                            try
+                            {
+                                if (path == _cachedLogoPath && _cachedLogoSignedUrl != null && _logoUrlExpiry > DateTime.UtcNow)
+                                {
+                                    _customLogoUrl = _cachedLogoSignedUrl;
+                                }
+                                else
+                                {
+                                    _customLogoUrl = await _supabase.Storage
+                                        .From("branding")
+                                        .CreateSignedUrl(path, 60 * 60 * 24 * 365); // 1-year TTL
+                                    _cachedLogoPath = path;
+                                    _cachedLogoSignedUrl = _customLogoUrl;
+                                    _logoUrlExpiry = DateTime.UtcNow.AddDays(364);
+                                }
+                            }
+                            catch
+                            {
+                                // Keep last known URL if we have one, rather than blanking it
+                                if (_cachedLogoSignedUrl != null)
+                                    _customLogoUrl = _cachedLogoSignedUrl;
+                                else
+                                    _customLogoUrl = null;
+                            }
                         }
                     }
                     else
