@@ -264,6 +264,7 @@ namespace InventoryPlus.Services
                     _reportWidgets = (ReportWidgets)result.ReportWidgetFlags;
 
                     OnboardingCompleted = result.OnboardingCompleted;
+                    ShowOnboardingOnLogin = result.ShowOnboardingOnLogin;
                     ShowDecimals = result.ShowDecimals;
 
                     var path = ExtractStoragePath(result.LogoUrl, "branding");
@@ -353,7 +354,9 @@ namespace InventoryPlus.Services
                     ColorScheme = _colorScheme,
                     DashboardWidgetFlags = (int)_dashboardWidgets,
                     ReportWidgetFlags = (int)_reportWidgets,
-                    OnboardingCompleted = OnboardingCompleted
+                    OnboardingCompleted = OnboardingCompleted,
+                    ShowOnboardingOnLogin = ShowOnboardingOnLogin,
+                    ShowDecimals = ShowDecimals
                 };
                 var response = await _supabase.From<AccountSettings>().Upsert(settings);
                 if (response.Models.Count == 0)

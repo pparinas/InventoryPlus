@@ -71,6 +71,9 @@ namespace InventoryPlus.Models
         [Column("onboarding_completed")]
         public bool OnboardingCompleted { get; set; } = false;
 
+        [Column("show_onboarding_on_login")]
+        public bool ShowOnboardingOnLogin { get; set; } = true;
+
         [Column("show_decimals")]
         public bool ShowDecimals { get; set; } = true;
 
