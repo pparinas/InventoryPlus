@@ -1,0 +1,10 @@
+name = "negosyo360"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "negosyo360"
+
+[build]
+command = "dotnet publish InventoryPlus.csproj -c Release -o publish"
+cwd = "."
