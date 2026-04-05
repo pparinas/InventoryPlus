@@ -1,9 +1,9 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "negosyo360",
+  "type": "javascript",
   "compatibility_date": "2025-09-27",
-  "assets": {
-    "directory": "publish/wwwroot",
-    "not_found_handling": "single-page-application"
+  "pages_build_caching": true,
+  "observability": {
+    "enabled": true
   }
 }
