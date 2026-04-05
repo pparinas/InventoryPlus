@@ -62,23 +62,45 @@ namespace InventoryPlus.Services
             }
         }
 
-        // Dashboard widget visibility
-        public bool ShowRevenueChart { get; set; } = true;
-        public bool ShowTopProducts { get; set; } = true;
-        public bool ShowPaymentBreakdown { get; set; } = true;
-        public bool ShowTodaySnapshot { get; set; } = true;
-        public bool ShowProfitTrend { get; set; } = true;
-        public bool ShowLowStock { get; set; } = true;
-        public bool ShowRecentSales { get; set; } = true;
-        public bool ShowQuickActions { get; set; } = true;
+        // Dashboard widget visibility (flags-backed)
+        private DashboardWidgets _dashboardWidgets = DashboardWidgets.All;
+        public DashboardWidgets DashboardWidgetFlags
+        {
+            get => _dashboardWidgets;
+            set { _dashboardWidgets = value; NotifyStateChanged(); }
+        }
 
-        // Report visibility
-        public bool ShowReportSalesSummary { get; set; } = true;
-        public bool ShowReportTopProducts { get; set; } = true;
-        public bool ShowReportPaymentMethods { get; set; } = true;
-        public bool ShowReportProfitLoss { get; set; } = true;
-        public bool ShowReportInventoryValuation { get; set; } = true;
-        public bool ShowReportStockMovement { get; set; } = true;
+        public bool ShowRevenueChart     { get => _dashboardWidgets.HasFlag(DashboardWidgets.RevenueChart);     set => SetFlag(ref _dashboardWidgets, DashboardWidgets.RevenueChart, value); }
+        public bool ShowTopProducts      { get => _dashboardWidgets.HasFlag(DashboardWidgets.TopProducts);      set => SetFlag(ref _dashboardWidgets, DashboardWidgets.TopProducts, value); }
+        public bool ShowPaymentBreakdown { get => _dashboardWidgets.HasFlag(DashboardWidgets.PaymentBreakdown); set => SetFlag(ref _dashboardWidgets, DashboardWidgets.PaymentBreakdown, value); }
+        public bool ShowTodaySnapshot    { get => _dashboardWidgets.HasFlag(DashboardWidgets.TodaySnapshot);    set => SetFlag(ref _dashboardWidgets, DashboardWidgets.TodaySnapshot, value); }
+        public bool ShowProfitTrend      { get => _dashboardWidgets.HasFlag(DashboardWidgets.ProfitTrend);      set => SetFlag(ref _dashboardWidgets, DashboardWidgets.ProfitTrend, value); }
+        public bool ShowLowStock         { get => _dashboardWidgets.HasFlag(DashboardWidgets.LowStock);         set => SetFlag(ref _dashboardWidgets, DashboardWidgets.LowStock, value); }
+        public bool ShowRecentSales      { get => _dashboardWidgets.HasFlag(DashboardWidgets.RecentSales);      set => SetFlag(ref _dashboardWidgets, DashboardWidgets.RecentSales, value); }
+        public bool ShowQuickActions     { get => _dashboardWidgets.HasFlag(DashboardWidgets.QuickActions);     set => SetFlag(ref _dashboardWidgets, DashboardWidgets.QuickActions, value); }
+
+        // Report visibility (flags-backed)
+        private ReportWidgets _reportWidgets = ReportWidgets.All;
+        public ReportWidgets ReportWidgetFlags
+        {
+            get => _reportWidgets;
+            set { _reportWidgets = value; NotifyStateChanged(); }
+        }
+
+        public bool ShowReportSalesSummary        { get => _reportWidgets.HasFlag(ReportWidgets.SalesSummary);        set => SetFlag(ref _reportWidgets, ReportWidgets.SalesSummary, value); }
+        public bool ShowReportTopProducts         { get => _reportWidgets.HasFlag(ReportWidgets.TopProducts);         set => SetFlag(ref _reportWidgets, ReportWidgets.TopProducts, value); }
+        public bool ShowReportPaymentMethods      { get => _reportWidgets.HasFlag(ReportWidgets.PaymentMethods);      set => SetFlag(ref _reportWidgets, ReportWidgets.PaymentMethods, value); }
+        public bool ShowReportProfitLoss          { get => _reportWidgets.HasFlag(ReportWidgets.ProfitLoss);          set => SetFlag(ref _reportWidgets, ReportWidgets.ProfitLoss, value); }
+        public bool ShowReportInventoryValuation  { get => _reportWidgets.HasFlag(ReportWidgets.InventoryValuation);  set => SetFlag(ref _reportWidgets, ReportWidgets.InventoryValuation, value); }
+        public bool ShowReportStockMovement       { get => _reportWidgets.HasFlag(ReportWidgets.StockMovement);       set => SetFlag(ref _reportWidgets, ReportWidgets.StockMovement, value); }
+
+        private void SetFlag<T>(ref T flags, T flag, bool on) where T : struct, Enum
+        {
+            var f = (int)(object)flags;
+            var b = (int)(object)flag;
+            flags = (T)(object)(on ? f | b : f & ~b);
+            NotifyStateChanged();
+        }
 
         // Onboarding
         public bool OnboardingCompleted { get; set; } = false;
@@ -238,23 +260,8 @@ namespace InventoryPlus.Services
                     _showOpexTab = result.ShowOpexTab;
                     _colorScheme = result.ColorScheme ?? "indigo";
 
-                    // Dashboard settings
-                    ShowRevenueChart = result.ShowRevenueChart;
-                    ShowTopProducts = result.ShowTopProducts;
-                    ShowPaymentBreakdown = result.ShowPaymentBreakdown;
-                    ShowTodaySnapshot = result.ShowTodaySnapshot;
-                    ShowProfitTrend = result.ShowProfitTrend;
-                    ShowLowStock = result.ShowLowStock;
-                    ShowRecentSales = result.ShowRecentSales;
-                    ShowQuickActions = result.ShowQuickActions;
-
-                    // Report settings
-                    ShowReportSalesSummary = result.ShowReportSalesSummary;
-                    ShowReportTopProducts = result.ShowReportTopProducts;
-                    ShowReportPaymentMethods = result.ShowReportPaymentMethods;
-                    ShowReportProfitLoss = result.ShowReportProfitLoss;
-                    ShowReportInventoryValuation = result.ShowReportInventoryValuation;
-                    ShowReportStockMovement = result.ShowReportStockMovement;
+                    _dashboardWidgets = (DashboardWidgets)result.DashboardWidgetFlags;
+                    _reportWidgets = (ReportWidgets)result.ReportWidgetFlags;
 
                     OnboardingCompleted = result.OnboardingCompleted;
 
@@ -319,20 +326,8 @@ namespace InventoryPlus.Services
                     ShowInventoryTab = _showInventoryTab,
                     ShowOpexTab = _showOpexTab,
                     ColorScheme = _colorScheme,
-                    ShowRevenueChart = ShowRevenueChart,
-                    ShowTopProducts = ShowTopProducts,
-                    ShowPaymentBreakdown = ShowPaymentBreakdown,
-                    ShowTodaySnapshot = ShowTodaySnapshot,
-                    ShowProfitTrend = ShowProfitTrend,
-                    ShowLowStock = ShowLowStock,
-                    ShowRecentSales = ShowRecentSales,
-                    ShowQuickActions = ShowQuickActions,
-                    ShowReportSalesSummary = ShowReportSalesSummary,
-                    ShowReportTopProducts = ShowReportTopProducts,
-                    ShowReportPaymentMethods = ShowReportPaymentMethods,
-                    ShowReportProfitLoss = ShowReportProfitLoss,
-                    ShowReportInventoryValuation = ShowReportInventoryValuation,
-                    ShowReportStockMovement = ShowReportStockMovement,
+                    DashboardWidgetFlags = (int)_dashboardWidgets,
+                    ReportWidgetFlags = (int)_reportWidgets,
                     OnboardingCompleted = OnboardingCompleted
                 };
                 var response = await _supabase.From<AccountSettings>().Upsert(settings);
