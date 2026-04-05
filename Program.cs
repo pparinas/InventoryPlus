@@ -8,17 +8,10 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-var supabaseUrl = builder.Configuration["Supabase:Url"];
-if (string.IsNullOrEmpty(supabaseUrl) || supabaseUrl.StartsWith("__")) 
-{
-    supabaseUrl = "https://boixagidpfuyemzvmeva.supabase.co";
-}
-
-var supabaseKey = builder.Configuration["Supabase:Key"];
-if (string.IsNullOrEmpty(supabaseKey) || supabaseKey.StartsWith("__"))
-{
-    supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJvaXhhZ2lkcGZ1eWVtenZtZXZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4NDg3NjAsImV4cCI6MjA4OTQyNDc2MH0.HemZ7yVnkcceTDNPrAaFlUm6ktRaifZuw7APO70uHm4";
-}
+var supabaseUrl = builder.Configuration["Supabase:Url"]
+    ?? throw new InvalidOperationException("Supabase:Url is not configured.");
+var supabaseKey = builder.Configuration["Supabase:Key"]
+    ?? throw new InvalidOperationException("Supabase:Key is not configured.");
 
 var options = new SupabaseOptions
 {

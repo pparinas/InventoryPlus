@@ -2,6 +2,25 @@ bin/
 obj/
 wwwroot/appsettings.Development.json
 
+# Build logs and debug output
+build.txt
+build_err.txt
+build_err_utf8.txt
+build_log.txt
+build_logs.txt
+build_output*.txt
+current_errors.txt
+errors.txt
+last_build.txt
+last_errors.txt
+
+# Publish output
+publish_test/
+testpublish/
+
+# SQL (already deployed to Supabase)
+*.sql
+
 # wrangler files
 .wrangler
 .dev.vars*
