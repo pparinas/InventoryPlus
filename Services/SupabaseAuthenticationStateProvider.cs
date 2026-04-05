@@ -18,6 +18,10 @@ namespace InventoryPlus.Services
         private bool _isGuestMode = false;
         public bool IsGuestMode => _isGuestMode;
 
+        // Cache admin status to avoid querying user_profiles on every auth evaluation
+        private string? _cachedAdminUserId;
+        private bool _cachedIsAdmin;
+
         public SupabaseAuthenticationStateProvider(Supabase.Client client, IJSRuntime jsRuntime)
         {
             _client = client;
@@ -150,15 +154,26 @@ namespace InventoryPlus.Services
                     new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
                 };
 
-                // Check is_admin from user_profiles table
+                // Check is_admin from user_profiles table (cached per user)
                 try
                 {
                     if (Guid.TryParse(user.Id, out var userGuid))
                     {
-                        var profileResp = await _client.From<InventoryPlus.Models.UserProfile>()
-                            .Where(p => p.Guid == userGuid)
-                            .Single();
-                        if (profileResp?.IsAdmin == true)
+                        bool isAdmin;
+                        if (_cachedAdminUserId == user.Id)
+                        {
+                            isAdmin = _cachedIsAdmin;
+                        }
+                        else
+                        {
+                            var profileResp = await _client.From<InventoryPlus.Models.UserProfile>()
+                                .Where(p => p.Guid == userGuid)
+                                .Single();
+                            isAdmin = profileResp?.IsAdmin == true;
+                            _cachedAdminUserId = user.Id;
+                            _cachedIsAdmin = isAdmin;
+                        }
+                        if (isAdmin)
                             claims.Add(new Claim(ClaimTypes.Role, "Admin"));
                     }
                 }
@@ -186,6 +201,8 @@ namespace InventoryPlus.Services
 
         private async Task ClearTokensAsync()
         {
+            _cachedAdminUserId = null;
+            _cachedIsAdmin = false;
             try
             {
                 await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", AccessTokenKey);

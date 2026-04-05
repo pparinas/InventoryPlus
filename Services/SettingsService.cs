@@ -215,6 +215,11 @@ namespace InventoryPlus.Services
 
         public bool IsLoaded { get; private set; } = false;
 
+        // Cache signed logo URL to avoid re-signing on every load
+        private string? _cachedLogoPath;
+        private string? _cachedLogoSignedUrl;
+        private DateTime _logoUrlExpiry = DateTime.MinValue;
+
         public async Task LoadAsync(string userId)
         {
             if (!Guid.TryParse(userId, out var ownerGuid)) return;
@@ -259,9 +264,20 @@ namespace InventoryPlus.Services
                     {
                         try
                         {
-                            _customLogoUrl = await _supabase.Storage
-                                .From("branding")
-                                .CreateSignedUrl(path, 60 * 60 * 24 * 7);
+                            // Use cached signed URL if still valid for the same path
+                            if (path == _cachedLogoPath && _cachedLogoSignedUrl != null && _logoUrlExpiry > DateTime.UtcNow)
+                            {
+                                _customLogoUrl = _cachedLogoSignedUrl;
+                            }
+                            else
+                            {
+                                _customLogoUrl = await _supabase.Storage
+                                    .From("branding")
+                                    .CreateSignedUrl(path, 60 * 60 * 24 * 7);
+                                _cachedLogoPath = path;
+                                _cachedLogoSignedUrl = _customLogoUrl;
+                                _logoUrlExpiry = DateTime.UtcNow.AddDays(6);
+                            }
                         }
                         catch
                         {

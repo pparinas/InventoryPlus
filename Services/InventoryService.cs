@@ -58,26 +58,27 @@ namespace InventoryPlus.Services
                     }
                 }
 
-                // Load ingredients
-                var ingredientsResp = await _supabase.From<Ingredient>()
-                    .Where(i => i.OwnerGuid == _ownerGuid)
-                    .Get();
-                Ingredients = ingredientsResp.Models;
+                // Load all tables in parallel (5 queries → 1 round-trip window)
+                var ingredientsTask = _supabase.From<Ingredient>()
+                    .Where(i => i.OwnerGuid == _ownerGuid).Get();
+                var productsTask = _supabase.From<Product>()
+                    .Where(p => p.OwnerGuid == _ownerGuid).Get();
+                var piTask = _supabase.From<ProductIngredient>()
+                    .Where(pi => pi.OwnerId == _ownerGuid).Get();
+                var salesTask = _supabase.From<Sale>()
+                    .Where(s => s.OwnerId == _ownerGuid).Get();
+                var opexTask = _supabase.From<Opex>()
+                    .Where(o => o.OwnerGuid == _ownerGuid).Get();
 
-                // Load products
-                var productsResp = await _supabase.From<Product>()
-                    .Where(p => p.OwnerGuid == _ownerGuid)
-                    .Get();
-                Products = productsResp.Models;
+                await Task.WhenAll(ingredientsTask, productsTask, piTask, salesTask, opexTask);
 
-                // Load product ingredients for all products and wire them up
-                var piResp = await _supabase.From<ProductIngredient>()
-                    .Where(pi => pi.OwnerId == _ownerGuid)
-                    .Get();
+                Ingredients = ingredientsTask.Result.Models;
+                Products = productsTask.Result.Models;
+                var piModels = piTask.Result.Models;
 
                 foreach (var product in Products)
                 {
-                    product.RequiredIngredients = piResp.Models
+                    product.RequiredIngredients = piModels
                         .Where(pi => pi.ProductId == product.Guid)
                         .ToList();
 
@@ -85,20 +86,11 @@ namespace InventoryPlus.Services
                         pi.Ingredient = Ingredients.FirstOrDefault(i => i.Guid == pi.IngredientId);
                 }
 
-                // Refresh product image signed URLs
+                // Refresh product image signed URLs in parallel
                 await RefreshProductImageUrlsAsync();
 
-                // Load sales
-                var salesResp = await _supabase.From<Sale>()
-                    .Where(s => s.OwnerId == _ownerGuid)
-                    .Get();
-                Sales = salesResp.Models.OrderByDescending(s => s.Date).ToList();
-
-                // Load OPEX
-                var opexResp = await _supabase.From<Opex>()
-                    .Where(o => o.OwnerGuid == _ownerGuid)
-                    .Get();
-                OpexItems = opexResp.Models.OrderByDescending(o => o.Date).ToList();
+                Sales = salesTask.Result.Models.OrderByDescending(s => s.Date).ToList();
+                OpexItems = opexTask.Result.Models.OrderByDescending(o => o.Date).ToList();
 
                 IsOffline = false;
                 IsLoaded = true;
@@ -186,16 +178,17 @@ namespace InventoryPlus.Services
             await _supabase.From<Product>().Upsert(product);
             product.RequiredIngredients = requirements;
 
-            // Save each ProductIngredient row
-            foreach (var pi in requirements)
+            // Save all ProductIngredient rows in parallel
+            var piTasks = requirements.Select(pi =>
             {
                 pi.ProductId = product.Guid;
                 pi.OwnerId = _ownerGuid;
                 var savedIngredient = pi.Ingredient;
                 pi.Ingredient = null;
-                await _supabase.From<ProductIngredient>().Upsert(pi);
-                pi.Ingredient = savedIngredient;
-            }
+                var task = _supabase.From<ProductIngredient>().Upsert(pi);
+                return task.ContinueWith(_ => pi.Ingredient = savedIngredient);
+            });
+            await Task.WhenAll(piTasks);
 
             Products.Add(product);
             NotifyStateChanged();
@@ -211,26 +204,27 @@ namespace InventoryPlus.Services
             await _supabase.From<Product>().Upsert(product);
             product.RequiredIngredients = requirements;
 
-            // Delete removed product ingredients from DB
+            // Fetch existing and diff in parallel with product upsert
             var existingPIs = await _supabase.From<ProductIngredient>()
                 .Where(pi => pi.ProductId == product.Guid)
                 .Get();
-            foreach (var old in existingPIs.Models)
-            {
-                if (!requirements.Any(r => r.Guid == old.Guid))
-                    await _supabase.From<ProductIngredient>().Delete(old);
-            }
 
-            // Upsert current requirements
-            foreach (var pi in requirements)
+            // Delete removed ingredients in parallel
+            var toDelete = existingPIs.Models.Where(old => !requirements.Any(r => r.Guid == old.Guid));
+            var deleteTasks = toDelete.Select(old => (Task)_supabase.From<ProductIngredient>().Delete(old));
+            
+            // Upsert current requirements in parallel
+            var upsertTasks = requirements.Select(pi =>
             {
                 pi.ProductId = product.Guid;
                 pi.OwnerId = _ownerGuid;
                 var savedIngredient = pi.Ingredient;
                 pi.Ingredient = null;
-                await _supabase.From<ProductIngredient>().Upsert(pi);
-                pi.Ingredient = savedIngredient ?? Ingredients.FirstOrDefault(i => i.Guid == pi.IngredientId);
-            }
+                var task = _supabase.From<ProductIngredient>().Upsert(pi);
+                return (Task)task.ContinueWith(_ => pi.Ingredient = savedIngredient ?? Ingredients.FirstOrDefault(i => i.Guid == pi.IngredientId));
+            });
+
+            await Task.WhenAll(deleteTasks.Concat(upsertTasks));
 
             NotifyStateChanged();
         }
@@ -252,33 +246,6 @@ namespace InventoryPlus.Services
         {
             if (product.AvailableCount < quantity) return null;
 
-            // Deduct stock based on product type
-            if (product.HasIngredients)
-            {
-                // Deduct ingredient stock and persist
-                foreach (var req in product.RequiredIngredients)
-                {
-                    if (req.Ingredient != null)
-                    {
-                        req.Ingredient.Stock -= req.QuantityRequired * quantity;
-                        if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(req.Ingredient);
-                    }
-                }
-            }
-            else
-            {
-                // Deduct direct stock count
-                product.StockCount -= quantity;
-                if (product.StockCount < 0) product.StockCount = 0;
-                if (!IsGuestMode)
-                {
-                    var reqs = product.RequiredIngredients.ToList();
-                    product.RequiredIngredients = new();
-                    await _supabase.From<Product>().Upsert(product);
-                    product.RequiredIngredients = reqs;
-                }
-            }
-
             var subtotal = product.SellingPrice * quantity;
             var tax = product.SellingPrice * product.TaxRate * quantity;
             var total = subtotal + tax;
@@ -291,6 +258,21 @@ namespace InventoryPlus.Services
             if (total < 0) total = 0;
 
             var profit = subtotal - (product.TotalCost * quantity);
+
+            // Update local state immediately
+            if (product.HasIngredients)
+            {
+                foreach (var req in product.RequiredIngredients)
+                {
+                    if (req.Ingredient != null)
+                        req.Ingredient.Stock -= req.QuantityRequired * quantity;
+                }
+            }
+            else
+            {
+                product.StockCount -= quantity;
+                if (product.StockCount < 0) product.StockCount = 0;
+            }
 
             var sale = new Sale
             {
@@ -317,13 +299,68 @@ namespace InventoryPlus.Services
                 return sale;
             }
 
-            var resp = await _supabase.From<Sale>().Insert(sale);
-            var saved = resp.Models.FirstOrDefault() ?? sale;
+            // Try RPC for single atomic DB call; fall back to parallel upserts
+            try
+            {
+                var ingredientUpdates = product.HasIngredients
+                    ? product.RequiredIngredients
+                        .Where(r => r.Ingredient != null)
+                        .Select(r => new { id = r.IngredientId, deduct = r.QuantityRequired * quantity })
+                        .ToArray()
+                    : Array.Empty<object>();
 
-            Sales.Insert(0, saved);
+                var rpcParams = new Dictionary<string, object>
+                {
+                    ["p_owner_id"] = _ownerGuid.ToString(),
+                    ["p_product_id"] = product.Guid.ToString(),
+                    ["p_product_name"] = product.Name,
+                    ["p_quantity_sold"] = quantity,
+                    ["p_total_amount"] = total,
+                    ["p_tax_amount"] = tax,
+                    ["p_profit_amount"] = profit,
+                    ["p_note"] = note,
+                    ["p_payment_method"] = paymentMethod,
+                    ["p_customer_name"] = customerName,
+                    ["p_discount_amount"] = discountAmount,
+                    ["p_discount_type"] = discountType,
+                    ["p_has_ingredients"] = product.HasIngredients,
+                    ["p_ingredient_updates"] = JsonSerializer.Serialize(ingredientUpdates)
+                };
 
+                var rpcResult = await _supabase.Rpc("record_sale_with_stock", rpcParams);
+                if (rpcResult != null)
+                {
+                    var content = rpcResult.Content;
+                    if (content != null && Guid.TryParse(content.Trim('"'), out var saleGuid))
+                        sale.Guid = saleGuid;
+                }
+            }
+            catch
+            {
+                // RPC not deployed yet — fall back to parallel approach
+                if (product.HasIngredients)
+                {
+                    var stockTasks = product.RequiredIngredients
+                        .Where(req => req.Ingredient != null)
+                        .Select(req => _supabase.From<Ingredient>().Upsert(req.Ingredient!));
+                    await Task.WhenAll(stockTasks);
+                }
+                else
+                {
+                    var reqs = product.RequiredIngredients.ToList();
+                    product.RequiredIngredients = new();
+                    await _supabase.From<Product>().Upsert(product);
+                    product.RequiredIngredients = reqs;
+                }
+
+                var resp = await _supabase.From<Sale>().Insert(sale);
+                var saved = resp.Models.FirstOrDefault();
+                if (saved != null) sale.Guid = saved.Guid;
+            }
+
+            Sales.Insert(0, sale);
             NotifyStateChanged();
-            return saved;
+            return sale;
         }
 
         public void NotifyStateChanged() => OnStateChanged?.Invoke();
@@ -367,7 +404,7 @@ namespace InventoryPlus.Services
         {
             if (sale.IsVoided) return;
 
-            // Restore stock
+            // Restore stock locally
             var product = Products.FirstOrDefault(p => p.Guid == sale.ProductId);
             if (product != null)
             {
@@ -376,16 +413,54 @@ namespace InventoryPlus.Services
                     foreach (var req in product.RequiredIngredients)
                     {
                         if (req.Ingredient != null)
-                        {
                             req.Ingredient.Stock += req.QuantityRequired * sale.QuantitySold;
-                            if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(req.Ingredient);
-                        }
                     }
                 }
                 else
                 {
                     product.StockCount += sale.QuantitySold;
-                    if (!IsGuestMode)
+                }
+            }
+
+            sale.IsVoided = true;
+
+            if (IsGuestMode) { NotifyStateChanged(); return; }
+
+            // Try RPC for single atomic DB call; fall back to parallel upserts
+            try
+            {
+                var ingredientUpdates = (product?.HasIngredients == true)
+                    ? product.RequiredIngredients
+                        .Where(r => r.Ingredient != null)
+                        .Select(r => new { id = r.IngredientId, restore = r.QuantityRequired * sale.QuantitySold })
+                        .ToArray()
+                    : Array.Empty<object>();
+
+                var rpcParams = new Dictionary<string, object>
+                {
+                    ["p_owner_id"] = _ownerGuid.ToString(),
+                    ["p_sale_id"] = sale.Guid.ToString(),
+                    ["p_product_id"] = sale.ProductId.ToString(),
+                    ["p_quantity_sold"] = sale.QuantitySold,
+                    ["p_has_ingredients"] = product?.HasIngredients ?? false,
+                    ["p_ingredient_updates"] = JsonSerializer.Serialize(ingredientUpdates)
+                };
+
+                await _supabase.Rpc("void_sale_with_stock", rpcParams);
+            }
+            catch
+            {
+                // RPC not deployed yet — fall back to parallel approach
+                if (product != null)
+                {
+                    if (product.HasIngredients)
+                    {
+                        var stockTasks = product.RequiredIngredients
+                            .Where(req => req.Ingredient != null)
+                            .Select(req => _supabase.From<Ingredient>().Upsert(req.Ingredient!));
+                        await Task.WhenAll(stockTasks);
+                    }
+                    else
                     {
                         var reqs = product.RequiredIngredients.ToList();
                         product.RequiredIngredients = new();
@@ -393,10 +468,9 @@ namespace InventoryPlus.Services
                         product.RequiredIngredients = reqs;
                     }
                 }
+                await _supabase.From<Sale>().Upsert(sale);
             }
 
-            sale.IsVoided = true;
-            if (!IsGuestMode) await _supabase.From<Sale>().Upsert(sale);
             NotifyStateChanged();
         }
 
@@ -657,6 +731,10 @@ namespace InventoryPlus.Services
 
         // ── Image URL helpers ──────────────────────────────────────────────────
 
+        // Cache signed URLs to avoid re-signing on every load (path → {url, expiry})
+        private readonly Dictionary<string, (string Url, DateTime Expiry)> _signedUrlCache = new();
+        private static readonly TimeSpan SignedUrlTtl = TimeSpan.FromDays(6); // re-sign before 7-day expiry
+
         private static string? ExtractProductImagePath(string? urlOrPath)
         {
             if (string.IsNullOrEmpty(urlOrPath)) return null;
@@ -676,22 +754,38 @@ namespace InventoryPlus.Services
 
         private async Task RefreshProductImageUrlsAsync()
         {
-            foreach (var product in Products)
+            var productsWithImages = Products
+                .Where(p => !string.IsNullOrEmpty(p.ImageUrl))
+                .ToList();
+            if (productsWithImages.Count == 0) return;
+
+            var tasks = productsWithImages.Select(async product =>
             {
-                if (string.IsNullOrEmpty(product.ImageUrl)) continue;
                 var path = ExtractProductImagePath(product.ImageUrl);
-                if (string.IsNullOrEmpty(path)) continue;
+                if (string.IsNullOrEmpty(path)) return;
                 try
                 {
-                    product.ImageUrl = await _supabase.Storage
-                        .From("product-images")
-                        .CreateSignedUrl(path, 60 * 60 * 24 * 7);
+                    product.ImageUrl = await GetOrCreateSignedUrlAsync("product-images", path);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Failed to refresh image URL for {product.Name}: {ex.Message}");
                 }
-            }
+            });
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task<string> GetOrCreateSignedUrlAsync(string bucket, string path)
+        {
+            var cacheKey = $"{bucket}/{path}";
+            if (_signedUrlCache.TryGetValue(cacheKey, out var cached) && cached.Expiry > DateTime.UtcNow)
+                return cached.Url;
+
+            var url = await _supabase.Storage
+                .From(bucket)
+                .CreateSignedUrl(path, 60 * 60 * 24 * 7);
+            _signedUrlCache[cacheKey] = (url, DateTime.UtcNow + SignedUrlTtl);
+            return url;
         }
     }
 }
