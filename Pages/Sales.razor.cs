@@ -13,6 +13,7 @@ namespace InventoryPlus.Pages
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public ToastService Toast { get; set; } = default!;
         [Inject] public NavigationManager Nav { get; set; } = default!;
+        [Inject] public Microsoft.JSInterop.IJSRuntime JS { get; set; } = default!;
 
         protected string saleNote = "";
         protected string paymentMethod = "Cash";
@@ -187,7 +188,7 @@ namespace InventoryPlus.Pages
                 var itemCount = Cart.Sum(c => c.Quantity);
                 foreach (var item in Cart)
                 {
-                    await Inventory.RecordSaleAsync(item.Product, item.Quantity, saleNote, paymentMethod, customerName, discountAmount, discountType);
+                    await Inventory.RecordSaleAsync(item.Product, item.Quantity, saleNote, paymentMethod, customerName, discountAmount, discountType, JS);
                 }
 
                 Toast.Show($"Sale completed — {itemCount} item(s) sold!", "success");
@@ -303,7 +304,7 @@ namespace InventoryPlus.Pages
 
             try
             {
-                await Inventory.UpdateSaleAsync(editingSale);
+                await Inventory.UpdateSaleAsync(editingSale, JS);
                 Toast.Show("Sale updated successfully!");
             }
             catch (Exception ex)
@@ -340,7 +341,7 @@ namespace InventoryPlus.Pages
 
             try
             {
-                await Inventory.VoidSaleAsync(voidingSale);
+                await Inventory.VoidSaleAsync(voidingSale, JS);
                 Toast.Show("Sale voided. Stock restored.", "info");
             }
             catch (Exception ex)

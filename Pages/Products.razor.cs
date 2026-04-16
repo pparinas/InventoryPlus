@@ -13,6 +13,7 @@ namespace InventoryPlus.Pages
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public Supabase.Client SupabaseClient { get; set; } = default!;
         [Inject] public ToastService Toast { get; set; } = default!;
+        [Inject] public Microsoft.JSInterop.IJSRuntime JS { get; set; } = default!;
         protected bool showModal;
         protected bool isEditing;
         protected bool isUploading;
@@ -146,7 +147,7 @@ namespace InventoryPlus.Pages
             {
                 try
                 {
-                    await Inventory.DeleteProductAsync(deleteTarget);
+                    await Inventory.DeleteProductAsync(deleteTarget, JS);
                     Toast.Show($"\"{deleteTarget.Name}\" removed.", "info");
                 }
                 catch (Exception ex)
@@ -287,7 +288,7 @@ namespace InventoryPlus.Pages
                         existing.HasIngredients = currentProduct.HasIngredients;
                         existing.StockCount = currentProduct.StockCount;
                         existing.RequiredIngredients = currentProduct.HasIngredients ? currentProduct.RequiredIngredients : new();
-                        await Inventory.UpdateProductAsync(existing);
+                        await Inventory.UpdateProductAsync(existing, JS);
                         Toast.Show($"\"{existing.Name}\" updated successfully!");
                     }
                 }
@@ -295,7 +296,7 @@ namespace InventoryPlus.Pages
                 {
                     if (!currentProduct.HasIngredients)
                         currentProduct.RequiredIngredients = new();
-                    await Inventory.AddProductAsync(currentProduct);
+                    await Inventory.AddProductAsync(currentProduct, JS);
                     Toast.Show($"\"{currentProduct.Name}\" added to products!");
                 }
                 CloseModal();

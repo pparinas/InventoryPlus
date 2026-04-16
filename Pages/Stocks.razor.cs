@@ -11,6 +11,7 @@ namespace InventoryPlus.Pages
         [Inject] public InventoryService Inventory { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public ToastService Toast { get; set; } = default!;
+        [Inject] public Microsoft.JSInterop.IJSRuntime JS { get; set; } = default!;
         protected bool showModal;
         protected bool isEditing;
         protected Ingredient currentIngredient = new();
@@ -144,7 +145,7 @@ namespace InventoryPlus.Pages
             {
                 try
                 {
-                    await Inventory.DeleteIngredientAsync(deleteTarget);
+                    await Inventory.DeleteIngredientAsync(deleteTarget, JS);
                     Toast.Show($"\"{deleteTarget.Name}\" removed.", "info");
                 }
                 catch (Exception ex)
@@ -173,14 +174,14 @@ namespace InventoryPlus.Pages
                         existing.Stock = currentIngredient.Stock;
                         existing.CostPerUnit = currentIngredient.CostPerUnit;
                         existing.Type = currentIngredient.Type;
-                        await Inventory.UpdateIngredientAsync(existing);
+                        await Inventory.UpdateIngredientAsync(existing, JS);
                         Toast.Show($"\"{existing.Name}\" updated successfully!");
                     }
                 }
                 else
                 {
                     currentIngredient.Guid = Guid.NewGuid();
-                    await Inventory.AddIngredientAsync(currentIngredient);
+                    await Inventory.AddIngredientAsync(currentIngredient, JS);
                     Toast.Show($"\"{currentIngredient.Name}\" added to stock!");
                 }
                 CloseModal();

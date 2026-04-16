@@ -169,7 +169,7 @@ namespace InventoryPlus.Layout
 
                 // Load settings and inventory data in parallel
                 {
-                    var settingsTask = !AppSettings.IsLoaded ? AppSettings.LoadAsync(user.Id!) : Task.CompletedTask;
+                    var settingsTask = !AppSettings.IsLoaded ? AppSettings.LoadAsync(user.Id!, JSRuntime) : Task.CompletedTask;
                     var inventoryTask = !Inventory.IsLoaded && !Inventory.IsLoading ? Inventory.LoadAsync(user.Id!, JSRuntime) : Task.CompletedTask;
                     await Task.WhenAll(settingsTask, inventoryTask);
                 }
