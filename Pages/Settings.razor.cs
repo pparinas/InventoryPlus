@@ -80,7 +80,7 @@ namespace InventoryPlus.Pages
             }
 
             if (currentUser != null)
-                await AppSettings.LoadAsync(currentUser.Id);
+                await AppSettings.LoadAsync(currentUser.Id, JSRuntime);
 
             newCompanyName = AppSettings.CompanyName;
             useLogo = AppSettings.UseLogoForBranding;
@@ -180,7 +180,7 @@ namespace InventoryPlus.Pages
             try
             {
                 if (currentUser != null)
-                    await AppSettings.SaveAsync(currentUser.Id);
+                    await AppSettings.SaveAsync(currentUser.Id, JSRuntime);
 
                 Toast.Show("Settings saved successfully!");
                 showSuccess = true;
@@ -265,7 +265,7 @@ namespace InventoryPlus.Pages
             try
             {
                 if (currentUser != null)
-                    await AppSettings.SaveAsync(currentUser.Id);
+                    await AppSettings.SaveAsync(currentUser.Id, JSRuntime);
                 Toast.Show("Preferences saved!");
             }
             catch (Exception ex)
@@ -303,7 +303,7 @@ namespace InventoryPlus.Pages
 
             AppSettings.SetPin(newPin);
             if (currentUser != null)
-                await AppSettings.SaveAsync(currentUser.Id);
+                await AppSettings.SaveAsync(currentUser.Id, JSRuntime);
 
             currentPin = "";
             newPin = "";
@@ -328,7 +328,7 @@ namespace InventoryPlus.Pages
 
             AppSettings.PinHash = string.Empty;
             if (currentUser != null)
-                await AppSettings.SaveAsync(currentUser.Id);
+                await AppSettings.SaveAsync(currentUser.Id, JSRuntime);
 
             currentPin = "";
             newPin = "";
@@ -343,7 +343,7 @@ namespace InventoryPlus.Pages
             try
             {
                 if (currentUser != null)
-                    await AppSettings.SaveAsync(currentUser.Id);
+                    await AppSettings.SaveAsync(currentUser.Id, JSRuntime);
                 Toast.Show("Color scheme applied!");
             }
             catch (Exception ex)
@@ -360,7 +360,7 @@ namespace InventoryPlus.Pages
             try
             {
                 if (currentUser != null)
-                    await AppSettings.SaveAsync(currentUser.Id);
+                    await AppSettings.SaveAsync(currentUser.Id, JSRuntime);
                 Toast.Show("Navigation preferences saved!");
             }
             catch (Exception ex)
