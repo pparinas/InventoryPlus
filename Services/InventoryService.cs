@@ -328,19 +328,12 @@ namespace InventoryPlus.Services
             // Background sync
             _ = SyncSafeAsync(js, async () =>
             {
-                var ingredientUpdates = product.HasIngredients
-                    ? product.RequiredIngredients
-                        .Where(r => r.Ingredient != null)
-                        .Select(r => new { id = r.IngredientId, deduct = UnitConverter.ConvertSafe(r.QuantityRequired, r.EffectiveUsageUnit, r.Ingredient!.Unit) * quantity })
-                        .ToArray()
-                    : Array.Empty<object>();
-
-                var rpcParams = new Dictionary<string, object>
+                try
                 {
                     var ingredientUpdates = product.HasIngredients
                         ? product.RequiredIngredients
                             .Where(r => r.Ingredient != null)
-                            .Select(r => new { id = r.IngredientId, deduct = r.QuantityRequired * quantity })
+                            .Select(r => new { id = r.IngredientId, deduct = UnitConverter.ConvertSafe(r.QuantityRequired, r.EffectiveUsageUnit, r.Ingredient!.Unit) * quantity })
                             .ToArray()
                         : Array.Empty<object>();
 
@@ -475,19 +468,12 @@ namespace InventoryPlus.Services
 
             _ = SyncSafeAsync(js, async () =>
             {
-                var ingredientUpdates = (product?.HasIngredients == true)
-                    ? product.RequiredIngredients
-                        .Where(r => r.Ingredient != null)
-                        .Select(r => new { id = r.IngredientId, restore = UnitConverter.ConvertSafe(r.QuantityRequired, r.EffectiveUsageUnit, r.Ingredient!.Unit) * sale.QuantitySold })
-                        .ToArray()
-                    : Array.Empty<object>();
-
-                var rpcParams = new Dictionary<string, object>
+                try
                 {
                     var ingredientUpdates = (product?.HasIngredients == true)
                         ? product.RequiredIngredients
                             .Where(r => r.Ingredient != null)
-                            .Select(r => new { id = r.IngredientId, restore = r.QuantityRequired * sale.QuantitySold })
+                            .Select(r => new { id = r.IngredientId, restore = UnitConverter.ConvertSafe(r.QuantityRequired, r.EffectiveUsageUnit, r.Ingredient!.Unit) * sale.QuantitySold })
                             .ToArray()
                         : Array.Empty<object>();
 
