@@ -655,7 +655,8 @@ namespace InventoryPlus.Services
 
         public async Task ClearCacheAsync(IJSRuntime js, string userId)
         {
-            try { await js.InvokeVoidAsync("localStorage.removeItem", $"{CacheKeyPrefix}{userId}"); }
+            var normalizedId = Guid.TryParse(userId, out var g) ? g.ToString("D") : userId.ToLowerInvariant();
+            try { await js.InvokeVoidAsync("localStorage.removeItem", $"{CacheKeyPrefix}{normalizedId}"); }
             catch { }
         }
 
@@ -705,7 +706,7 @@ namespace InventoryPlus.Services
                     })
                 };
                 var json = JsonSerializer.Serialize(snapshot);
-                await js.InvokeVoidAsync("localStorage.setItem", $"{CacheKeyPrefix}{_ownerGuid}", json);
+                await js.InvokeVoidAsync("localStorage.setItem", $"{CacheKeyPrefix}{_ownerGuid:D}", json);
             }
             catch (Exception ex) { Console.WriteLine($"SaveCacheAsync error: {ex.Message}"); }
         }
@@ -714,7 +715,8 @@ namespace InventoryPlus.Services
         {
             try
             {
-                var json = await js.InvokeAsync<string?>("localStorage.getItem", $"{CacheKeyPrefix}{userId}");
+                var normalizedId = Guid.TryParse(userId, out var g) ? g.ToString("D") : userId.ToLowerInvariant();
+                var json = await js.InvokeAsync<string?>("localStorage.getItem", $"{CacheKeyPrefix}{normalizedId}");
                 if (string.IsNullOrEmpty(json)) return false;
 
                 using var doc = JsonDocument.Parse(json);
@@ -816,7 +818,8 @@ namespace InventoryPlus.Services
         {
             try
             {
-                var json = await js.InvokeAsync<string?>("localStorage.getItem", $"{PendingKeyPrefix}{userId}");
+                var normalizedId = Guid.TryParse(userId, out var g) ? g.ToString("D") : userId.ToLowerInvariant();
+                var json = await js.InvokeAsync<string?>("localStorage.getItem", $"{PendingKeyPrefix}{normalizedId}");
                 if (string.IsNullOrEmpty(json)) return;
                 var items = JsonSerializer.Deserialize<List<PendingWriteDto>>(json);
                 if (items == null) return;

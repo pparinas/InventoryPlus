@@ -1,266 +1,210 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.JSInterop;
-using InventoryPlus.Services;
-using Supabase;
+@inherits LayoutComponentBase
 
-namespace InventoryPlus.Layout
-{
-    public partial class MainLayout : LayoutComponentBase, IDisposable
-    {
-        [Inject] public NavigationManager NavManager { get; set; } = default!;
-        [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
-        [Inject] public SettingsService AppSettings { get; set; } = default!;
-        [Inject] public InventoryService Inventory { get; set; } = default!;
-        [Inject] public Client Supabase { get; set; } = default!;
-        [Inject] public AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
-
-        protected bool showDropdown = false;
-        protected bool isLightMode = false;
-        protected bool showMobileNav = false;
-        protected bool showOnboarding = false;
-        protected string? currentUserEmail;
-        private string currentPath = "";
-        private ErrorBoundary? errorBoundary;
-        protected Components.NotificationPanel? notificationPanel;
-
-        protected void ToggleNotifications()
-        {
-            notificationPanel?.Toggle();
-        }
-
-        protected void ResetError()
-        {
-            errorBoundary?.Recover();
-        }
-
-        protected void ToggleMobileNav()
-        {
-            showMobileNav = !showMobileNav;
-        }
-
-        protected void CloseMobileNav()
-        {
-            showMobileNav = false;
-        }
-
-        protected void HandleGlobalClick()
-        {
-            showDropdown = false;
-        }
-
-        protected void HandleKeyDown(KeyboardEventArgs e)
-        {
-            if (e.Key == "Escape")
-            {
-                showDropdown = false;
-                showMobileNav = false;
-            }
-        }
-
-        protected void ToggleDropdown()
-        {
-            showDropdown = !showDropdown;
-        }
-
-        protected async Task ToggleTheme()
-        {
-            try
-            {
-                isLightMode = !isLightMode;
-                await JSRuntime.InvokeVoidAsync("themeInterop.toggle", isLightMode);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error toggling theme: {ex.Message}");
-            }
-        }
-
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            if (firstRender)
-            {
-                try
+<div class="app-container @(showMobileNav ? "mobile-nav-open" : "")" @onclick="HandleGlobalClick" @onkeydown="HandleKeyDown" tabindex="0">
+    <header class="top-nav">
+        <div class="d-flex align-items-center gap-2">
+            <button class="hamburger-btn btn btn-outline-secondary btn-sm d-flex d-md-none align-items-center justify-content-center" @onclick="ToggleMobileNav" @onclick:stopPropagation title="Menu"
+                    style="border-radius: 8px; width: 36px; height: 36px; padding: 0;">
+                <i class="fa-solid @(showMobileNav ? "fa-xmark" : "fa-bars")"></i>
+            </button>
+            <div class="d-flex align-items-center gap-2 fw-bold" style="color: var(--brand-color); flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">
+                @if(AppSettings.UseLogoForBranding)
                 {
-                    isLightMode = await JSRuntime.InvokeAsync<bool>("themeInterop.isLight");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error initializing theme: {ex.Message}");
-                }
-
-                await LoadDataAsync();
-
-                // Apply saved color scheme
-                try
-                {
-                    var scheme = AppSettings.ColorScheme;
-                    if (!string.IsNullOrEmpty(scheme))
-                        await JSRuntime.InvokeVoidAsync("themeInterop.setScheme", scheme);
-                }
-                catch { }
-                // Update PWA icon to user's logo if set
-                try
-                {
-                    if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
-                        await JSRuntime.InvokeVoidAsync("pwaIcon.update", AppSettings.CustomLogoUrl, AppSettings.CompanyName);
-                }
-                catch { }
-
-                // Show onboarding wizard on first setup (no products/ingredients yet)
-                if (Inventory.IsLoaded && !AppSettings.OnboardingCompleted
-                    && !Inventory.ActiveProducts.Any() && !Inventory.ActiveIngredients.Any())
-                {
-                    showOnboarding = true;
-                }
-
-                StateHasChanged();
-            }
-        }
-
-        private async Task LoadDataAsync()
-        {
-            // Guest mode: load from localStorage only, skip Supabase
-            if (AppSettings.IsGuestMode)
-            {
-                currentUserEmail = "Guest User";
-                if (!Inventory.IsLoaded && !Inventory.IsLoading)
-                    await Inventory.LoadGuestAsync(JSRuntime);
-                return;
-            }
-
-            try
-            {
-                var user = Supabase.Auth.CurrentUser;
-                if (user == null)
-                {
-                    var session = await Supabase.Auth.RetrieveSessionAsync();
-                    user = session?.User;
-                }
-
-                // If still no user, try to get userId from localStorage to load cached data
-                if (user == null)
-                {
-                    try
+                    @* Logo only mode *@
+                    @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
                     {
-                        var cachedUserId = await JSRuntime.InvokeAsync<string?>("localStorage.getItem", "inv_last_user_id");
-                        if (!string.IsNullOrEmpty(cachedUserId))
-                        {
-                            Console.WriteLine("Session expired — loading cached data for offline use");
-                            var settingsTask = !AppSettings.IsLoaded ? AppSettings.LoadAsync(cachedUserId) : Task.CompletedTask;
-                            var inventoryTask = !Inventory.IsLoaded && !Inventory.IsLoading ? Inventory.LoadAsync(cachedUserId, JSRuntime) : Task.CompletedTask;
-                            await Task.WhenAll(settingsTask, inventoryTask);
-                        }
+                        <img src="@AppSettings.CustomLogoUrl" style="height: 32px; width: auto; max-width: 120px; object-fit: contain;" alt="@AppSettings.CompanyName" />
                     }
-                    catch { }
-                    return;
+                    else
+                    {
+                        <i class="fa-solid fa-cube fa-lg" style="color: var(--accent);"></i>
+                    }
                 }
-
-                currentUserEmail = user.Email;
-
-                // Persist userId so we can load cache even when auth fails on refresh
-                try
+                else
                 {
-                    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "inv_last_user_id", user.Id);
+                    @* Show Name mode: logo (if uploaded) + company name *@
+                    @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
+                    {
+                        <img src="@AppSettings.CustomLogoUrl" style="height: 28px; width: auto; max-width: 80px; object-fit: contain;" alt="@AppSettings.CompanyName" />
+                    }
+                    else
+                    {
+                        <i class="fa-solid fa-cube" style="color: var(--accent);"></i>
+                    }
+                    <span style="font-size: 1.2rem;">@AppSettings.CompanyName</span>
                 }
-                catch { }
+            </div>
+        </div>
 
-                // Load settings and inventory data in parallel
+        <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" @onclick="ToggleTheme" @onclick:stopPropagation style="width: 36px; height: 36px; padding: 0;" title="Toggle Dark/Light Mode">
+                @if (isLightMode)
                 {
-                    var settingsTask = !AppSettings.IsLoaded ? AppSettings.LoadAsync(user.Id!, JSRuntime) : Task.CompletedTask;
-                    var inventoryTask = !Inventory.IsLoaded && !Inventory.IsLoading ? Inventory.LoadAsync(user.Id!, JSRuntime) : Task.CompletedTask;
-                    await Task.WhenAll(settingsTask, inventoryTask);
+                    <i class="fa-solid fa-moon"></i>
                 }
-            }
-            catch (Exception ex)
+                else
+                {
+                    <i class="fa-solid fa-sun"></i>
+                }
+            </button>
+
+            @if (!AppSettings.IsPosMode)
             {
-                Console.WriteLine($"LoadDataAsync error: {ex.Message}");
+            <button class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center position-relative" @onclick="ToggleNotifications" @onclick:stopPropagation style="width: 36px; height: 36px; padding: 0;" title="Notifications">
+                <i class="fa-solid fa-bell"></i>
+                @if ((notificationPanel?.UnreadCount ?? 0) > 0)
+                {
+                    <span class="notification-badge">@(notificationPanel!.UnreadCount > 9 ? "9+" : notificationPanel.UnreadCount.ToString())</span>
+                }
+            </button>
+
+            <div class="dropdown" @onclick:stopPropagation>
+                <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" @onclick="ToggleDropdown" style="border-radius: 50px; padding: 0.5rem 1rem;">
+                    <i class="fa-solid fa-circle-user fa-lg"></i> <span class="d-none d-sm-inline">Account</span> <i class="fa-solid fa-chevron-down d-none d-sm-inline" style="font-size: 0.7rem;"></i>
+                </button>
+                
+                @if (showDropdown)
+                {
+                    <div class="dropdown-menu show p-3" style="position: absolute; top: calc(100% + 0.5rem); right: 0; min-width: 260px; border-radius: 12px;">
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px; background: var(--primary);">
+                                <i class="fa-solid @(AppSettings.IsGuestMode ? "fa-user-secret" : "fa-user")"></i>
+                            </div>
+                            <div style="min-width: 0;">
+                                <div class="fw-semibold">@(AppSettings.IsGuestMode ? "Guest User" : currentUserEmail ?? "Loading...")</div>
+                                <div class="text-muted small text-truncate">@(AppSettings.IsGuestMode ? "Local data only" : AppSettings.CompanyName)</div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-2" style="border-color: var(--border);">
+                        
+                        @if (!AppSettings.IsGuestMode)
+                        {
+                        <AuthorizeView>
+                            <Authorized>
+                                <NavLink class="dropdown-item rounded d-flex align-items-center gap-2 py-2" href="settings" @onclick="() => showDropdown = false">
+                                    <i class="fa-solid fa-gear fa-fw"></i> Settings
+                                </NavLink>
+                            </Authorized>
+                        </AuthorizeView>
+                        }
+                        
+                        <button class="btn btn-outline-danger btn-sm w-100 mt-2 d-flex align-items-center gap-2" @onclick="SignOut" style="justify-content: flex-start; padding-left: 1rem;">
+                            @if (AppSettings.IsGuestMode)
+                            {
+                                <i class="fa-solid fa-right-to-bracket"></i> <span>Sign In</span>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span>
+                            }
+                        </button>
+                    </div>
+                }
+            </div>
             }
-        }
+        </div>
+    </header>
 
-        protected void OnboardingDone()
-        {
-            showOnboarding = false;
-            StateHasChanged();
-        }
-
-        protected override void OnInitialized()
-        {
-            AppSettings.OnStateChanged += HandleStateChanged;
-            Inventory.OnStateChanged += HandleStateChanged;
-            NavManager.LocationChanged += OnLocationChanged;
-            currentPath = GetRelativePath();
-        }
-
-        private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-        {
-            currentPath = GetRelativePath();
-
-            // POS mode: redirect non-POS pages to sales
-            if (AppSettings.IsPosMode && currentPath != "sales" && currentPath != "login" && currentPath != "register")
-            {
-                NavManager.NavigateTo("sales");
-                return;
-            }
-
-            try { await InvokeAsync(StateHasChanged); } catch { }
-        }
-
-        private string GetRelativePath()
-        {
-            var uri = new Uri(NavManager.Uri);
-            return uri.AbsolutePath.Trim('/').ToLowerInvariant();
-        }
-
-        protected bool IsActive(string page) => currentPath == page.ToLowerInvariant();
-
-        private async void HandleStateChanged()
-        {
-            try { await InvokeAsync(StateHasChanged); } catch { }
-        }
-
-        public void Dispose()
-        {
-            AppSettings.OnStateChanged -= HandleStateChanged;
-            Inventory.OnStateChanged -= HandleStateChanged;
-            NavManager.LocationChanged -= OnLocationChanged;
-        }
-
-        protected async Task SignOut()
-        {
-            if (AppSettings.IsGuestMode)
-            {
-                // Clear guest mode and navigate to login
-                AppSettings.IsGuestMode = false;
-                Inventory.IsGuestMode = false;
-                Inventory.IsLoaded = false;
-                Inventory.Ingredients = new();
-                Inventory.Products = new();
-                Inventory.Sales = new();
-                var authProvider = (SupabaseAuthenticationStateProvider)AuthStateProvider;
-                await authProvider.DisableGuestModeAsync();
-                NavManager.NavigateTo("login");
-                return;
-            }
-
-            try
-            {
-                await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_access_token");
-                await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_refresh_token");
-                await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "inv_last_user_id");
-            }
-            catch { }
-
-            var userId = Supabase.Auth.CurrentUser?.Id;
-            await Supabase.Auth.SignOut();
-            Inventory.IsLoaded = false;
-            Inventory.Ingredients = new();
-            Inventory.Products = new();
-            Inventory.Sales = new();
-            if (userId != null) await Inventory.ClearCacheAsync(JSRuntime, userId);
-            NavManager.NavigateTo("login");
-        }
+    @if (Inventory.IsOffline)
+    {
+        <div class="offline-banner">
+            <i class="fa-solid fa-wifi" style="opacity:0.6;"></i>
+            Offline &mdash; showing cached data. Changes require an internet connection.
+        </div>
     }
+
+    @if (AppSettings.IsGuestMode)
+    {
+        <div class="guest-banner">
+            <i class="fa-solid fa-user-secret" style="opacity:0.8;"></i>
+            Guest Mode &mdash; data is stored locally only.
+            <a href="login" class="guest-banner-link" @onclick="SignOut" @onclick:preventDefault>Sign In</a>
+        </div>
+    }
+
+    <div class="sidebar-overlay" @onclick="CloseMobileNav"></div>
+
+    <aside class="sidebar" @onclick:stopPropagation>
+        <NavMenu />
+    </aside>
+
+    <main class="main-content" @onclick="CloseMobileNav">
+        <ErrorBoundary @ref="errorBoundary">
+            <ChildContent>
+                @Body
+            </ChildContent>
+            <ErrorContent Context="ex">
+                <div class="glass-panel text-center p-4" style="max-width: 500px; margin: 2rem auto;">
+                    <i class="fa-solid fa-triangle-exclamation fa-3x mb-3" style="color: var(--warning);"></i>
+                    <h3>Something went wrong</h3>
+                    <p class="text-muted">An unexpected error occurred. Please try again.</p>
+                    <button class="btn btn-primary" @onclick="ResetError"><i class="fa-solid fa-rotate-right me-1"></i> Try Again</button>
+                </div>
+            </ErrorContent>
+        </ErrorBoundary>
+    </main>
+
+    @* ── Mobile Bottom Bar ── *@
+    <nav class="mobile-bottom-bar d-md-none">
+        @if (AppSettings.IsPosMode)
+        {
+            <a href="sales" class="bottom-bar-item @(IsActive("sales") ? "active" : "")">
+                <i class="fa-solid fa-cash-register"></i>
+                <span>POS</span>
+            </a>
+        }
+        else
+        {
+        <a href="dashboard" class="bottom-bar-item @(IsActive("dashboard") ? "active" : "")">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>Home</span>
+        </a>
+        <a href="sales" class="bottom-bar-item @(IsActive("sales") ? "active" : "")">
+            <i class="fa-solid fa-cart-shopping"></i>
+            <span>Sales</span>
+        </a>
+        @if (AppSettings.ShowInventoryTab)
+        {
+        <a href="stocks" class="bottom-bar-item @(IsActive("stocks") ? "active" : "")">
+            <i class="fa-solid fa-boxes-stacked"></i>
+            <span>Stocks</span>
+        </a>
+        }
+        <a href="products" class="bottom-bar-item @(IsActive("products") ? "active" : "")">
+            <i class="fa-solid fa-leaf"></i>
+            <span>Products</span>
+        </a>
+        @if (AppSettings.ShowOpexTab)
+        {
+        <a href="expenses" class="bottom-bar-item @(IsActive("expenses") ? "active" : "")">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>OPEX</span>
+        </a>
+        }
+        @if (AppSettings.IsGuestMode)
+        {
+            <a href="login" class="bottom-bar-item disabled" @onclick="SignOut" @onclick:preventDefault>
+                <i class="fa-solid fa-lock"></i>
+                <span>Reports</span>
+            </a>
+        }
+        else
+        {
+            <a href="reports" class="bottom-bar-item @(IsActive("reports") ? "active" : "")">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Reports</span>
+            </a>
+        }
+        }
+    </nav>
+
+    <ToastContainer />
+    <NotificationPanel @ref="notificationPanel" />
+</div>
+
+@if (showOnboarding)
+{
+    <OnboardingWizard IsVisible="true" OnComplete="OnboardingDone" />
 }
+

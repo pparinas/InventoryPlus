@@ -237,7 +237,7 @@ namespace InventoryPlus.Services
             return null;
         }
 
-        public bool IsLoaded { get; private set; } = false;
+        public bool IsLoaded { get; set; } = false;
 
         // Cache signed logo URL to avoid re-signing on every load
         private string? _cachedLogoPath;
@@ -413,7 +413,8 @@ namespace InventoryPlus.Services
                     logoPath = _customLogoPath ?? string.Empty
                 };
                 var json = System.Text.Json.JsonSerializer.Serialize(snapshot);
-                await js.InvokeVoidAsync("localStorage.setItem", $"{SettingsCachePrefix}{userId}", json);
+                var normalizedId = Guid.TryParse(userId, out var g) ? g.ToString("D") : userId.ToLowerInvariant();
+                await js.InvokeVoidAsync("localStorage.setItem", $"{SettingsCachePrefix}{normalizedId}", json);
             }
             catch (Exception ex) { Console.WriteLine($"SaveToCacheAsync error: {ex.Message}"); }
         }
@@ -422,7 +423,8 @@ namespace InventoryPlus.Services
         {
             try
             {
-                var json = await js.InvokeAsync<string?>("localStorage.getItem", $"{SettingsCachePrefix}{userId}");
+                var normalizedId = Guid.TryParse(userId, out var g) ? g.ToString("D") : userId.ToLowerInvariant();
+                var json = await js.InvokeAsync<string?>("localStorage.getItem", $"{SettingsCachePrefix}{normalizedId}");
                 if (string.IsNullOrEmpty(json)) return false;
 
                 using var doc = System.Text.Json.JsonDocument.Parse(json);
