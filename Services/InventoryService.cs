@@ -27,11 +27,17 @@ namespace InventoryPlus.Services
         public bool IsGuestMode { get; set; }
 
         private const string CacheKeyPrefix = "inv_cache_";
+        private const string PendingKeyPrefix = "inv_pending_";
 
         public IEnumerable<Ingredient> ActiveIngredients => Ingredients.Where(i => !i.IsArchived);
         public IEnumerable<Product> ActiveProducts => Products.Where(p => !p.IsArchived);
 
         public event Action? OnStateChanged;
+
+        // Pending writes queue (in-memory; persisted to localStorage)
+        private readonly Queue<PendingWrite> _pendingWrites = new();
+
+        private record PendingWrite(string Op, string Payload, DateTime QueuedAt);
 
         public InventoryService(Client supabase)
         {
@@ -56,6 +62,8 @@ namespace InventoryPlus.Services
                         IsLoaded = true;
                         NotifyStateChanged();
                     }
+                    // Also restore any unflushed pending writes
+                    await LoadPendingQueueAsync(js, userId);
                 }
 
                 // Load all tables in parallel (5 queries → 1 round-trip window)
@@ -120,129 +128,142 @@ namespace InventoryPlus.Services
 
         // ── Ingredients ────────────────────────────────────────────────────────
 
-        public async Task AddIngredientAsync(Ingredient ingredient)
+        public async Task AddIngredientAsync(Ingredient ingredient, IJSRuntime? js = null)
         {
             ingredient.OwnerGuid = _ownerGuid;
-            if (IsGuestMode)
-            {
-                if (ingredient.Guid == Guid.Empty) ingredient.Guid = Guid.NewGuid();
-                Ingredients.Add(ingredient);
-                NotifyStateChanged();
-                return;
-            }
-            var resp = await _supabase.From<Ingredient>().Insert(ingredient);
-            var saved = resp.Models.FirstOrDefault();
-            if (saved != null)
-            {
-                ingredient.Guid = saved.Guid;
-                Ingredients.Add(ingredient);
-                NotifyStateChanged();
-            }
-        }
+            if (ingredient.Guid == Guid.Empty) ingredient.Guid = Guid.NewGuid();
 
-        public async Task UpdateIngredientAsync(Ingredient ingredient)
-        {
-            ingredient.OwnerGuid = _ownerGuid;
-            if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(ingredient);
+            // Optimistic: update local immediately
+            Ingredients.Add(ingredient);
+            if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
+
+            if (IsGuestMode) return;
+
+            // Background sync
+            _ = SyncSafeAsync(js, async () =>
+            {
+                var resp = await _supabase.From<Ingredient>().Insert(ingredient);
+                var saved = resp.Models.FirstOrDefault();
+                if (saved != null) ingredient.Guid = saved.Guid;
+            });
         }
 
-        public async Task DeleteIngredientAsync(Ingredient ingredient)
+        public async Task UpdateIngredientAsync(Ingredient ingredient, IJSRuntime? js = null)
+        {
+            ingredient.OwnerGuid = _ownerGuid;
+            if (js != null) await SaveCacheAsync(js);
+            NotifyStateChanged();
+
+            if (!IsGuestMode)
+                _ = SyncSafeAsync(js, () => _supabase.From<Ingredient>().Upsert(ingredient));
+        }
+
+        public async Task DeleteIngredientAsync(Ingredient ingredient, IJSRuntime? js = null)
         {
             ingredient.IsArchived = true;
-            if (!IsGuestMode) await _supabase.From<Ingredient>().Upsert(ingredient);
+            if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
+
+            if (!IsGuestMode)
+                _ = SyncSafeAsync(js, () => _supabase.From<Ingredient>().Upsert(ingredient));
         }
 
         // ── Products ───────────────────────────────────────────────────────────
 
-        public async Task AddProductAsync(Product product)
+        public async Task AddProductAsync(Product product, IJSRuntime? js = null)
         {
             product.OwnerGuid = _ownerGuid;
-            if (IsGuestMode)
+            if (product.Guid == Guid.Empty) product.Guid = Guid.NewGuid();
+
+            foreach (var pi in product.RequiredIngredients)
             {
-                if (product.Guid == Guid.Empty) product.Guid = Guid.NewGuid();
-                foreach (var pi in product.RequiredIngredients)
+                pi.ProductId = product.Guid;
+                if (pi.Guid == Guid.Empty) pi.Guid = Guid.NewGuid();
+            }
+
+            // Optimistic: update local immediately
+            Products.Add(product);
+            if (js != null) await SaveCacheAsync(js);
+            NotifyStateChanged();
+
+            if (IsGuestMode) return;
+
+            _ = SyncSafeAsync(js, async () =>
+            {
+                var requirements = product.RequiredIngredients.ToList();
+                product.RequiredIngredients = new();
+                await _supabase.From<Product>().Upsert(product);
+                product.RequiredIngredients = requirements;
+
+                var piTasks = requirements.Select(pi =>
                 {
                     pi.ProductId = product.Guid;
-                    if (pi.Guid == Guid.Empty) pi.Guid = Guid.NewGuid();
-                }
-                Products.Add(product);
-                NotifyStateChanged();
-                return;
-            }
-            var requirements = product.RequiredIngredients.ToList();
-
-            // Clear reference list before insert to avoid serialisation issues
-            product.RequiredIngredients = new();
-            await _supabase.From<Product>().Upsert(product);
-            product.RequiredIngredients = requirements;
-
-            // Save all ProductIngredient rows in parallel
-            var piTasks = requirements.Select(pi =>
-            {
-                pi.ProductId = product.Guid;
-                pi.OwnerId = _ownerGuid;
-                var savedIngredient = pi.Ingredient;
-                pi.Ingredient = null;
-                var task = _supabase.From<ProductIngredient>().Upsert(pi);
-                return task.ContinueWith(_ => pi.Ingredient = savedIngredient);
+                    pi.OwnerId = _ownerGuid;
+                    var savedIngredient = pi.Ingredient;
+                    pi.Ingredient = null;
+                    var task = _supabase.From<ProductIngredient>().Upsert(pi);
+                    return task.ContinueWith(_ => pi.Ingredient = savedIngredient);
+                });
+                await Task.WhenAll(piTasks);
             });
-            await Task.WhenAll(piTasks);
-
-            Products.Add(product);
-            NotifyStateChanged();
         }
 
-        public async Task UpdateProductAsync(Product product)
+        public async Task UpdateProductAsync(Product product, IJSRuntime? js = null)
         {
             product.OwnerGuid = _ownerGuid;
-            if (IsGuestMode) { NotifyStateChanged(); return; }
-            var requirements = product.RequiredIngredients.ToList();
-
-            product.RequiredIngredients = new();
-            await _supabase.From<Product>().Upsert(product);
-            product.RequiredIngredients = requirements;
-
-            // Fetch existing and diff in parallel with product upsert
-            var existingPIs = await _supabase.From<ProductIngredient>()
-                .Where(pi => pi.ProductId == product.Guid)
-                .Get();
-
-            // Delete removed ingredients in parallel
-            var toDelete = existingPIs.Models.Where(old => !requirements.Any(r => r.Guid == old.Guid));
-            var deleteTasks = toDelete.Select(old => (Task)_supabase.From<ProductIngredient>().Delete(old));
-            
-            // Upsert current requirements in parallel
-            var upsertTasks = requirements.Select(pi =>
-            {
-                pi.ProductId = product.Guid;
-                pi.OwnerId = _ownerGuid;
-                var savedIngredient = pi.Ingredient;
-                pi.Ingredient = null;
-                var task = _supabase.From<ProductIngredient>().Upsert(pi);
-                return (Task)task.ContinueWith(_ => pi.Ingredient = savedIngredient ?? Ingredients.FirstOrDefault(i => i.Guid == pi.IngredientId));
-            });
-
-            await Task.WhenAll(deleteTasks.Concat(upsertTasks));
-
+            if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
+
+            if (IsGuestMode) return;
+
+            _ = SyncSafeAsync(js, async () =>
+            {
+                var requirements = product.RequiredIngredients.ToList();
+                product.RequiredIngredients = new();
+                await _supabase.From<Product>().Upsert(product);
+                product.RequiredIngredients = requirements;
+
+                var existingPIs = await _supabase.From<ProductIngredient>()
+                    .Where(pi => pi.ProductId == product.Guid).Get();
+
+                var toDelete = existingPIs.Models.Where(old => !requirements.Any(r => r.Guid == old.Guid));
+                var deleteTasks = toDelete.Select(old => (Task)_supabase.From<ProductIngredient>().Delete(old));
+
+                var upsertTasks = requirements.Select(pi =>
+                {
+                    pi.ProductId = product.Guid;
+                    pi.OwnerId = _ownerGuid;
+                    var savedIngredient = pi.Ingredient;
+                    pi.Ingredient = null;
+                    var task = _supabase.From<ProductIngredient>().Upsert(pi);
+                    return (Task)task.ContinueWith(_ => pi.Ingredient = savedIngredient ?? Ingredients.FirstOrDefault(i => i.Guid == pi.IngredientId));
+                });
+
+                await Task.WhenAll(deleteTasks.Concat(upsertTasks));
+            });
         }
 
-        public async Task DeleteProductAsync(Product product)
+        public async Task DeleteProductAsync(Product product, IJSRuntime? js = null)
         {
             product.IsArchived = true;
-            if (IsGuestMode) { NotifyStateChanged(); return; }
-            var requirements = product.RequiredIngredients.ToList();
-            product.RequiredIngredients = new();
-            await _supabase.From<Product>().Upsert(product);
-            product.RequiredIngredients = requirements;
+            if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
+
+            if (IsGuestMode) return;
+
+            _ = SyncSafeAsync(js, async () =>
+            {
+                var requirements = product.RequiredIngredients.ToList();
+                product.RequiredIngredients = new();
+                await _supabase.From<Product>().Upsert(product);
+                product.RequiredIngredients = requirements;
+            });
         }
 
         // ── Sales ──────────────────────────────────────────────────────────────
 
-        public async Task<Sale?> RecordSaleAsync(Product product, int quantity, string note = "", string paymentMethod = "Cash", string customerName = "", double discountAmount = 0, string discountType = "None")
+        public async Task<Sale?> RecordSaleAsync(Product product, int quantity, string note = "", string paymentMethod = "Cash", string customerName = "", double discountAmount = 0, string discountType = "None", IJSRuntime? js = null)
         {
             if (product.AvailableCount < quantity) return null;
 
@@ -291,75 +312,78 @@ namespace InventoryPlus.Services
                 DiscountType = discountType
             };
 
+            Sales.Insert(0, sale);
+            if (js != null) await SaveCacheAsync(js);
+            NotifyStateChanged();
+
             if (IsGuestMode)
             {
                 sale.Guid = Guid.NewGuid();
-                Sales.Insert(0, sale);
-                NotifyStateChanged();
                 return sale;
             }
 
-            // Try RPC for single atomic DB call; fall back to parallel upserts
-            try
+            // Background sync
+            _ = SyncSafeAsync(js, async () =>
             {
-                var ingredientUpdates = product.HasIngredients
-                    ? product.RequiredIngredients
-                        .Where(r => r.Ingredient != null)
-                        .Select(r => new { id = r.IngredientId, deduct = r.QuantityRequired * quantity })
-                        .ToArray()
-                    : Array.Empty<object>();
-
-                var rpcParams = new Dictionary<string, object>
+                try
                 {
-                    ["p_owner_id"] = _ownerGuid.ToString(),
-                    ["p_product_id"] = product.Guid.ToString(),
-                    ["p_product_name"] = product.Name,
-                    ["p_quantity_sold"] = quantity,
-                    ["p_total_amount"] = total,
-                    ["p_tax_amount"] = tax,
-                    ["p_profit_amount"] = profit,
-                    ["p_note"] = note,
-                    ["p_payment_method"] = paymentMethod,
-                    ["p_customer_name"] = customerName,
-                    ["p_discount_amount"] = discountAmount,
-                    ["p_discount_type"] = discountType,
-                    ["p_has_ingredients"] = product.HasIngredients,
-                    ["p_ingredient_updates"] = JsonSerializer.Serialize(ingredientUpdates)
-                };
+                    var ingredientUpdates = product.HasIngredients
+                        ? product.RequiredIngredients
+                            .Where(r => r.Ingredient != null)
+                            .Select(r => new { id = r.IngredientId, deduct = r.QuantityRequired * quantity })
+                            .ToArray()
+                        : Array.Empty<object>();
 
-                var rpcResult = await _supabase.Rpc("record_sale_with_stock", rpcParams);
-                if (rpcResult != null)
-                {
-                    var content = rpcResult.Content;
-                    if (content != null && Guid.TryParse(content.Trim('"'), out var saleGuid))
-                        sale.Guid = saleGuid;
+                    var rpcParams = new Dictionary<string, object>
+                    {
+                        ["p_owner_id"] = _ownerGuid.ToString(),
+                        ["p_product_id"] = product.Guid.ToString(),
+                        ["p_product_name"] = product.Name,
+                        ["p_quantity_sold"] = quantity,
+                        ["p_total_amount"] = total,
+                        ["p_tax_amount"] = tax,
+                        ["p_profit_amount"] = profit,
+                        ["p_note"] = note,
+                        ["p_payment_method"] = paymentMethod,
+                        ["p_customer_name"] = customerName,
+                        ["p_discount_amount"] = discountAmount,
+                        ["p_discount_type"] = discountType,
+                        ["p_has_ingredients"] = product.HasIngredients,
+                        ["p_ingredient_updates"] = JsonSerializer.Serialize(ingredientUpdates)
+                    };
+
+                    var rpcResult = await _supabase.Rpc("record_sale_with_stock", rpcParams);
+                    if (rpcResult != null)
+                    {
+                        var content = rpcResult.Content;
+                        if (content != null && Guid.TryParse(content.Trim('"'), out var saleGuid))
+                            sale.Guid = saleGuid;
+                    }
                 }
-            }
-            catch
-            {
-                // RPC not deployed yet — fall back to parallel approach
-                if (product.HasIngredients)
+                catch
                 {
-                    var stockTasks = product.RequiredIngredients
-                        .Where(req => req.Ingredient != null)
-                        .Select(req => _supabase.From<Ingredient>().Upsert(req.Ingredient!));
-                    await Task.WhenAll(stockTasks);
-                }
-                else
-                {
-                    var reqs = product.RequiredIngredients.ToList();
-                    product.RequiredIngredients = new();
-                    await _supabase.From<Product>().Upsert(product);
-                    product.RequiredIngredients = reqs;
-                }
+                    // RPC not deployed yet — fall back to parallel approach
+                    if (product.HasIngredients)
+                    {
+                        var stockTasks = product.RequiredIngredients
+                            .Where(req => req.Ingredient != null)
+                            .Select(req => _supabase.From<Ingredient>().Upsert(req.Ingredient!));
+                        await Task.WhenAll(stockTasks);
+                    }
+                    else
+                    {
+                        var reqs = product.RequiredIngredients.ToList();
+                        product.RequiredIngredients = new();
+                        await _supabase.From<Product>().Upsert(product);
+                        product.RequiredIngredients = reqs;
+                    }
 
-                var resp = await _supabase.From<Sale>().Insert(sale);
-                var saved = resp.Models.FirstOrDefault();
-                if (saved != null) sale.Guid = saved.Guid;
-            }
+                    var resp = await _supabase.From<Sale>().Insert(sale);
+                    var saved = resp.Models.FirstOrDefault();
+                    if (saved != null) sale.Guid = saved.Guid;
+                }
+            });
 
-            Sales.Insert(0, sale);
-            NotifyStateChanged();
             return sale;
         }
 
@@ -367,40 +391,48 @@ namespace InventoryPlus.Services
 
         // ── OPEX ───────────────────────────────────────────────────────────────
 
-        public async Task AddOpexAsync(Opex opex)
+        public async Task AddOpexAsync(Opex opex, IJSRuntime? js = null)
         {
             opex.OwnerGuid = _ownerGuid;
-            if (IsGuestMode)
-            {
-                if (opex.Guid == Guid.Empty) opex.Guid = Guid.NewGuid();
-                OpexItems.Insert(0, opex);
-                NotifyStateChanged();
-                return;
-            }
-            var resp = await _supabase.From<Opex>().Insert(opex);
-            var saved = resp.Models.FirstOrDefault();
-            if (saved != null) opex.Guid = saved.Guid;
+            if (opex.Guid == Guid.Empty) opex.Guid = Guid.NewGuid();
+
             OpexItems.Insert(0, opex);
+            if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
+
+            if (IsGuestMode) return;
+
+            _ = SyncSafeAsync(js, async () =>
+            {
+                var resp = await _supabase.From<Opex>().Insert(opex);
+                var saved = resp.Models.FirstOrDefault();
+                if (saved != null) opex.Guid = saved.Guid;
+            });
         }
 
-        public async Task UpdateOpexAsync(Opex opex)
+        public async Task UpdateOpexAsync(Opex opex, IJSRuntime? js = null)
         {
             opex.OwnerGuid = _ownerGuid;
-            if (!IsGuestMode) await _supabase.From<Opex>().Upsert(opex);
+            if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
+
+            if (!IsGuestMode)
+                _ = SyncSafeAsync(js, () => _supabase.From<Opex>().Upsert(opex));
         }
 
-        public async Task DeleteOpexAsync(Opex opex)
+        public async Task DeleteOpexAsync(Opex opex, IJSRuntime? js = null)
         {
             opex.IsArchived = true;
-            if (!IsGuestMode) await _supabase.From<Opex>().Upsert(opex);
+            if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
+
+            if (!IsGuestMode)
+                _ = SyncSafeAsync(js, () => _supabase.From<Opex>().Upsert(opex));
         }
 
         // ── Void Sale ──────────────────────────────────────────────────────────
 
-        public async Task VoidSaleAsync(Sale sale)
+        public async Task VoidSaleAsync(Sale sale, IJSRuntime? js = null)
         {
             if (sale.IsVoided) return;
 
@@ -423,61 +455,92 @@ namespace InventoryPlus.Services
             }
 
             sale.IsVoided = true;
-
-            if (IsGuestMode) { NotifyStateChanged(); return; }
-
-            // Try RPC for single atomic DB call; fall back to parallel upserts
-            try
-            {
-                var ingredientUpdates = (product?.HasIngredients == true)
-                    ? product.RequiredIngredients
-                        .Where(r => r.Ingredient != null)
-                        .Select(r => new { id = r.IngredientId, restore = r.QuantityRequired * sale.QuantitySold })
-                        .ToArray()
-                    : Array.Empty<object>();
-
-                var rpcParams = new Dictionary<string, object>
-                {
-                    ["p_owner_id"] = _ownerGuid.ToString(),
-                    ["p_sale_id"] = sale.Guid.ToString(),
-                    ["p_product_id"] = sale.ProductId.ToString(),
-                    ["p_quantity_sold"] = sale.QuantitySold,
-                    ["p_has_ingredients"] = product?.HasIngredients ?? false,
-                    ["p_ingredient_updates"] = JsonSerializer.Serialize(ingredientUpdates)
-                };
-
-                await _supabase.Rpc("void_sale_with_stock", rpcParams);
-            }
-            catch
-            {
-                // RPC not deployed yet — fall back to parallel approach
-                if (product != null)
-                {
-                    if (product.HasIngredients)
-                    {
-                        var stockTasks = product.RequiredIngredients
-                            .Where(req => req.Ingredient != null)
-                            .Select(req => _supabase.From<Ingredient>().Upsert(req.Ingredient!));
-                        await Task.WhenAll(stockTasks);
-                    }
-                    else
-                    {
-                        var reqs = product.RequiredIngredients.ToList();
-                        product.RequiredIngredients = new();
-                        await _supabase.From<Product>().Upsert(product);
-                        product.RequiredIngredients = reqs;
-                    }
-                }
-                await _supabase.From<Sale>().Upsert(sale);
-            }
-
+            if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
+
+            if (IsGuestMode) return;
+
+            _ = SyncSafeAsync(js, async () =>
+            {
+                try
+                {
+                    var ingredientUpdates = (product?.HasIngredients == true)
+                        ? product.RequiredIngredients
+                            .Where(r => r.Ingredient != null)
+                            .Select(r => new { id = r.IngredientId, restore = r.QuantityRequired * sale.QuantitySold })
+                            .ToArray()
+                        : Array.Empty<object>();
+
+                    var rpcParams = new Dictionary<string, object>
+                    {
+                        ["p_owner_id"] = _ownerGuid.ToString(),
+                        ["p_sale_id"] = sale.Guid.ToString(),
+                        ["p_product_id"] = sale.ProductId.ToString(),
+                        ["p_quantity_sold"] = sale.QuantitySold,
+                        ["p_has_ingredients"] = product?.HasIngredients ?? false,
+                        ["p_ingredient_updates"] = JsonSerializer.Serialize(ingredientUpdates)
+                    };
+
+                    await _supabase.Rpc("void_sale_with_stock", rpcParams);
+                }
+                catch
+                {
+                    if (product != null)
+                    {
+                        if (product.HasIngredients)
+                        {
+                            var stockTasks = product.RequiredIngredients
+                                .Where(req => req.Ingredient != null)
+                                .Select(req => _supabase.From<Ingredient>().Upsert(req.Ingredient!));
+                            await Task.WhenAll(stockTasks);
+                        }
+                        else
+                        {
+                            var reqs = product.RequiredIngredients.ToList();
+                            product.RequiredIngredients = new();
+                            await _supabase.From<Product>().Upsert(product);
+                            product.RequiredIngredients = reqs;
+                        }
+                    }
+                    await _supabase.From<Sale>().Upsert(sale);
+                }
+            });
         }
 
-        public async Task UpdateSaleAsync(Sale sale)
+        public async Task UpdateSaleAsync(Sale sale, IJSRuntime? js = null)
         {
-            if (!IsGuestMode) await _supabase.From<Sale>().Upsert(sale);
+            if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
+
+            if (!IsGuestMode)
+                _ = SyncSafeAsync(js, () => _supabase.From<Sale>().Upsert(sale));
+        }
+
+        // ── Background sync helper ─────────────────────────────────────────────
+
+        /// <summary>
+        /// Runs a Supabase operation in the background.
+        /// On failure, marks the service as offline (if not already) but keeps local state intact.
+        /// </summary>
+        private async Task SyncSafeAsync(IJSRuntime? js, Func<Task> operation)
+        {
+            try
+            {
+                await operation();
+                if (IsOffline)
+                {
+                    IsOffline = false;
+                    NotifyStateChanged();
+                }
+                // Re-save cache after confirmed sync to keep it fresh
+                if (js != null) await SaveCacheAsync(js);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Background sync failed: {ex.Message}");
+                IsOffline = true;
+                NotifyStateChanged();
+            }
         }
 
         // ── Guest Mode ─────────────────────────────────────────────────────────
@@ -590,7 +653,7 @@ namespace InventoryPlus.Services
             catch { }
         }
 
-        private async Task SaveCacheAsync(IJSRuntime js)
+        public async Task SaveCacheAsync(IJSRuntime js)
         {
             try
             {
@@ -620,7 +683,9 @@ namespace InventoryPlus.Services
                         productName = s.ProductName, quantitySold = s.QuantitySold,
                         totalAmount = s.TotalAmount, taxAmount = s.TaxAmount,
                         profitAmount = s.ProfitAmount, date = s.Date,
-                        note = s.Note, paymentMethod = s.PaymentMethod
+                        note = s.Note, paymentMethod = s.PaymentMethod,
+                        isVoided = s.IsVoided, customerName = s.CustomerName,
+                        discountAmount = s.DiscountAmount, discountType = s.DiscountType
                     }),
                     opex = OpexItems.Select(o => new
                     {
@@ -702,7 +767,11 @@ namespace InventoryPlus.Services
                     ProfitAmount = e.GetProperty("profitAmount").GetDouble(),
                     Date = e.GetProperty("date").GetDateTime(),
                     Note = e.GetProperty("note").GetString() ?? "",
-                    PaymentMethod = e.GetProperty("paymentMethod").GetString() ?? "Cash"
+                    PaymentMethod = e.GetProperty("paymentMethod").GetString() ?? "Cash",
+                    IsVoided = e.TryGetProperty("isVoided", out var iv) && iv.GetBoolean(),
+                    CustomerName = e.TryGetProperty("customerName", out var cn) ? cn.GetString() ?? "" : "",
+                    DiscountAmount = e.TryGetProperty("discountAmount", out var da) ? da.GetDouble() : 0,
+                    DiscountType = e.TryGetProperty("discountType", out var dt) ? dt.GetString() ?? "None" : "None"
                 }).OrderByDescending(s => s.Date).ToList();
 
                 if (root.TryGetProperty("opex", out var opexEl))
@@ -727,6 +796,41 @@ namespace InventoryPlus.Services
                 Console.WriteLine($"LoadFromCacheAsync error: {ex.Message}");
                 return false;
             }
+        }
+
+        // ── Pending Queue ──────────────────────────────────────────────────────
+
+        private async Task LoadPendingQueueAsync(IJSRuntime js, string userId)
+        {
+            try
+            {
+                var json = await js.InvokeAsync<string?>("localStorage.getItem", $"{PendingKeyPrefix}{userId}");
+                if (string.IsNullOrEmpty(json)) return;
+                var items = JsonSerializer.Deserialize<List<PendingWriteDto>>(json);
+                if (items == null) return;
+                _pendingWrites.Clear();
+                foreach (var item in items)
+                    _pendingWrites.Enqueue(new PendingWrite(item.Op, item.Payload, item.QueuedAt));
+            }
+            catch { }
+        }
+
+        private async Task SavePendingQueueAsync(IJSRuntime js)
+        {
+            try
+            {
+                var list = _pendingWrites.Select(p => new PendingWriteDto { Op = p.Op, Payload = p.Payload, QueuedAt = p.QueuedAt }).ToList();
+                var json = JsonSerializer.Serialize(list);
+                await js.InvokeVoidAsync("localStorage.setItem", $"{PendingKeyPrefix}{_ownerGuid}", json);
+            }
+            catch { }
+        }
+
+        private class PendingWriteDto
+        {
+            public string Op { get; set; } = "";
+            public string Payload { get; set; } = "";
+            public DateTime QueuedAt { get; set; }
         }
 
         // ── Image URL helpers ──────────────────────────────────────────────────
@@ -789,4 +893,3 @@ namespace InventoryPlus.Services
         }
     }
 }
-

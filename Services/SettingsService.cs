@@ -1,7 +1,9 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using InventoryPlus.Models;
+using Microsoft.JSInterop;
 
 namespace InventoryPlus.Services
 {
@@ -242,9 +244,23 @@ namespace InventoryPlus.Services
         private string? _cachedLogoSignedUrl;
         private DateTime _logoUrlExpiry = DateTime.MinValue;
 
-        public async Task LoadAsync(string userId)
+        private const string SettingsCachePrefix = "inv_settings_";
+
+        public async Task LoadAsync(string userId, IJSRuntime? js = null)
         {
             if (!Guid.TryParse(userId, out var ownerGuid)) return;
+
+            // 1. Load from localStorage first for instant render
+            if (js != null)
+            {
+                var loaded = await LoadFromCacheAsync(js, userId);
+                if (loaded)
+                {
+                    IsLoaded = true;
+                    NotifyStateChanged();
+                }
+            }
+
             try
             {
                 var response = await _supabase.From<AccountSettings>()
@@ -271,8 +287,6 @@ namespace InventoryPlus.Services
                     _customLogoPath = path;
                     if (!string.IsNullOrEmpty(path))
                     {
-                        // Try public URL first (no expiry, no extra round trip)
-                        // Requires the 'branding' bucket to be set to Public in Supabase Storage
                         try
                         {
                             var publicUrl = _supabase.Storage.From("branding").GetPublicUrl(path);
@@ -281,7 +295,7 @@ namespace InventoryPlus.Services
                                 _customLogoUrl = publicUrl;
                                 _cachedLogoPath = path;
                                 _cachedLogoSignedUrl = publicUrl;
-                                _logoUrlExpiry = DateTime.MaxValue; // public URLs never expire
+                                _logoUrlExpiry = DateTime.MaxValue;
                             }
                             else
                             {
@@ -290,7 +304,6 @@ namespace InventoryPlus.Services
                         }
                         catch
                         {
-                            // Bucket is private — fall back to signed URL with long TTL
                             try
                             {
                                 if (path == _cachedLogoPath && _cachedLogoSignedUrl != null && _logoUrlExpiry > DateTime.UtcNow)
@@ -301,7 +314,7 @@ namespace InventoryPlus.Services
                                 {
                                     _customLogoUrl = await _supabase.Storage
                                         .From("branding")
-                                        .CreateSignedUrl(path, 60 * 60 * 24 * 365); // 1-year TTL
+                                        .CreateSignedUrl(path, 60 * 60 * 24 * 365);
                                     _cachedLogoPath = path;
                                     _cachedLogoSignedUrl = _customLogoUrl;
                                     _logoUrlExpiry = DateTime.UtcNow.AddDays(364);
@@ -309,7 +322,6 @@ namespace InventoryPlus.Services
                             }
                             catch
                             {
-                                // Keep last known URL if we have one, rather than blanking it
                                 if (_cachedLogoSignedUrl != null)
                                     _customLogoUrl = _cachedLogoSignedUrl;
                                 else
@@ -323,23 +335,32 @@ namespace InventoryPlus.Services
                     }
 
                     IsLoaded = true;
+
+                    // Persist fresh data to localStorage
+                    if (js != null) await SaveToCacheAsync(js, userId);
+
                     NotifyStateChanged();
                 }
                 else
                 {
-                    // No row exists yet — mark as loaded with defaults
                     IsLoaded = true;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Settings load error: {ex.Message}");
+                // Keep localStorage-loaded values if Supabase failed
+                if (!IsLoaded) IsLoaded = true;
             }
         }
 
-        public async Task SaveAsync(string userId)
+        public async Task SaveAsync(string userId, IJSRuntime? js = null)
         {
             if (!Guid.TryParse(userId, out var ownerGuid)) return;
+
+            // Always persist to localStorage first (works offline)
+            if (js != null) await SaveToCacheAsync(js, userId);
+
             try
             {
                 var settings = new AccountSettings
@@ -360,13 +381,76 @@ namespace InventoryPlus.Services
                 };
                 var response = await _supabase.From<AccountSettings>().Upsert(settings);
                 if (response.Models.Count == 0)
-                    throw new Exception("Upsert returned no rows — check RLS policies on account_settings.");
+                    Console.WriteLine("Settings upsert returned no rows — check RLS policies.");
                 IsLoaded = true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Settings save error: {ex.Message}");
-                throw;
+                // Don't throw — local save already succeeded
+                Console.WriteLine($"Settings sync to Supabase failed (local save OK): {ex.Message}");
+            }
+        }
+
+        // ── localStorage cache helpers ─────────────────────────────────────────
+
+        private async Task SaveToCacheAsync(IJSRuntime js, string userId)
+        {
+            try
+            {
+                var snapshot = new
+                {
+                    companyName = _companyName,
+                    colorScheme = _colorScheme,
+                    showInventoryTab = _showInventoryTab,
+                    showOpexTab = _showOpexTab,
+                    dashboardWidgetFlags = (int)_dashboardWidgets,
+                    reportWidgetFlags = (int)_reportWidgets,
+                    pinHash = _pinHash,
+                    onboardingCompleted = OnboardingCompleted,
+                    showOnboardingOnLogin = ShowOnboardingOnLogin,
+                    showDecimals = ShowDecimals,
+                    useLogoForBranding = _useLogoForBranding,
+                    logoPath = _customLogoPath ?? string.Empty
+                };
+                var json = System.Text.Json.JsonSerializer.Serialize(snapshot);
+                await js.InvokeVoidAsync("localStorage.setItem", $"{SettingsCachePrefix}{userId}", json);
+            }
+            catch (Exception ex) { Console.WriteLine($"SaveToCacheAsync error: {ex.Message}"); }
+        }
+
+        private async Task<bool> LoadFromCacheAsync(IJSRuntime js, string userId)
+        {
+            try
+            {
+                var json = await js.InvokeAsync<string?>("localStorage.getItem", $"{SettingsCachePrefix}{userId}");
+                if (string.IsNullOrEmpty(json)) return false;
+
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("companyName", out var cn)) _companyName = cn.GetString() ?? _companyName;
+                if (root.TryGetProperty("colorScheme", out var cs)) _colorScheme = cs.GetString() ?? _colorScheme;
+                if (root.TryGetProperty("showInventoryTab", out var sit)) _showInventoryTab = sit.GetBoolean();
+                if (root.TryGetProperty("showOpexTab", out var sot)) _showOpexTab = sot.GetBoolean();
+                if (root.TryGetProperty("dashboardWidgetFlags", out var dwf)) _dashboardWidgets = (DashboardWidgets)dwf.GetInt32();
+                if (root.TryGetProperty("reportWidgetFlags", out var rwf)) _reportWidgets = (ReportWidgets)rwf.GetInt32();
+                if (root.TryGetProperty("pinHash", out var ph)) _pinHash = ph.GetString() ?? string.Empty;
+                if (root.TryGetProperty("onboardingCompleted", out var oc)) OnboardingCompleted = oc.GetBoolean();
+                if (root.TryGetProperty("showOnboardingOnLogin", out var sol)) ShowOnboardingOnLogin = sol.GetBoolean();
+                if (root.TryGetProperty("showDecimals", out var sd)) ShowDecimals = sd.GetBoolean();
+                if (root.TryGetProperty("useLogoForBranding", out var ulb)) _useLogoForBranding = ulb.GetBoolean();
+                if (root.TryGetProperty("logoPath", out var lp))
+                {
+                    var path = lp.GetString();
+                    if (!string.IsNullOrEmpty(path)) _customLogoPath = path;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LoadFromCacheAsync (settings) error: {ex.Message}");
+                return false;
             }
         }
 

@@ -12,6 +12,7 @@ namespace InventoryPlus.Pages
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public ToastService Toast { get; set; } = default!;
         [Inject] public NavigationManager Nav { get; set; } = default!;
+        [Inject] public Microsoft.JSInterop.IJSRuntime JS { get; set; } = default!;
 
         protected string searchTerm = "";
         protected string categoryFilter = "All";
@@ -148,13 +149,13 @@ namespace InventoryPlus.Pages
                         existing.Note = editingItem.Note;
                         existing.IsRecurring = editingItem.IsRecurring;
                         existing.Recurrence = editingItem.Recurrence;
-                        await Inventory.UpdateOpexAsync(existing);
+                        await Inventory.UpdateOpexAsync(existing, JS);
                         Toast.Show("Expense updated!");
                     }
                 }
                 else
                 {
-                    await Inventory.AddOpexAsync(editingItem);
+                    await Inventory.AddOpexAsync(editingItem, JS);
                     Toast.Show("Expense added!");
                 }
             }
@@ -191,7 +192,7 @@ namespace InventoryPlus.Pages
             if (deletingItem == null) return;
             try
             {
-                await Inventory.DeleteOpexAsync(deletingItem);
+                await Inventory.DeleteOpexAsync(deletingItem, JS);
                 Toast.Show("Expense deleted.");
             }
             catch (Exception ex)
