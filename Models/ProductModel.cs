@@ -4,6 +4,7 @@ using System.Linq;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 using Newtonsoft.Json;
+using InventoryPlus.Services;
 
 namespace InventoryPlus.Models
 {
@@ -46,8 +47,23 @@ namespace InventoryPlus.Models
 
         [JsonIgnore]
         public int AvailableCount => CalculateAvailableCount();
+
+        /// <summary>
+        /// Total cost per unit sold, respecting unit conversions.
+        /// e.g. if ingredient is stored in kg at ₱50/kg and product uses 20g,
+        /// the cost contribution is ConvertSafe(20, "g", "kg") * 50 = 0.02 * 50 = ₱1.
+        /// </summary>
         [JsonIgnore]
-        public double TotalCost => RequiredIngredients.Sum(i => i.QuantityRequired * (i.Ingredient?.CostPerUnit ?? 0));
+        public double TotalCost => RequiredIngredients.Sum(i =>
+        {
+            if (i.Ingredient == null) return 0;
+            var convertedQty = UnitConverter.ConvertSafe(
+                i.QuantityRequired,
+                i.EffectiveUsageUnit,
+                i.Ingredient.Unit);
+            return convertedQty * i.Ingredient.CostPerUnit;
+        });
+
         [JsonIgnore]
         public double ProfitMargin => SellingPrice - TotalCost;
         [JsonIgnore]
@@ -58,10 +74,21 @@ namespace InventoryPlus.Models
             if (!HasIngredients)
                 return (int)StockCount;
             if (RequiredIngredients == null || RequiredIngredients.Count == 0) return 0;
+
             var availableCounts = RequiredIngredients.Select(req =>
-                req.Ingredient != null && req.QuantityRequired > 0
-                ? (int)(req.Ingredient.Stock / req.QuantityRequired)
-                : 0);
+            {
+                if (req.Ingredient == null || req.QuantityRequired <= 0) return 0;
+
+                // Convert the required quantity to the ingredient's stock unit
+                var requiredInStockUnit = UnitConverter.ConvertSafe(
+                    req.QuantityRequired,
+                    req.EffectiveUsageUnit,
+                    req.Ingredient.Unit);
+
+                if (requiredInStockUnit <= 0) return 0;
+                return (int)(req.Ingredient.Stock / requiredInStockUnit);
+            });
+
             return availableCounts.Min();
         }
     }

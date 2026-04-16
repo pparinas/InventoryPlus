@@ -150,9 +150,32 @@ else
                 
                 <div class="row g-3">
                     <div class="col-6">
-                        <label class="form-label">Unit</label>
-                        <input type="text" class="form-control" @bind="currentIngredient.Unit" placeholder="e.g. kg, pcs" />
+                        <label class="form-label">Unit Category</label>
+                        <select class="form-select" value="@_selectedUnitCategory" @onchange="OnUnitCategoryChanged">
+                            @foreach (var cat in InventoryPlus.Services.UnitConverter.AllCategories)
+                            {
+                                <option value="@cat">@InventoryPlus.Services.UnitConverter.CategoryLabel(cat)</option>
+                            }
+                        </select>
                     </div>
+                    <div class="col-6">
+                        <label class="form-label">Unit</label>
+                        @if (_selectedUnitCategory == InventoryPlus.Services.UnitCategory.Custom)
+                        {
+                            <input type="text" class="form-control" @bind="currentIngredient.Unit" placeholder="e.g. bar, slab" />
+                        }
+                        else
+                        {
+                            <select class="form-select" @bind="currentIngredient.Unit">
+                                @foreach (var u in InventoryPlus.Services.UnitConverter.GetUnitsForCategory(_selectedUnitCategory))
+                                {
+                                    <option value="@u">@u</option>
+                                }
+                            </select>
+                        }
+                    </div>
+                </div>
+                <div class="row g-3 mt-1">
                     <div class="col-6">
                         <label class="form-label">Item Type</label>
                         <select class="form-select" @bind="currentIngredient.Type">
