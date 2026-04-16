@@ -676,7 +676,9 @@ namespace InventoryPlus.Services
                         guid = p.Guid, ownerGuid = p.OwnerGuid, name = p.Name,
                         sellingPrice = p.SellingPrice, taxRate = p.TaxRate,
                         imageUrl = ExtractProductImagePath(p.ImageUrl) ?? p.ImageUrl,
-                        isArchived = p.IsArchived
+                        isArchived = p.IsArchived,
+                        hasIngredients = p.HasIngredients,
+                        stockCount = p.StockCount
                     }),
                     productIngredients = Products.SelectMany(p => p.RequiredIngredients).Select(pi => new
                     {
@@ -753,6 +755,8 @@ namespace InventoryPlus.Services
                         TaxRate = e.GetProperty("taxRate").GetDouble(),
                         ImageUrl = e.GetProperty("imageUrl").GetString() ?? "",
                         IsArchived = e.GetProperty("isArchived").GetBoolean(),
+                        HasIngredients = e.TryGetProperty("hasIngredients", out var hi) && hi.GetBoolean(),
+                        StockCount = e.TryGetProperty("stockCount", out var sc) ? sc.GetDouble() : 0,
                         RequiredIngredients = piList.Where(pi => pi.ProductId == g).ToList()
                     };
                     foreach (var pi in product.RequiredIngredients)

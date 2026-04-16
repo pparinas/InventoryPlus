@@ -2,7 +2,14 @@
 
 <PageTitle>Reports | @AppSettings.CompanyName</PageTitle>
 
-@if (AppSettings.IsGuestMode)
+@if (Inventory.IsLoading && !Inventory.IsLoaded)
+{
+    <div class="glass-panel text-center" style="padding: 3rem">
+        <i class="fa-solid fa-spinner fa-spin fa-2x text-muted"></i>
+        <p class="text-muted mt-4">Loading reports...</p>
+    </div>
+}
+else if (AppSettings.IsGuestMode)
 {
 <div class="page-header">
     <div>

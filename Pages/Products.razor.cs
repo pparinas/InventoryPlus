@@ -121,6 +121,7 @@ namespace InventoryPlus.Pages
                 {
                     IngredientId = r.IngredientId,
                     QuantityRequired = r.QuantityRequired,
+                    UsageUnit = r.UsageUnit,
                     Ingredient = r.Ingredient
                 }).ToList()
             };
@@ -210,7 +211,7 @@ namespace InventoryPlus.Pages
             var ing = Inventory.ActiveIngredients.FirstOrDefault(i => i.Guid == selectedIngredientId);
             if (ing == null) return;
 
-            var existing = currentProduct.RequiredIngredients.FirstOrDefault(r => r.IngredientId == selectedIngredientId);
+            var existing = currentProduct.RequiredIngredients.FirstOrDefault(r => r.IngredientId == selectedIngredientId && r.UsageUnit == newUsageUnit);
             if (existing != null)
             {
                 existing.QuantityRequired += newQuantity;

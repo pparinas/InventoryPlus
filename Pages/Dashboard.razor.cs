@@ -43,8 +43,9 @@ namespace InventoryPlus.Pages
             }
         }
 
-        protected double FilteredRevenue => FilteredSales.Sum(s => s.TotalAmount);
-        protected double FilteredProfit => FilteredSales.Sum(s => s.ProfitAmount);
+        private IEnumerable<Sale> ActiveFilteredSales => FilteredSales.Where(s => !s.IsVoided);
+        protected double FilteredRevenue => ActiveFilteredSales.Sum(s => s.TotalAmount);
+        protected double FilteredProfit => ActiveFilteredSales.Sum(s => s.ProfitAmount);
 
         protected List<Ingredient> LowStockIngredients => Inventory.ActiveIngredients
             .Where(i => i.Stock < 5).ToList();
@@ -53,21 +54,21 @@ namespace InventoryPlus.Pages
             .OrderByDescending(s => s.Date).Take(8).ToList();
 
         // Revenue per day for chart (last 7 entries)
-        protected Dictionary<string, double> DailyRevenue => FilteredSales
+        protected Dictionary<string, double> DailyRevenue => ActiveFilteredSales
             .GroupBy(s => s.Date.ToString("MM/dd"))
             .OrderBy(g => g.Key)
             .TakeLast(7)
             .ToDictionary(g => g.Key, g => g.Sum(s => s.TotalAmount));
 
         // Profit per day for chart
-        protected Dictionary<string, double> DailyProfit => FilteredSales
+        protected Dictionary<string, double> DailyProfit => ActiveFilteredSales
             .GroupBy(s => s.Date.ToString("MM/dd"))
             .OrderBy(g => g.Key)
             .TakeLast(7)
             .ToDictionary(g => g.Key, g => g.Sum(s => s.ProfitAmount));
 
         // Top 5 products by quantity sold
-        protected Dictionary<string, int> TopProducts => FilteredSales
+        protected Dictionary<string, int> TopProducts => ActiveFilteredSales
             .GroupBy(s => s.ProductName)
             .Select(g => new { Name = g.Key, Qty = g.Sum(s => s.QuantitySold) })
             .OrderByDescending(x => x.Qty)
@@ -75,7 +76,7 @@ namespace InventoryPlus.Pages
             .ToDictionary(x => x.Name, x => x.Qty);
 
         // Payment method breakdown
-        protected Dictionary<string, double> PaymentBreakdown => FilteredSales
+        protected Dictionary<string, double> PaymentBreakdown => ActiveFilteredSales
             .GroupBy(s => string.IsNullOrEmpty(s.PaymentMethod) ? "Cash" : s.PaymentMethod)
             .ToDictionary(g => g.Key, g => g.Sum(s => s.TotalAmount));
 

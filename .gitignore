@@ -27,3 +27,4 @@ testpublish/
 !.dev.vars.example
 .env*
 !.env.example
+codebase-context.md

@@ -2,6 +2,15 @@
 
 <PageTitle>Dashboard | @AppSettings.CompanyName</PageTitle>
 
+@if (Inventory.IsLoading && !Inventory.IsLoaded)
+{
+    <div class="glass-panel text-center" style="padding: 3rem">
+        <i class="fa-solid fa-spinner fa-spin fa-2x text-muted"></i>
+        <p class="text-muted mt-4">Loading dashboard...</p>
+    </div>
+}
+else
+{
 <div class="page-header mb-3">
     <div>
         <h1>Dashboard</h1>
@@ -380,3 +389,4 @@ else
 </div>
 
 } @* end else (signed-in widgets) *@
+} @* end loading guard *@
