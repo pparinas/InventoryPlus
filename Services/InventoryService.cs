@@ -265,7 +265,10 @@ namespace InventoryPlus.Services
                 foreach (var req in product.RequiredIngredients)
                 {
                     if (req.Ingredient != null)
-                        req.Ingredient.Stock -= req.QuantityRequired * quantity;
+                    {
+                        var deduct = UnitConverter.ConvertSafe(req.QuantityRequired, req.EffectiveUsageUnit, req.Ingredient.Unit) * quantity;
+                        req.Ingredient.Stock -= deduct;
+                    }
                 }
             }
             else
@@ -305,7 +308,7 @@ namespace InventoryPlus.Services
                 var ingredientUpdates = product.HasIngredients
                     ? product.RequiredIngredients
                         .Where(r => r.Ingredient != null)
-                        .Select(r => new { id = r.IngredientId, deduct = r.QuantityRequired * quantity })
+                        .Select(r => new { id = r.IngredientId, deduct = UnitConverter.ConvertSafe(r.QuantityRequired, r.EffectiveUsageUnit, r.Ingredient!.Unit) * quantity })
                         .ToArray()
                     : Array.Empty<object>();
 
@@ -413,7 +416,10 @@ namespace InventoryPlus.Services
                     foreach (var req in product.RequiredIngredients)
                     {
                         if (req.Ingredient != null)
-                            req.Ingredient.Stock += req.QuantityRequired * sale.QuantitySold;
+                        {
+                            var restore = UnitConverter.ConvertSafe(req.QuantityRequired, req.EffectiveUsageUnit, req.Ingredient.Unit) * sale.QuantitySold;
+                            req.Ingredient.Stock += restore;
+                        }
                     }
                 }
                 else
@@ -432,7 +438,7 @@ namespace InventoryPlus.Services
                 var ingredientUpdates = (product?.HasIngredients == true)
                     ? product.RequiredIngredients
                         .Where(r => r.Ingredient != null)
-                        .Select(r => new { id = r.IngredientId, restore = r.QuantityRequired * sale.QuantitySold })
+                        .Select(r => new { id = r.IngredientId, restore = UnitConverter.ConvertSafe(r.QuantityRequired, r.EffectiveUsageUnit, r.Ingredient!.Unit) * sale.QuantitySold })
                         .ToArray()
                     : Array.Empty<object>();
 
@@ -612,7 +618,8 @@ namespace InventoryPlus.Services
                     productIngredients = Products.SelectMany(p => p.RequiredIngredients).Select(pi => new
                     {
                         guid = pi.Guid, ownerId = pi.OwnerId, productId = pi.ProductId,
-                        ingredientId = pi.IngredientId, quantityRequired = pi.QuantityRequired
+                        ingredientId = pi.IngredientId, quantityRequired = pi.QuantityRequired,
+                        usageUnit = pi.UsageUnit
                     }),
                     sales = Sales.Select(s => new
                     {
@@ -665,7 +672,8 @@ namespace InventoryPlus.Services
                     OwnerId = e.GetProperty("ownerId").GetGuid(),
                     ProductId = e.GetProperty("productId").GetGuid(),
                     IngredientId = e.GetProperty("ingredientId").GetGuid(),
-                    QuantityRequired = e.GetProperty("quantityRequired").GetDouble()
+                    QuantityRequired = e.GetProperty("quantityRequired").GetDouble(),
+                    UsageUnit = e.TryGetProperty("usageUnit", out var uu) ? uu.GetString() ?? "" : ""
                 }).ToList();
 
                 Products = root.GetProperty("products").EnumerateArray().Select(e =>

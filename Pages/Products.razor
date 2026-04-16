@@ -287,7 +287,7 @@ else
                         
                         <!-- Add ingredient row -->
                         <div class="d-flex gap-2 mb-4">
-                            <select @bind="selectedIngredientId" class="form-select">
+                            <select @bind="selectedIngredientId" class="form-select" @bind:after="OnIngredientSelected">
                                 <option value="">-- Select Ingredient --</option>
                                 @foreach(var ing in Inventory.ActiveIngredients.Where(i => i.Type == "Ingredient"))
                                 {
@@ -295,8 +295,32 @@ else
                                 }
                             </select>
                             <input type="number" class="form-control" step="0.1" @bind="newQuantity" placeholder="Qty" style="width: 80px" />
+                            @{
+                                var ingCat = InventoryPlus.Services.UnitConverter.GetCategory(_selectedIngUnit);
+                                var compatUnits = InventoryPlus.Services.UnitConverter.GetUnitsForCategory(ingCat);
+                            }
+                            @if (compatUnits.Length > 0)
+                            {
+                                <select class="form-select" @bind="newUsageUnit" style="width: 90px">
+                                    @foreach (var u in compatUnits)
+                                    {
+                                        <option value="@u">@u</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input type="text" class="form-control" @bind="newUsageUnit" placeholder="unit" style="width: 90px" />
+                            }
                             <button class="btn btn-outline-secondary" @onclick="AddRequirement"><i class="fa-solid fa-plus"></i></button>
                         </div>
+                        @{
+                            var hint = InventoryPlus.Services.UnitConverter.ConversionHint(newUsageUnit, _selectedIngUnit);
+                        }
+                        @if (!string.IsNullOrEmpty(hint))
+                        {
+                            <div class="text-muted mb-2" style="font-size: 0.78rem; margin-top: -0.5rem"><i class="fa-solid fa-arrows-rotate me-1"></i>@hint</div>
+                        }
 
                         <div style="max-height: 250px; overflow-y: auto;">
                             @foreach(var req in currentProduct.RequiredIngredients)
@@ -305,8 +329,14 @@ else
                                     <div>
                                         <strong>@req.Ingredient?.Name</strong>
                                         <div class="text-muted" style="font-size:0.8rem">
-                                            @req.QuantityRequired @req.Ingredient?.Unit  
-                                            <span class="text-danger">(₱@AppSettings.FormatPrice(req.QuantityRequired * (req.Ingredient?.CostPerUnit ?? 0)))</span>
+                                            @req.QuantityRequired @req.EffectiveUsageUnit
+                                            @{ var convertedCost = InventoryPlus.Services.UnitConverter.ConvertSafe(req.QuantityRequired, req.EffectiveUsageUnit, req.Ingredient?.Unit ?? "") * (req.Ingredient?.CostPerUnit ?? 0); }
+                                            <span class="text-danger">(₱@AppSettings.FormatPrice(convertedCost))</span>
+                                            @{ var reqHint = InventoryPlus.Services.UnitConverter.ConversionHint(req.EffectiveUsageUnit, req.Ingredient?.Unit ?? ""); }
+                                            @if (!string.IsNullOrEmpty(reqHint))
+                                            {
+                                                <span class="text-info ms-1" style="font-size:0.72rem">@reqHint</span>
+                                            }
                                         </div>
                                     </div>
                                     <button class="btn-close" style="font-size: 1rem" @onclick="() => RemoveRequirement(req)"><i class="fa-solid fa-trash"></i></button>

@@ -24,6 +24,7 @@ namespace InventoryPlus.Pages
         protected Ingredient? deleteTarget;
         protected bool showPinPrompt;
         private Action? _pendingPinAction;
+        protected UnitCategory _selectedUnitCategory = UnitCategory.Weight;
 
         protected void SetPage(int p) { _page = p; StateHasChanged(); }
 
@@ -65,6 +66,8 @@ namespace InventoryPlus.Pages
                 {
                     currentIngredient = new Ingredient { Type = "Ingredient" };
                     isEditing = false;
+                    _selectedUnitCategory = UnitCategory.Weight;
+                    currentIngredient.Unit = UnitConverter.GetUnitsForCategory(UnitCategory.Weight)[0];
                     showModal = true;
                     StateHasChanged();
                 };
@@ -74,6 +77,8 @@ namespace InventoryPlus.Pages
             {
                 currentIngredient = new Ingredient { Type = "Ingredient" };
                 isEditing = false;
+                _selectedUnitCategory = UnitCategory.Weight;
+                currentIngredient.Unit = UnitConverter.GetUnitsForCategory(UnitCategory.Weight)[0];
                 showModal = true;
             }
         }
@@ -107,6 +112,7 @@ namespace InventoryPlus.Pages
                 Type = item.Type
             };
             isEditing = true;
+            _selectedUnitCategory = UnitConverter.GetCategory(currentIngredient.Unit);
             showModal = true;
         }
 
@@ -114,6 +120,16 @@ namespace InventoryPlus.Pages
         {
             _pendingPinAction?.Invoke();
             _pendingPinAction = null;
+        }
+
+        protected void OnUnitCategoryChanged(ChangeEventArgs e)
+        {
+            if (Enum.TryParse<UnitCategory>(e.Value?.ToString(), out var cat))
+            {
+                _selectedUnitCategory = cat;
+                var units = UnitConverter.GetUnitsForCategory(cat);
+                currentIngredient.Unit = units.Length > 0 ? units[0] : "";
+            }
         }
 
         protected void ConfirmDelete(Ingredient item)

@@ -20,6 +20,8 @@ namespace InventoryPlus.Pages
         protected Product currentProduct = new();
         protected Guid? selectedIngredientId;
         protected double newQuantity;
+        protected string newUsageUnit = "";
+        protected string _selectedIngUnit = "";
         protected int _page = 1;
         protected const int PageSize = 10;
 
@@ -218,12 +220,31 @@ namespace InventoryPlus.Pages
                 {
                     IngredientId = selectedIngredientId.Value,
                     QuantityRequired = newQuantity,
+                    UsageUnit = newUsageUnit,
                     Ingredient = ing
                 });
             }
             
             selectedIngredientId = null;
             newQuantity = 0;
+            newUsageUnit = "";
+            _selectedIngUnit = "";
+        }
+
+        protected void OnIngredientSelected()
+        {
+            if (selectedIngredientId != null && selectedIngredientId != Guid.Empty)
+            {
+                var ing = Inventory.ActiveIngredients.FirstOrDefault(i => i.Guid == selectedIngredientId);
+                if (ing != null)
+                {
+                    _selectedIngUnit = ing.Unit;
+                    newUsageUnit = ing.Unit;
+                    return;
+                }
+            }
+            _selectedIngUnit = "";
+            newUsageUnit = "";
         }
 
         protected void RemoveRequirement(ProductIngredient req)
