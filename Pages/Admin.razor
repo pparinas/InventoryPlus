@@ -39,6 +39,14 @@
                         {
                             <span class="badge badge-lime">Admin</span>
                         }
+                        @if (user.IsPro)
+                        {
+                            <span class="badge badge-amber">Pro</span>
+                        }
+                        else
+                        {
+                            <span class="badge" style="background:var(--bg4);color:var(--fg3)">Free</span>
+                        }
                         <span class="badge @(user.IsActive ? "badge-green" : "badge-red")">@(user.IsActive ? "Active" : "Inactive")</span>
                         <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => EditUser(user)"><i class="fa-solid fa-pen"></i></button>
                     </div>
@@ -212,6 +220,27 @@
                     <button class="btn @(selectedUser.IsActive ? "btn-primary" : "btn-ghost") btn-sm" style="flex:1;justify-content:center" @onclick="() => selectedUser.IsActive = true">Active</button>
                     <button class="btn @(!selectedUser.IsActive ? "btn-danger" : "btn-ghost") btn-sm" style="flex:1;justify-content:center" @onclick="() => selectedUser.IsActive = false">Inactive</button>
                 </div>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top:12px">
+            <label class="form-label">Subscription Plan</label>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+                <button class="btn @(_selectedSubscriptionPlan == "free" ? "btn-danger" : "btn-ghost") btn-sm" @onclick='() => ApplySubscriptionPlan("free")'>Free (Remove)</button>
+                <button class="btn @(_selectedSubscriptionPlan == "1month" ? "btn-primary" : "btn-ghost") btn-sm" @onclick='() => ApplySubscriptionPlan("1month")'>1 Month</button>
+                <button class="btn @(_selectedSubscriptionPlan == "3month" ? "btn-primary" : "btn-ghost") btn-sm" @onclick='() => ApplySubscriptionPlan("3month")'>3 Months</button>
+                <button class="btn @(_selectedSubscriptionPlan == "6month" ? "btn-primary" : "btn-ghost") btn-sm" @onclick='() => ApplySubscriptionPlan("6month")'>6 Months</button>
+                <button class="btn @(_selectedSubscriptionPlan == "1year" ? "btn-primary" : "btn-ghost") btn-sm" @onclick='() => ApplySubscriptionPlan("1year")'>1 Year</button>
+            </div>
+            <div style="margin-top:8px;font-size:11px;color:var(--fg3)">
+                @if (selectedUser.IsPro)
+                {
+                    <span style="color:var(--amber)"><i class="fa-solid fa-crown"></i> Pro — Expires @(selectedUser.SubscriptionExpiry?.ToLocalTime().ToString("MMM dd, yyyy") ?? "N/A")</span>
+                }
+                else
+                {
+                    <span><i class="fa-solid fa-circle-xmark"></i> Free plan (no active subscription)</span>
+                }
             </div>
         </div>
     </Content>

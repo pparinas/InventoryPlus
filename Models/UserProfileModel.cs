@@ -22,9 +22,6 @@ namespace InventoryPlus.Models
         [Column("is_active")]
         public bool IsActive { get; set; } = true;
 
-        [Column("trial_expires_at")]
-        public DateTime? TrialExpiresAt { get; set; }
-
         [Column("subscription_expiry")]
         public DateTime? SubscriptionExpiry { get; set; }
 

@@ -66,8 +66,10 @@ namespace InventoryPlus.Pages
                 Email = user.Email,
                 IsAdmin = user.IsAdmin,
                 IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt
+                CreatedAt = user.CreatedAt,
+                SubscriptionExpiry = user.SubscriptionExpiry
             };
+            _selectedSubscriptionPlan = "";
             showEditModal = true;
         }
 
@@ -80,6 +82,30 @@ namespace InventoryPlus.Pages
         }
 
         protected void CloseModal() => showEditModal = false;
+
+        protected string _selectedSubscriptionPlan = "";
+        protected void ApplySubscriptionPlan(string plan)
+        {
+            _selectedSubscriptionPlan = plan;
+            switch (plan)
+            {
+                case "free":
+                    selectedUser.SubscriptionExpiry = null;
+                    break;
+                case "1month":
+                    selectedUser.SubscriptionExpiry = DateTime.UtcNow.AddMonths(1);
+                    break;
+                case "3month":
+                    selectedUser.SubscriptionExpiry = DateTime.UtcNow.AddMonths(3);
+                    break;
+                case "6month":
+                    selectedUser.SubscriptionExpiry = DateTime.UtcNow.AddMonths(6);
+                    break;
+                case "1year":
+                    selectedUser.SubscriptionExpiry = DateTime.UtcNow.AddYears(1);
+                    break;
+            }
+        }
 
         protected async Task ToggleUserStatusAsync(SystemUser user)
         {

@@ -9,5 +9,9 @@ namespace InventoryPlus.Models
         public bool IsAdmin { get; set; } = false;
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? SubscriptionExpiry { get; set; }
+
+        public bool IsPro =>
+            SubscriptionExpiry.HasValue && SubscriptionExpiry.Value > DateTime.UtcNow;
     }
 }
