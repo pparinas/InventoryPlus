@@ -202,7 +202,7 @@ namespace InventoryPlus.Pages
 
         protected void StartEditSale(Sale sale)
         {
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.Reports))
             {
                 _pendingPinAction = () =>
                 {
@@ -252,7 +252,7 @@ namespace InventoryPlus.Pages
 
         protected void StartVoidSale(Sale sale)
         {
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.Reports))
             {
                 _pendingPinAction = () =>
                 {

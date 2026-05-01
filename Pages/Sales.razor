@@ -23,6 +23,15 @@ else
             <h1>Point of Sale</h1>
             <p>Select products and complete a sale.</p>
         </div>
+        <div class="page-header-right">
+            <button class="btn btn-primary btn-sm" disabled="@(!AppSettings.IsPro)" @onclick="EnterPosMode">
+                <i class="fa-solid fa-cash-register"></i> POS Mode
+                @if (!AppSettings.IsPro)
+                {
+                    <span style="font-size:8px;font-weight:700;color:var(--amber);margin-left:4px;background:rgba(255,193,7,0.15);padding:1px 5px;border-radius:4px">PRO</span>
+                }
+            </button>
+        </div>
     </div>
 }
 
@@ -358,6 +367,13 @@ else
     </div>
 </div>
 }
+
+@* ── POS Mode: PIN prompt to enter ── *@
+<InventoryPlus.Components.PinPrompt
+    IsVisible="showEnterPinPrompt"
+    IsVisibleChanged="@((v) => showEnterPinPrompt = v)"
+    Title="Enter PIN to Enter POS Mode"
+    OnVerified="OnEnterPinVerified" />
 
 @* ── POS Mode: PIN prompt to exit ── *@
 <InventoryPlus.Components.PinPrompt

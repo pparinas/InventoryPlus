@@ -23,6 +23,9 @@ namespace InventoryPlus.Models
         [Column("pin_hash")]
         public string PinHash { get; set; } = string.Empty;
 
+        [Column("pin_scope_flags")]
+        public int PinScopeFlags { get; set; } = (int)PinScope.All;
+
         [Column("show_inventory_tab")]
         public bool ShowInventoryTab { get; set; } = true;
 

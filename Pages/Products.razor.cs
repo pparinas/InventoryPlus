@@ -64,7 +64,7 @@ namespace InventoryPlus.Pages
 
         protected void OpenAddModal()
         {
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.Products))
             {
                 _pendingPinAction = () =>
                 {
@@ -89,7 +89,7 @@ namespace InventoryPlus.Pages
 
         protected void Edit(Product item)
         {
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.Products))
             {
                 _pendingPinAction = () =>
                 {

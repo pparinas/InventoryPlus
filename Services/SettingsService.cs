@@ -141,6 +141,7 @@ namespace InventoryPlus.Services
 
         // PIN
         private string _pinHash = string.Empty;
+        private PinScope _pinScopes = PinScope.All;
         public string PinHash
         {
             get => _pinHash;
@@ -148,6 +149,14 @@ namespace InventoryPlus.Services
         }
 
         public bool HasPin => !string.IsNullOrEmpty(_pinHash);
+
+        public PinScope PinScopes
+        {
+            get => _pinScopes;
+            set { _pinScopes = value; NotifyStateChanged(); }
+        }
+
+        public bool IsPinRequired(PinScope scope) => HasPin && _pinScopes.HasFlag(scope);
 
         public bool VerifyPin(string pin)
         {
@@ -276,6 +285,7 @@ namespace InventoryPlus.Services
                     _companyName = result.CompanyName;
                     _useLogoForBranding = result.UseLogoForBranding;
                     _pinHash = result.PinHash ?? string.Empty;
+                    _pinScopes = (PinScope)result.PinScopeFlags;
                     _showInventoryTab = result.ShowInventoryTab;
                     _showOpexTab = result.ShowOpexTab;
                     _colorScheme = result.ColorScheme ?? "lime";
@@ -391,6 +401,7 @@ namespace InventoryPlus.Services
                     LogoUrl = _customLogoPath ?? string.Empty,
                     UseLogoForBranding = _useLogoForBranding,
                     PinHash = _pinHash,
+                    PinScopeFlags = (int)_pinScopes,
                     ShowInventoryTab = _showInventoryTab,
                     ShowOpexTab = _showOpexTab,
                     ColorScheme = _colorScheme,
@@ -427,6 +438,7 @@ namespace InventoryPlus.Services
                     dashboardWidgetFlags = (int)_dashboardWidgets,
                     reportWidgetFlags = (int)_reportWidgets,
                     pinHash = _pinHash,
+                    pinScopeFlags = (int)_pinScopes,
                     onboardingCompleted = OnboardingCompleted,
                     showOnboardingOnLogin = ShowOnboardingOnLogin,
                     showDecimals = ShowDecimals,
@@ -458,6 +470,7 @@ namespace InventoryPlus.Services
                 if (root.TryGetProperty("dashboardWidgetFlags", out var dwf)) _dashboardWidgets = (DashboardWidgets)dwf.GetInt32();
                 if (root.TryGetProperty("reportWidgetFlags", out var rwf)) _reportWidgets = (ReportWidgets)rwf.GetInt32();
                 if (root.TryGetProperty("pinHash", out var ph)) _pinHash = ph.GetString() ?? string.Empty;
+                if (root.TryGetProperty("pinScopeFlags", out var psf)) _pinScopes = (PinScope)psf.GetInt32();
                 if (root.TryGetProperty("onboardingCompleted", out var oc)) OnboardingCompleted = oc.GetBoolean();
                 if (root.TryGetProperty("showOnboardingOnLogin", out var sol)) ShowOnboardingOnLogin = sol.GetBoolean();
                 if (root.TryGetProperty("showDecimals", out var sd)) ShowDecimals = sd.GetBoolean();

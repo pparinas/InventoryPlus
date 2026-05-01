@@ -82,7 +82,7 @@ namespace InventoryPlus.Pages
                 StateHasChanged();
             }
 
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.Expenses))
             {
                 _pendingPinAction = DoOpen;
                 showPinPrompt = true;
@@ -114,7 +114,7 @@ namespace InventoryPlus.Pages
                 StateHasChanged();
             }
 
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.Expenses))
             {
                 _pendingPinAction = DoOpen;
                 showPinPrompt = true;
@@ -179,7 +179,7 @@ namespace InventoryPlus.Pages
                 StateHasChanged();
             }
 
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.Expenses))
             {
                 _pendingPinAction = DoDelete;
                 showPinPrompt = true;

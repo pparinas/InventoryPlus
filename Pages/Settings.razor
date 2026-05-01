@@ -196,6 +196,24 @@
                             <button class="btn btn-ghost btn-sm" style="margin-top: 10px;" @onclick="SavePin"><i class="fa-solid fa-lock"></i> Create PIN</button>
                         </div>
                     }
+
+                    @if (AppSettings.HasPin)
+                    {
+                        <div style="padding: 14px 0; border-top: 1px solid var(--border);">
+                            <div class="settings-row-label" style="margin-bottom: 8px;">Require PIN for</div>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                @foreach (var scope in pinScopeOptions)
+                                {
+                                    var isChecked = AppSettings.PinScopes.HasFlag(scope.Value);
+                                    <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--fg2); cursor: pointer;">
+                                        <input type="checkbox" checked="@isChecked" @onchange="@(e => TogglePinScope(scope.Value, (bool)e.Value!))" />
+                                        <i class="@scope.Icon" style="width: 16px; text-align: center; font-size: 12px; color: var(--fg3);"></i>
+                                        @scope.Label
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    }
                 }
 
                 <div class="settings-row">

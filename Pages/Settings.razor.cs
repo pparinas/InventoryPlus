@@ -7,6 +7,7 @@ using Supabase.Interfaces;
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
 using InventoryPlus.Services;
+using InventoryPlus.Models;
 using User = Supabase.Gotrue.User;
 using Session = Supabase.Gotrue.Session;
 
@@ -43,6 +44,17 @@ namespace InventoryPlus.Pages
         protected string confirmPin = "";
         protected string pinError = "";
         protected bool showPinSuccess = false;
+
+        // PIN Scope options
+        protected static readonly (string Label, string Icon, PinScope Value)[] pinScopeOptions = new[]
+        {
+            ("Products", "fa-solid fa-box", PinScope.Products),
+            ("Stocks / Ingredients", "fa-solid fa-cubes", PinScope.Stocks),
+            ("Sales (edit / void)", "fa-solid fa-receipt", PinScope.Sales),
+            ("Expenses", "fa-solid fa-money-bill-wave", PinScope.Expenses),
+            ("POS Mode (enter / exit)", "fa-solid fa-cash-register", PinScope.PosMode),
+            ("Reports (edit / void)", "fa-solid fa-chart-bar", PinScope.Reports),
+        };
 
         // Color Scheme
         protected string selectedColorScheme = "lime";
@@ -337,6 +349,17 @@ namespace InventoryPlus.Pages
             newPin = "";
             confirmPin = "";
             Toast.Show("PIN removed.");
+        }
+
+        protected async Task TogglePinScope(PinScope scope, bool enabled)
+        {
+            if (enabled)
+                AppSettings.PinScopes |= scope;
+            else
+                AppSettings.PinScopes &= ~scope;
+
+            if (currentUser != null)
+                await AppSettings.SaveAsync(currentUser.Id, JSRuntime);
         }
 
         protected async Task SaveColorScheme()

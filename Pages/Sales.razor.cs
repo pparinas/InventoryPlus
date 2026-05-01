@@ -33,7 +33,8 @@ namespace InventoryPlus.Pages
         protected int historyPage = 1;
         protected const int HistoryPageSize = 10;
 
-        // POS mode exit PIN
+        // POS mode PIN prompts
+        protected bool showEnterPinPrompt = false;
         protected bool showExitPinPrompt = false;
 
         // POS mode edit/void
@@ -238,10 +239,28 @@ namespace InventoryPlus.Pages
 
         protected void SetHistoryPage(int p) { historyPage = p; }
 
-        // ── POS Mode: PIN-protected exit ──
+        // ── POS Mode: Enter / Exit (PIN-guarded) ──
+        protected void EnterPosMode()
+        {
+            if (AppSettings.IsPinRequired(PinScope.PosMode))
+            {
+                showEnterPinPrompt = true;
+            }
+            else
+            {
+                AppSettings.IsPosMode = true;
+            }
+        }
+
+        protected void OnEnterPinVerified()
+        {
+            showEnterPinPrompt = false;
+            AppSettings.IsPosMode = true;
+        }
+
         protected void RequestExitPosMode()
         {
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.PosMode))
             {
                 showExitPinPrompt = true;
             }
@@ -268,7 +287,7 @@ namespace InventoryPlus.Pages
 
         protected void StartEditSale(Sale sale)
         {
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.Sales))
             {
                 _pendingPinAction = () =>
                 {
@@ -318,7 +337,7 @@ namespace InventoryPlus.Pages
 
         protected void StartVoidSale(Sale sale)
         {
-            if (AppSettings.HasPin)
+            if (AppSettings.IsPinRequired(PinScope.Sales))
             {
                 _pendingPinAction = () =>
                 {
