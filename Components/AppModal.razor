@@ -1,26 +1,26 @@
 @if (IsOpen)
 {
-<div class="app-modal-overlay" @onclick="HandleBackdropClick">
-<div class="app-modal-panel @SizeClass" @onclick:stopPropagation="true">
+<div class="modal-backdrop" @onclick="HandleBackdropClick">
+<div class="modal-panel @SizeClass" @onclick:stopPropagation="true">
     @if (Header != null)
     {
-    <div class="app-modal-header">
+    <div class="modal-header">
         @Header
         @if (HasCloseButton)
         {
-            <button type="button" class="app-modal-close" @onclick="Close">&times;</button>
+            <button type="button" class="modal-close" @onclick="Close"><i class="fa-solid fa-xmark"></i></button>
         }
     </div>
     }
     @if (Content != null)
     {
-    <div class="app-modal-body">
+    <div class="modal-body">
         @Content
     </div>
     }
     @if (Footer != null)
     {
-    <div class="app-modal-footer">
+    <div class="modal-footer">
         @Footer
     </div>
     }
@@ -41,10 +41,10 @@
 
     private string SizeClass => Size switch
     {
-        "Small" => "app-modal-sm",
-        "Large" => "app-modal-lg",
-        "ExtraLarge" => "app-modal-xl",
-        _ => ""
+        "Small" => "modal-sm",
+        "Large" => "modal-md",
+        "ExtraLarge" => "modal-lg",
+        _ => "modal-md"
     };
 
     private async Task HandleBackdropClick()

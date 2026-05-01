@@ -1,4 +1,4 @@
-@inject InventoryPlus.Services.InventoryService Inventory
+﻿@inject InventoryPlus.Services.InventoryService Inventory
 @implements IDisposable
 
 <AppOffCanvas IsOpen="showPanel" IsOpenChanged="@((v) => showPanel = v)" Placement="Right">
@@ -6,7 +6,7 @@
         <h5 class="offcanvas-title" style="margin: 0;">Notifications</h5>
         @if (notifications.Any())
         {
-            <button class="btn btn-sm btn-outline-secondary ms-auto me-2" @onclick="MarkAllRead" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;">
+            <button class="btn btn-sm btn-ghost ms-auto me-2" @onclick="MarkAllRead" style="padding: 0.2rem 0.6rem; font-size: 0.75rem;">
                 Mark all read
             </button>
         }

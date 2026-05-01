@@ -1,4 +1,4 @@
-@page "/contact"
+﻿@page "/contact"
 @layout InventoryPlus.Layout.LandingLayout
 @inject SettingsService AppSettings
 @inject ToastService Toast
@@ -7,15 +7,15 @@
 <PageTitle>Contact Us | @AppSettings.CompanyName</PageTitle>
 
 <div class="d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 80px); padding: 2rem; background: radial-gradient(circle at center, rgba(168, 85, 247, 0.1) 0%, transparent 60%);">
-    <div class="glass-panel" style="width: 100%; max-width: 600px; padding: 3rem; box-shadow: var(--shadow);">
+    <div class="card card-p" style="width: 100%; max-width: 600px; padding: 3rem; box-shadow: var(--shadow);">
         <h2 style="font-size: 2.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Get in touch</h2>
         <p class="text-muted" style="margin-bottom: 1.5rem">We'd love to hear from you — reach out directly or fill out the form below.</p>
 
         <div class="d-flex flex-column gap-2 mb-4">
-            <a href="https://www.facebook.com/profile.php?id=61573288220337#" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2">
+            <a href="https://www.facebook.com/profile.php?id=61573288220337#" target="_blank" rel="noopener" class="btn btn-ghost w-100 d-flex align-items-center justify-content-center gap-2">
                 <i class="fa-brands fa-facebook" style="color: #1877F2;"></i> Contact us on Facebook
             </a>
-            <a href="https://www.facebook.com/messages/t/61573288220337" target="_blank" rel="noopener" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2">
+            <a href="https://www.facebook.com/messages/t/61573288220337" target="_blank" rel="noopener" class="btn btn-ghost w-100 d-flex align-items-center justify-content-center gap-2">
                 <i class="fa-brands fa-facebook-messenger" style="color: #0099FF;"></i> Chat on Messenger
             </a>
         </div>
@@ -29,7 +29,7 @@
                 <div class="empty-state-icon text-success"><i class="fa-solid fa-circle-check"></i></div>
                 <h3 class="empty-state-title">Message Sent!</h3>
                 <p class="empty-state-message">Thanks for reaching out. We'll get back to you soon.</p>
-                <button class="btn btn-outline-secondary mt-4" @onclick="() => submitted = false">Send another</button>
+                <button class="btn btn-ghost mt-4" @onclick="() => submitted = false">Send another</button>
             </div>
         }
         else

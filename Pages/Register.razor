@@ -3,14 +3,13 @@
 @attribute [AllowAnonymous]
 
 
-<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh; padding: 1.5rem;" @onkeydown="HandleKeyDown">
-    <div class="card login-card p-4 p-sm-5 w-100" style="max-width: 450px; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+<div class="auth-wrap" @onkeydown="HandleKeyDown">
+    <div class="auth-card">
         <div class="auth-brand">
-            <i class="fa-solid fa-cube"></i>
+            <div class="mark"><span>N</span></div>
+            <h2>Create Account</h2>
+            <p>Join @AppSettings.CompanyName — it's free!</p>
         </div>
-
-        <h2>Create Account</h2>
-        <p class="text-muted text-center" style="margin-bottom: 1rem; margin-top: -0.5rem;">Join @AppSettings.CompanyName — it's free!</p>
 
         @if (!string.IsNullOrEmpty(SuccessMessage))
         {
@@ -60,8 +59,8 @@
             }
         </button>
 
-        <div class="text-center mt-3 small text-muted">
-            <p>Already have an account? <a href="login" class="fw-semibold text-decoration-none" style="color: var(--primary);">Sign in</a></p>
+        <div class="text-center mt-3" style="font-size:12px;color:var(--fg3);">
+            <p>Already have an account? <a href="login" class="auth-link">Sign in</a></p>
         </div>
     </div>
 </div>

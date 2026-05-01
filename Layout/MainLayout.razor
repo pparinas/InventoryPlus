@@ -1,100 +1,7 @@
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 
 <div class="app-container @(showMobileNav ? "mobile-nav-open" : "")" @onclick="HandleGlobalClick" @onkeydown="HandleKeyDown" tabindex="0">
-    <header class="top-nav">
-        <div class="d-flex align-items-center gap-2">
-            <button class="hamburger-btn btn btn-outline-secondary btn-sm d-flex d-md-none align-items-center justify-content-center" @onclick="ToggleMobileNav" @onclick:stopPropagation title="Menu"
-                    style="border-radius: 8px; width: 36px; height: 36px; padding: 0;">
-                <i class="fa-solid @(showMobileNav ? "fa-xmark" : "fa-bars")"></i>
-            </button>
-            <div class="d-flex align-items-center gap-2 fw-bold" style="color: var(--brand-color); flex-shrink: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">
-                @if(AppSettings.UseLogoForBranding)
-                {
-                    @* Logo only mode *@
-                    @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
-                    {
-                        <img src="@AppSettings.CustomLogoUrl" style="height: 32px; width: auto; max-width: 120px; object-fit: contain;" alt="@AppSettings.CompanyName" />
-                    }
-                    else
-                    {
-                        <i class="fa-solid fa-cube fa-lg" style="color: var(--accent);"></i>
-                    }
-                }
-                else
-                {
-                    @* Show Name mode: logo (if uploaded) + company name *@
-                    @if (!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
-                    {
-                        <img src="@AppSettings.CustomLogoUrl" style="height: 28px; width: auto; max-width: 80px; object-fit: contain;" alt="@AppSettings.CompanyName" />
-                    }
-                    else
-                    {
-                        <i class="fa-solid fa-cube" style="color: var(--accent);"></i>
-                    }
-                    <span style="font-size: 1.2rem;">@AppSettings.CompanyName</span>
-                }
-            </div>
-        </div>
 
-        <div class="d-flex align-items-center gap-2">
-            <button class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" @onclick="ToggleTheme" @onclick:stopPropagation style="width: 36px; height: 36px; padding: 0;" title="Toggle Dark/Light Mode">
-                @if (isLightMode)
-                {
-                    <i class="fa-solid fa-moon"></i>
-                }
-                else
-                {
-                    <i class="fa-solid fa-sun"></i>
-                }
-            </button>
-
-            @if (!AppSettings.IsPosMode)
-            {
-            <button class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center position-relative" @onclick="ToggleNotifications" @onclick:stopPropagation style="width: 36px; height: 36px; padding: 0;" title="Notifications">
-                <i class="fa-solid fa-bell"></i>
-                @if ((notificationPanel?.UnreadCount ?? 0) > 0)
-                {
-                    <span class="notification-badge">@(notificationPanel!.UnreadCount > 9 ? "9+" : notificationPanel.UnreadCount.ToString())</span>
-                }
-            </button>
-
-            <div class="dropdown" @onclick:stopPropagation>
-                <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" @onclick="ToggleDropdown" style="border-radius: 50px; padding: 0.5rem 1rem;">
-                    <i class="fa-solid fa-circle-user fa-lg"></i> <span class="d-none d-sm-inline">Account</span> <i class="fa-solid fa-chevron-down d-none d-sm-inline" style="font-size: 0.7rem;"></i>
-                </button>
-                
-                @if (showDropdown)
-                {
-                    <div class="dropdown-menu show p-3" style="position: absolute; top: calc(100% + 0.5rem); right: 0; min-width: 260px; border-radius: 12px;">
-                        <div class="d-flex align-items-center gap-3 mb-3">
-                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px; background: var(--primary);">
-                                <i class="fa-solid fa-user"></i>
-                            </div>
-                            <div style="min-width: 0;">
-                                <div class="fw-semibold">@(currentUserEmail ?? "Loading...")</div>
-                                <div class="text-muted small text-truncate">@AppSettings.CompanyName</div>
-                            </div>
-                        </div>
-                        
-                        <hr class="my-2" style="border-color: var(--border);">
-                        
-                        <AuthorizeView>
-                            <Authorized>
-                                <NavLink class="dropdown-item rounded d-flex align-items-center gap-2 py-2" href="settings" @onclick="() => showDropdown = false">
-                                    <i class="fa-solid fa-gear fa-fw"></i> Settings
-                                </NavLink>
-                            </Authorized>
-                        </AuthorizeView>
-                        
-                        <button class="btn btn-outline-danger btn-sm w-100 mt-2 d-flex align-items-center gap-2" @onclick="SignOut" style="justify-content: flex-start; padding-left: 1rem;">
-                            <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span>
-                        </button>
-                    </div>
-                }
-            </div>
-            }
-        </div>
-    </header>
 
     @if (Inventory.IsOffline)
     {
@@ -106,17 +13,89 @@
 
     <div class="sidebar-overlay" @onclick="CloseMobileNav"></div>
 
-    <aside class="sidebar" @onclick:stopPropagation>
+    <aside class="sidebar @(showMobileNav ? "open" : "")" @onclick:stopPropagation>
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-mark"><span>N</span></div>
+            <span class="sidebar-logo-text">Negosyo<b>360</b></span>
+        </div>
         <NavMenu />
     </aside>
 
-    <main class="main-content" @onclick="CloseMobileNav">
+    <div class="main">
+    <header class="topbar">
+        <button class="topbar-hamburger" @onclick="ToggleMobileNav" @onclick:stopPropagation title="Menu">
+            <i class="fa-solid @(showMobileNav ? "fa-xmark" : "fa-bars")"></i>
+        </button>
+        <span class="topbar-title">
+            @if(!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
+            {
+                <img src="@AppSettings.CustomLogoUrl" style="height: 28px; width: auto; max-width: 100px; object-fit: contain; border-radius: 4px;" alt="@AppSettings.CompanyName" />
+            }
+            @if(!AppSettings.UseLogoForBranding || string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
+            {
+                @AppSettings.CompanyName
+            }
+        </span>
+        <div class="topbar-spacer"></div>
+
+        <button class="topbar-btn" @onclick="ToggleTheme" @onclick:stopPropagation title="Toggle Dark/Light Mode">
+            <i class="fa-solid @(isLightMode ? "fa-moon" : "fa-sun")"></i>
+        </button>
+
+        @if (!AppSettings.IsPosMode)
+        {
+        <button class="topbar-btn" @onclick="ToggleNotifications" @onclick:stopPropagation title="Notifications">
+            <i class="fa-solid fa-bell"></i>
+            @if ((notificationPanel?.UnreadCount ?? 0) > 0)
+            {
+                <span class="notification-badge">@(notificationPanel!.UnreadCount > 9 ? "9+" : notificationPanel.UnreadCount.ToString())</span>
+            }
+        </button>
+
+        <div class="dropdown" @onclick:stopPropagation>
+            <button class="topbar-btn" @onclick="ToggleDropdown" title="Account">
+                <i class="fa-solid fa-circle-user"></i>
+            </button>
+            
+            @if (showDropdown)
+            {
+                <div class="dropdown-menu show">
+                    <div class="d-flex align-items-center gap-3 mb-2" style="padding:8px 12px;">
+                        <div class="user-avatar">
+                            <i class="fa-solid fa-user" style="font-size:10px;"></i>
+                        </div>
+                        <div style="min-width: 0;">
+                            <div class="user-name">@(currentUserEmail ?? "Loading...")</div>
+                            <div class="user-role text-truncate">@AppSettings.CompanyName</div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <AuthorizeView>
+                        <Authorized>
+                            <a class="dropdown-item" href="settings" @onclick="() => showDropdown = false">
+                                <i class="fa-solid fa-gear fa-fw"></i> Settings
+                            </a>
+                        </Authorized>
+                    </AuthorizeView>
+                    
+                    <button class="dropdown-item" style="color:var(--red);" @onclick="SignOut">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                    </button>
+                </div>
+            }
+        </div>
+        }
+    </header>
+
+    <main class="page-content" @onclick="CloseMobileNav">
         <ErrorBoundary @ref="errorBoundary">
             <ChildContent>
                 @Body
             </ChildContent>
             <ErrorContent Context="ex">
-                <div class="glass-panel text-center p-4" style="max-width: 500px; margin: 2rem auto;">
+                <div class="card card-p p-4" style="max-width: 500px; margin: 2rem auto;">
                     <i class="fa-solid fa-triangle-exclamation fa-3x mb-3" style="color: var(--warning);"></i>
                     <h3>Something went wrong</h3>
                     <p class="text-muted">An unexpected error occurred. Please try again.</p>
@@ -125,6 +104,7 @@
             </ErrorContent>
         </ErrorBoundary>
     </main>
+    </div> @* end .main *@
 
     @* ── Mobile Bottom Bar ── *@
     <nav class="mobile-bottom-bar d-md-none">

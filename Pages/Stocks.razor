@@ -3,219 +3,182 @@
 
 @if (Inventory.IsLoading)
 {
-    <div class="glass-panel text-center" style="padding: 3rem">
-        <i class="fa-solid fa-spinner fa-spin fa-2x text-muted"></i>
-        <p class="text-muted mt-4">Loading stock data...</p>
+    <div class="card card-p" style="padding:3rem">
+        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--fg3)"></i>
+        <p style="color:var(--fg3);margin-top:1rem">Loading stock data...</p>
     </div>
 }
 else
 {
 
-<div class="page-header">
-    <div>
-        <h1>Stocks</h1>
-        <p class="text-muted">Manage your raw materials and shop necessities.</p>
-    </div>
-    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="d-none d-sm-inline"> Add Stock Item</span></button>
-</div>
-
-<div class="filter-bar">
-    <div class="d-flex gap-2 flex-wrap align-items-center">
-        <div class="flex-grow-1" style="min-width:180px">
-            <input type="text" class="form-control" placeholder="Search stocks..." @bind="searchQuery" @bind:event="oninput" />
+<div class="section-gap fade-in">
+    <div class="page-header">
+        <div>
+            <h1>Inventory</h1>
+            <p>Manage your raw materials and shop necessities.</p>
         </div>
-        <select class="form-select" style="width:auto" @bind="typeFilter">
-            <option value="All">All Types</option>
-            <option value="Ingredient">Ingredients</option>
-            <option value="Necessity">Necessities</option>
-        </select>
-        <select class="form-select" style="width:auto" @bind="sortBy">
-            <option value="name">Name</option>
-            <option value="stock">Stock (Low first)</option>
-            <option value="value">Value (High first)</option>
-        </select>
-    </div>
-</div>
-
-<div class="glass-panel">
-
-    @* Desktop table *@
-    <div class="table-responsive table-view">
-    <table class="table table-hover mb-0">
-        <thead>
-            <tr>
-                <th>Item Name</th>
-                <th>Type</th>
-                <th>Current Stock</th>
-                <th>Cost/Unit</th>
-                <th>Total Value</th>
-                <th class="text-end">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in FilteredItems.Skip((_page - 1) * PageSize).Take(PageSize))
-            {
-                <tr>
-                    <td><strong>@item.Name</strong></td>
-                    <td>
-                        <span class="badge @(item.Type == "Ingredient" ? "bg-primary-subtle" : "bg-secondary")">
-                            @item.Type
-                        </span>
-                    </td>
-                    <td>
-                        @if (item.Stock <= item.LowStockThreshold && item.Type == "Ingredient")
-                        {
-                            <span class="text-warning fw-bold">@item.Stock @item.Unit (Low)</span>
-                        }
-                        else
-                        {
-                            <span>@item.Stock @item.Unit</span>
-                        }
-                    </td>
-                    <td>₱@AppSettings.FormatCurrency(item.CostPerUnit)</td>
-                    <td style="color: var(--primary)">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            }
-            @if (!FilteredItems.Any())
-            {
-                <tr>
-                    <td colspan="6" class="text-center text-muted" style="padding: 3rem">No stock items found.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+        <div class="page-header-right">
+            <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Item</button>
+        </div>
     </div>
 
-    @* Mobile card list *@
-    <div class="card-view">
-        @if (!FilteredItems.Any())
-        {
-            <p class="text-center text-muted" style="padding: 2rem 0">No stock items found.</p>
-        }
-        @foreach (var item in FilteredItems.Skip((_page - 1) * PageSize).Take(PageSize))
-        {
-            <div class="stock-card">
-                <div class="stock-card-header">
-                    <span class="stock-card-name">@item.Name</span>
-                    <span class="badge @(item.Type == "Ingredient" ? "bg-primary-subtle" : "bg-secondary")">@item.Type</span>
-                </div>
-                <div class="stock-card-body">
-                    <div class="stock-card-row">
-                        <span class="stock-card-label">Stock</span>
-                        @if (item.Stock <= item.LowStockThreshold && item.Type == "Ingredient")
-                        {
-                            <span class="text-warning fw-bold">@item.Stock @item.Unit <small>(Low)</small></span>
-                        }
-                        else
-                        {
-                            <span>@item.Stock @item.Unit</span>
-                        }
-                    </div>
-                    <div class="stock-card-row">
-                        <span class="stock-card-label">Cost / Unit</span>
-                        <span>₱@AppSettings.FormatCurrency(item.CostPerUnit)</span>
-                    </div>
-                    <div class="stock-card-row">
-                        <span class="stock-card-label">Total Value</span>
-                        <span class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</span>
-                    </div>
-                </div>
-                <div class="stock-card-actions">
-                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
-                </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+        <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:10px">
+            <div class="stat-card-icon si-lime"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:16px">@Inventory.ActiveIngredients.Count()</div>
+                <div class="stat-card-label">Total Items</div>
             </div>
-        }
+        </div>
+        <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:10px">
+            <div class="stat-card-icon si-green"><i class="fa-solid fa-peso-sign"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:16px">₱@AppSettings.FormatCurrency(Inventory.ActiveIngredients.Sum(i => i.Stock * i.CostPerUnit))</div>
+                <div class="stat-card-label">Total Value</div>
+            </div>
+        </div>
+        <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:10px">
+            <div class="stat-card-icon si-amber"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:16px">@Inventory.ActiveIngredients.Count(i => i.Stock <= i.LowStockThreshold)</div>
+                <div class="stat-card-label">Low Stock</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <input class="form-control search-input" placeholder="Search stocks…" @bind="searchQuery" @bind:event="oninput" />
+        <div class="pill-group">
+            <button class="pill @(typeFilter == "All" ? "active" : "")" @onclick='() => typeFilter = "All"'>All</button>
+            <button class="pill @(typeFilter == "Ingredient" ? "active" : "")" @onclick='() => typeFilter = "Ingredient"'>Ingredient</button>
+            <button class="pill @(typeFilter == "Necessity" ? "active" : "")" @onclick='() => typeFilter = "Necessity"'>Necessity</button>
+        </div>
+    </div>
+
+    <div class="card" style="overflow:hidden">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th>Stock</th>
+                        <th>Cost/Unit</th>
+                        <th>Total Value</th>
+                        <th style="text-align:right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in FilteredItems.Skip((_page - 1) * PageSize).Take(PageSize))
+                    {
+                        <tr>
+                            <td style="font-weight:600">@item.Name</td>
+                            <td><span class="badge @(item.Type == "Ingredient" ? "badge-lime" : "badge-gray")">@item.Type</span></td>
+                            <td class="@(item.Stock <= item.LowStockThreshold ? "text-amber fw-700" : "")">
+                                <span class="mono">@item.Stock @item.Unit</span>
+                                @if (item.Stock <= item.LowStockThreshold)
+                                {
+                                    <span class="badge badge-amber" style="margin-left:5px">Low</span>
+                                }
+                            </td>
+                            <td class="mono" style="color:var(--fg2);font-size:11px">₱@AppSettings.FormatCurrency(item.CostPerUnit)/@item.Unit</td>
+                            <td class="mono text-lime" style="font-weight:700">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</td>
+                            <td>
+                                <div style="display:flex;gap:4px;justify-content:flex-end">
+                                    <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn btn-danger btn-sm btn-icon" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @if (!FilteredItems.Any())
+                    {
+                        <tr>
+                            <td colspan="6" style="text-align:center;color:var(--fg3);padding:3rem">No stock items found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <PaginationBar Page="_page" PageSize="PageSize" TotalItems="FilteredItems.Count()" OnPageChange="SetPage" />
-
 </div>
 
 }
 
 <AppModal IsOpen="showModal" IsOpenChanged="@((v) => { showModal = v; })" Size="Large">
     <Header>
-        <h5 class="modal-title">@(isEditing ? "Edit Stock Item" : "New Stock Item")</h5>
+        <h5>@(isEditing ? "Edit Stock Item" : "New Stock Item")</h5>
     </Header>
     <Content>
-                <div class="mb-3">
-                    <label class="form-label">Item Name</label>
-                    <input type="text" class="form-control" @bind="currentIngredient.Name" placeholder="e.g. Coffee Beans" />
-                </div>
-                
-                <div class="row g-3">
-                    <div class="col-6">
-                        <label class="form-label">Unit Category</label>
-                        <select class="form-select" value="@_selectedUnitCategory" @onchange="OnUnitCategoryChanged">
-                            @foreach (var cat in InventoryPlus.Services.UnitConverter.AllCategories)
-                            {
-                                <option value="@cat">@InventoryPlus.Services.UnitConverter.CategoryLabel(cat)</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">Unit</label>
-                        @if (_selectedUnitCategory == InventoryPlus.Services.UnitCategory.Custom)
-                        {
-                            <input type="text" class="form-control" @bind="currentIngredient.Unit" placeholder="e.g. bar, slab" />
-                        }
-                        else
-                        {
-                            <select class="form-select" @bind="currentIngredient.Unit">
-                                @foreach (var u in InventoryPlus.Services.UnitConverter.GetUnitsForCategory(_selectedUnitCategory))
-                                {
-                                    <option value="@u">@u</option>
-                                }
-                            </select>
-                        }
-                    </div>
-                </div>
-                <div class="row g-3 mt-1">
-                    <div class="col-6">
-                        <label class="form-label">Item Type</label>
-                        <select class="form-select" @bind="currentIngredient.Type">
-                            <option value="Ingredient">Ingredient (for products)</option>
-                            <option value="Necessity">Necessity (shop utility)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row g-3 mt-1">
-                    <div class="col-6">
-                        <label class="form-label">Current Stock</label>
-                        <input type="number" class="form-control" step="0.1" @bind="currentIngredient.Stock" />
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">Cost per @(string.IsNullOrEmpty(currentIngredient.Unit) ? "Unit" : currentIngredient.Unit) (₱)</label>
-                        <input type="number" class="form-control" step="0.01" @bind="currentIngredient.CostPerUnit" />
-                    </div>
-                </div>
-
-                @if (isEditing && _originalUnit != currentIngredient.Unit && currentIngredient.Stock > 0)
+        <div class="form-group">
+            <label class="form-label">Item Name</label>
+            <input class="form-control" @bind="currentIngredient.Name" placeholder="e.g. Coffee Beans" />
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Unit Category</label>
+                <select class="form-control" value="@_selectedUnitCategory" @onchange="OnUnitCategoryChanged">
+                    @foreach (var cat in InventoryPlus.Services.UnitConverter.AllCategories)
+                    {
+                        <option value="@cat">@InventoryPlus.Services.UnitConverter.CategoryLabel(cat)</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Unit</label>
+                @if (_selectedUnitCategory == InventoryPlus.Services.UnitCategory.Custom)
                 {
-                    <div class="alert alert-warning mt-2 mb-0 py-2 px-3" style="font-size: 0.85rem;">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        Unit changed from <strong>@_originalUnit</strong> to <strong>@currentIngredient.Unit</strong>.
-                        Make sure your stock quantity (@currentIngredient.Stock) is correct for the new unit.
-                    </div>
+                    <input class="form-control" @bind="currentIngredient.Unit" placeholder="e.g. bar, slab" />
                 }
+                else
+                {
+                    <select class="form-control" @bind="currentIngredient.Unit">
+                        @foreach (var u in InventoryPlus.Services.UnitConverter.GetUnitsForCategory(_selectedUnitCategory))
+                        {
+                            <option value="@u">@u</option>
+                        }
+                    </select>
+                }
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Type</label>
+                <select class="form-control" @bind="currentIngredient.Type">
+                    <option value="Ingredient">Ingredient</option>
+                    <option value="Necessity">Necessity</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Low Stock Alert</label>
+                <input class="form-control" type="number" step="0.1" @bind="currentIngredient.LowStockThreshold" />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Current Stock</label>
+                <input class="form-control" type="number" step="0.1" @bind="currentIngredient.Stock" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Cost per Unit (₱)</label>
+                <input class="form-control" type="number" step="0.01" @bind="currentIngredient.CostPerUnit" />
+            </div>
+        </div>
 
-                <div class="row g-3 mt-1">
-                    <div class="col-6">
-                        <label class="form-label">Low Stock Alert (@(string.IsNullOrEmpty(currentIngredient.Unit) ? "units" : currentIngredient.Unit))</label>
-                        <input type="number" class="form-control" step="0.1" @bind="currentIngredient.LowStockThreshold" />
-                        <small class="text-muted">Alert when stock falls to this level</small>
-                    </div>
-                </div>
+        @if (isEditing && _originalUnit != currentIngredient.Unit && currentIngredient.Stock > 0)
+        {
+            <div style="background:var(--amber);color:#000;border-radius:var(--radius-sm);padding:8px 12px;margin-top:8px;font-size:11px">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Unit changed from <strong>@_originalUnit</strong> to <strong>@currentIngredient.Unit</strong>.
+                Make sure your stock quantity (@currentIngredient.Stock) is correct for the new unit.
+            </div>
+        }
     </Content>
     <Footer>
-                <button class="btn btn-outline-secondary" @onclick="CloseModal">Cancel</button>
-                <button class="btn btn-primary" @onclick="Save">Save Item</button>
+        <button class="btn btn-ghost" @onclick="CloseModal">Cancel</button>
+        <button class="btn btn-primary" @onclick="Save">Save Item</button>
     </Footer>
 </AppModal>
 

@@ -2,54 +2,44 @@
 
 <PageTitle>OPEX | @AppSettings.CompanyName</PageTitle>
 
-<div class="page-header">
-    <div>
-        <h1>Operating Expenses</h1>
-        <p class="text-muted">Track and manage your business operating expenses.</p>
+<div class="section-gap fade-in">
+    <div class="page-header">
+        <div>
+            <h1>OPEX</h1>
+            <p>Track operating expenses.</p>
+        </div>
+        <div class="page-header-right">
+            <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Expense</button>
+        </div>
     </div>
-    <div class="d-flex gap-2">
-        <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="d-none d-sm-inline"> Add Expense</span></button>
-    </div>
-</div>
 
-@* ── Summary ── *@
-<div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card">
-            <div class="stat-icon stat-warning"><i class="fa-solid fa-file-invoice-dollar"></i></div>
-            <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(TotalExpenses)</h3><p>Total Expenses</p></div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card">
-            <div class="stat-icon stat-primary"><i class="fa-solid fa-list"></i></div>
-            <div class="stat-content"><h3>@FilteredItems.Count()</h3><p>Entries</p></div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card">
-            <div class="stat-icon stat-accent"><i class="fa-solid fa-rotate"></i></div>
-            <div class="stat-content"><h3>@FilteredItems.Count(o => o.IsRecurring)</h3><p>Recurring</p></div>
-        </div>
-    </div>
-    <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card">
-            <div class="stat-icon stat-success"><i class="fa-solid fa-tags"></i></div>
-            <div class="stat-content"><h3>@FilteredItems.Select(o => o.Category).Distinct().Count()</h3><p>Categories</p></div>
-        </div>
-    </div>
-</div>
-
-@* ── Filters ── *@
-<div class="glass-panel mb-4">
-    <div class="d-flex flex-wrap gap-2 align-items-center">
-        <div class="flex-grow-1" style="min-width: 200px;">
-            <div class="input-group">
-                <span class="input-group-text"><i class="fa-solid fa-search"></i></span>
-                <input type="text" class="form-control" placeholder="Search expenses..." @bind="searchTerm" @bind:event="oninput" @bind:after="() => currentPage = 1" />
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+        <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:10px">
+            <div class="stat-card-icon si-red"><i class="fa-solid fa-peso-sign"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:16px">₱@AppSettings.FormatCurrency(TotalExpenses)</div>
+                <div class="stat-card-label">Total Expenses</div>
             </div>
         </div>
-        <select class="form-select" style="width: auto; min-width: 150px;" @bind="categoryFilter" @bind:after="() => currentPage = 1">
+        <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:10px">
+            <div class="stat-card-icon si-amber"><i class="fa-solid fa-rotate"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:16px">₱@AppSettings.FormatCurrency(FilteredItems.Where(o => o.IsRecurring).Sum(o => o.Amount))</div>
+                <div class="stat-card-label">Recurring</div>
+            </div>
+        </div>
+        <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:10px">
+            <div class="stat-card-icon si-lime"><i class="fa-solid fa-receipt"></i></div>
+            <div>
+                <div class="stat-card-value" style="font-size:16px">₱@AppSettings.FormatCurrency(FilteredItems.Where(o => !o.IsRecurring).Sum(o => o.Amount))</div>
+                <div class="stat-card-label">One-time</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <input class="form-control search-input" placeholder="Search expenses…" @bind="searchTerm" @bind:event="oninput" @bind:after="() => currentPage = 1" />
+        <select class="form-control" style="width:auto" @bind="categoryFilter" @bind:after="() => currentPage = 1">
             <option value="All">All Categories</option>
             @foreach (var cat in Categories)
             {
@@ -57,164 +47,123 @@
             }
         </select>
     </div>
-</div>
 
-@* ── Table View ── *@
-@if (FilteredItems.Any())
-{
-    <div class="glass-panel">
-        <div class="table-responsive table-view">
-            <table class="table table-hover mb-0">
+    @if (FilteredItems.Any())
+    {
+    <div class="card" style="overflow:hidden">
+        <div class="table-wrap">
+            <table>
                 <thead>
                     <tr>
                         <th>Name</th>
                         <th>Category</th>
-                        <th>Amount</th>
                         <th>Date</th>
                         <th>Recurring</th>
-                        <th class="text-end">Actions</th>
+                        <th>Amount</th>
+                        <th style="text-align:right">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in FilteredItems.Skip((currentPage - 1) * PageSize).Take(PageSize))
                     {
                         <tr>
-                            <td>
-                                <strong>@item.Name</strong>
+                            <td style="font-weight:600">
+                                @item.Name
                                 @if (!string.IsNullOrEmpty(item.Note))
                                 {
-                                    <div class="text-muted small">@item.Note</div>
+                                    <div style="font-size:10px;color:var(--fg3)">@item.Note</div>
                                 }
                             </td>
-                            <td><span class="badge bg-primary-subtle">@item.Category</span></td>
-                            <td class="fw-bold" style="color: var(--warning);">₱@AppSettings.FormatCurrency(item.Amount)</td>
-                            <td>@item.Date.ToString("MMM dd, yyyy")</td>
+                            <td><span class="tag">@item.Category</span></td>
+                            <td style="font-size:11px;color:var(--fg3)">@item.Date.ToString("MMM dd, yyyy")</td>
                             <td>
                                 @if (item.IsRecurring)
                                 {
-                                    <span class="badge bg-accent-subtle"><i class="fa-solid fa-rotate me-1"></i>@item.Recurrence</span>
+                                    <span class="badge badge-amber"><i class="fa-solid fa-rotate"></i> @item.Recurrence</span>
                                 }
                                 else
                                 {
-                                    <span class="text-muted">—</span>
+                                    <span class="badge badge-gray">One-time</span>
                                 }
                             </td>
-                            <td class="text-end">
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenEditModal(item)" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                                <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => StartDelete(item)" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                            <td class="mono text-red fw-700">₱@AppSettings.FormatCurrency(item.Amount)</td>
+                            <td>
+                                <div style="display:flex;gap:4px;justify-content:flex-end">
+                                    <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => OpenEditModal(item)"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn btn-danger btn-sm btn-icon" @onclick="() => StartDelete(item)"><i class="fa-solid fa-trash"></i></button>
+                                </div>
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
-
-        @* ── Card View (Mobile) ── *@
-        <div class="card-view">
-            @foreach (var item in FilteredItems.Skip((currentPage - 1) * PageSize).Take(PageSize))
-            {
-                <div class="stock-card">
-                    <div class="stock-card-header">
-                        <div>
-                            <span class="stock-card-name">@item.Name</span>
-                            @if (!string.IsNullOrEmpty(item.Note))
-                            {
-                                <div class="text-muted" style="font-size: 0.75rem;">@item.Note</div>
-                            }
-                        </div>
-                        <span class="badge bg-primary-subtle">@item.Category</span>
-                    </div>
-                    <div class="stock-card-body">
-                        <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="fw-bold" style="color: var(--warning)">₱@AppSettings.FormatCurrency(item.Amount)</span></div>
-                        <div class="stock-card-row"><span class="stock-card-label">Date</span><span>@item.Date.ToString("MMM dd, yyyy")</span></div>
-                        <div class="stock-card-row">
-                            <span class="stock-card-label">Recurring</span>
-                            <span>
-                                @if (item.IsRecurring)
-                                {
-                                    <span class="badge bg-accent-subtle">@item.Recurrence</span>
-                                }
-                                else
-                                {
-                                    <span class="text-muted">No</span>
-                                }
-                            </span>
-                        </div>
-                    </div>
-                    <div class="stock-card-actions">
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => OpenEditModal(item)"><i class="fa-solid fa-pen"></i> Edit</button>
-                        <button class="btn btn-sm btn-outline-danger" @onclick="() => StartDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
-                    </div>
-                </div>
-            }
-        </div>
-
-        <PaginationBar Page="currentPage" PageSize="PageSize" TotalItems="FilteredItems.Count()" OnPageChange="SetPage" />
     </div>
-}
-else
-{
-    <InventoryPlus.Components.EmptyState Icon="fa-solid fa-file-invoice-dollar" Title="No expenses" Message="Add your first operating expense to start tracking." />
-}
 
-@* ── Add/Edit Modal ── *@
+    <PaginationBar Page="currentPage" PageSize="PageSize" TotalItems="FilteredItems.Count()" OnPageChange="SetPage" />
+    }
+    else
+    {
+        <InventoryPlus.Components.EmptyState Icon="fa-solid fa-file-invoice-dollar" Title="No expenses" Message="Add your first operating expense to start tracking." />
+    }
+</div>
+
 <AppModal IsOpen="showModal" IsOpenChanged="@((v) => { showModal = v; })" Size="Large">
     <Header>
-        <h5 class="modal-title">@(isEditing ? "Edit Expense" : "Add Expense")</h5>
+        <h5>@(isEditing ? "Edit Expense" : "New Expense")</h5>
     </Header>
     <Content>
-        <div class="mb-3">
-            <label class="form-label">Expense Name <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" @bind="editingItem.Name" placeholder="e.g. Monthly Rent" />
+        <div class="form-group">
+            <label class="form-label">Name</label>
+            <input class="form-control" @bind="editingItem.Name" placeholder="e.g. Monthly Rent" />
         </div>
-        <div class="row g-3">
-            <div class="col-6">
+        <div class="form-row">
+            <div class="form-group">
                 <label class="form-label">Category</label>
-                <select class="form-select" @bind="editingItem.Category">
+                <select class="form-control" @bind="editingItem.Category">
                     @foreach (var cat in Categories)
                     {
                         <option value="@cat">@cat</option>
                     }
                 </select>
             </div>
-            <div class="col-6">
-                <label class="form-label">Amount (₱) <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" step="0.01" @bind="editingItem.Amount" />
+            <div class="form-group">
+                <label class="form-label">Amount (₱)</label>
+                <input class="form-control" type="number" step="0.01" @bind="editingItem.Amount" placeholder="0.00" />
             </div>
         </div>
-        <div class="row g-3 mt-1">
-            <div class="col-6">
+        <div class="form-row">
+            <div class="form-group">
                 <label class="form-label">Date</label>
-                <input type="date" class="form-control" @bind="editingItem.Date" @bind:format="yyyy-MM-dd" />
+                <input class="form-control" type="date" @bind="editingItem.Date" @bind:format="yyyy-MM-dd" />
             </div>
-            <div class="col-6">
-                <label class="form-label">Note</label>
-                <input type="text" class="form-control" @bind="editingItem.Note" placeholder="Optional note" />
-            </div>
-        </div>
-        <div class="mt-3">
-            <label class="toggle-row"><input type="checkbox" @bind="editingItem.IsRecurring" /><span>Recurring Expense</span></label>
-        </div>
-        @if (editingItem.IsRecurring)
-        {
-            <div class="mt-2">
-                <label class="form-label">Recurrence</label>
-                <select class="form-select" @bind="editingItem.Recurrence">
-                    <option value="Daily">Daily</option>
+            <div class="form-group">
+                <label class="form-label">Recurring</label>
+                <div style="display:flex;gap:5px;margin-bottom:5px">
+                    <button class="btn @(editingItem.IsRecurring ? "btn-primary" : "btn-ghost") btn-sm" style="flex:1;justify-content:center" @onclick="() => editingItem.IsRecurring = true">Yes</button>
+                    <button class="btn @(!editingItem.IsRecurring ? "btn-primary" : "btn-ghost") btn-sm" style="flex:1;justify-content:center" @onclick="() => editingItem.IsRecurring = false">None</button>
+                </div>
+                @if (editingItem.IsRecurring)
+                {
+                <select class="form-control" @bind="editingItem.Recurrence">
                     <option value="Weekly">Weekly</option>
                     <option value="Monthly">Monthly</option>
                     <option value="Yearly">Yearly</option>
                 </select>
+                }
             </div>
-        }
+        </div>
+        <div class="form-group">
+            <label class="form-label">Note</label>
+            <textarea class="form-control" rows="2" @bind="editingItem.Note" placeholder="Additional details…"></textarea>
+        </div>
     </Content>
     <Footer>
-        <button class="btn btn-outline-secondary" @onclick="() => showModal = false">Cancel</button>
-        <button class="btn btn-primary" @onclick="SaveExpense">@(isEditing ? "Save Changes" : "Add Expense")</button>
+        <button class="btn btn-ghost" @onclick="() => showModal = false">Cancel</button>
+        <button class="btn btn-primary" @onclick="SaveExpense">Save Expense</button>
     </Footer>
 </AppModal>
 
-@* ── Delete Confirm ── *@
 <InventoryPlus.Components.ConfirmDialog
     IsVisible="showDeleteConfirm"
     Title="Delete Expense"
@@ -224,9 +173,7 @@ else
     OnConfirm="ConfirmDelete"
     OnCancel="() => showDeleteConfirm = false" />
 
-@* ── PIN Prompt ── *@
 <InventoryPlus.Components.PinPrompt
     IsVisible="showPinPrompt"
     IsVisibleChanged="@((v) => showPinPrompt = v)"
     OnVerified="OnPinVerified" />
-

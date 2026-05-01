@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#03173d" />
+    <meta name="theme-color" content="#0a0a0a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Negosyo360" />
@@ -15,9 +15,8 @@
     <link rel="preload" id="webassembly" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="icon" type="image/png" href="favicon.png" />
@@ -33,7 +32,7 @@
             document.documentElement.setAttribute('data-theme', 'light');
         }
         var savedScheme = localStorage.getItem('colorScheme');
-        if (savedScheme && savedScheme !== 'indigo') {
+        if (savedScheme && savedScheme !== 'lime') {
             document.documentElement.setAttribute('data-scheme', savedScheme);
         }
         
@@ -51,15 +50,15 @@
                 return document.documentElement.getAttribute('data-theme') === 'light';
             },
             setScheme: function(scheme) {
-                if (scheme && scheme !== 'indigo') {
+                if (scheme && scheme !== 'lime') {
                     document.documentElement.setAttribute('data-scheme', scheme);
                 } else {
                     document.documentElement.removeAttribute('data-scheme');
                 }
-                localStorage.setItem('colorScheme', scheme || 'indigo');
+                localStorage.setItem('colorScheme', scheme || 'lime');
             },
             getScheme: function() {
-                return document.documentElement.getAttribute('data-scheme') || 'indigo';
+                return document.documentElement.getAttribute('data-scheme') || 'lime';
             }
         };
     </script>

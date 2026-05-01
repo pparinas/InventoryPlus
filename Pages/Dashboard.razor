@@ -4,104 +4,103 @@
 
 @if (Inventory.IsLoading && !Inventory.IsLoaded)
 {
-    <div class="glass-panel text-center" style="padding: 3rem">
-        <i class="fa-solid fa-spinner fa-spin fa-2x text-muted"></i>
-        <p class="text-muted mt-4">Loading dashboard...</p>
+    <div class="card card-p" style="text-align: center; padding: 3rem;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; color: var(--fg3);"></i>
+        <p style="color: var(--fg3); margin-top: 12px; font-size: 12px;">Loading dashboard...</p>
     </div>
 }
 else
 {
-<div class="page-header mb-3">
+<div class="section-gap fade-in">
+
+<div class="page-header">
     <div>
         <h1>Dashboard</h1>
-        <p class="text-muted">Welcome back! Here's your business overview.</p>
+        <p>Welcome back — here's your overview.</p>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
-        <select class="form-select form-select-sm" style="width:auto;" @bind="timeRange" @bind:after="Refresh">
+    <div class="page-header-right">
+        <select class="form-control" style="width: auto; min-width: 110px;" @bind="timeRange" @bind:after="Refresh">
             <option value="today">Today</option>
-            <option value="7d">Last 7 Days</option>
-            <option value="30d">Last 30 Days</option>
+            <option value="7d">7 Days</option>
+            <option value="30d">30 Days</option>
             <option value="all">All Time</option>
         </select>
-        <button class="btn btn-outline-secondary btn-sm" @onclick="Refresh"><i class="fa-solid fa-rotate-right"></i><span class="d-none d-sm-inline"> Refresh</span></button>
-        <button class="btn btn-primary btn-sm" @onclick='() => Nav.NavigateTo("sales")'><i class="fa-solid fa-plus"></i><span class="d-none d-sm-inline"> New Sale</span></button>
+        <button class="btn btn-ghost btn-sm" @onclick="Refresh"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
+        <button class="btn btn-primary btn-sm" @onclick='() => Nav.NavigateTo("sales")'><i class="fa-solid fa-plus"></i> New Sale</button>
     </div>
 </div>
 
-@* ── Quick Actions (desktop, guest-aware) ── *@
+@* ── Quick Actions ── *@
 @if (AppSettings.ShowQuickActions)
 {
-<div class="glass-panel mb-3 quick-actions-desktop" style="padding: 0.75rem 1rem;">
-    <div class="d-flex align-items-center gap-2 mb-2"><i class="fa-solid fa-bolt" style="color: var(--warning);"></i> <strong class="small">Quick Actions</strong></div>
-    <div class="quick-actions-grid">
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("sales")'>
-            <i class="fa-solid fa-cart-shopping"></i><span>New Sale</span>
-        </button>
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("products")'>
-            <i class="fa-solid fa-plus-circle"></i><span>Add Product</span>
-        </button>
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("stocks")'>
-            <i class="fa-solid fa-boxes-stacked"></i><span>Restock</span>
-        </button>
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("reports")'>
-            <i class="fa-solid fa-file-lines"></i><span>Reports</span>
-        </button>
-        <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("settings")'>
-            <i class="fa-solid fa-gear"></i><span>Settings</span>
-        </button>
+<div class="card card-p">
+    <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 9px;">
+        <span class="badge-live" style="font-size: 8px; padding: 2px 6px; border-radius: 2px; font-family: 'Space Mono', monospace; font-weight: 700; background: var(--lime); color: #0a0a0a; letter-spacing: .07em;">QUICK</span>
+        <span style="font-size: 10px; font-weight: 700; color: var(--fg3); text-transform: uppercase; letter-spacing: .1em;">Actions</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px;">
+        @foreach (var action in new[] {
+            ("fa-cart-shopping", "New Sale", "sales", "var(--lime)"),
+            ("fa-plus", "Add Product", "products", "var(--green)"),
+            ("fa-boxes-stacked", "Restock", "stocks", "var(--amber)"),
+            ("fa-file-lines", "Reports", "reports", "var(--cyan)"),
+            ("fa-gear", "Settings", "settings", "var(--fg2)")
+        })
+        {
+            <button style="display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 11px 6px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all .12s; color: var(--fg2); font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; font-family: inherit;"
+                    @onclick="() => Nav.NavigateTo(action.Item3)">
+                <i class="fa-solid @action.Item1" style="font-size: 17px; color: @action.Item4;"></i>@action.Item2
+            </button>
+        }
     </div>
 </div>
 }
 
-@* ── Today's Snapshot (always visible) ── *@
+@* ── Stats ── *@
 @if (AppSettings.ShowTodaySnapshot)
 {
-<div class="row g-2 mb-3">
-    <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card" style="padding: 0.75rem 1rem;">
-            <div class="stat-icon stat-primary"><i class="fa-solid fa-boxes-stacked"></i></div>
-            <div class="stat-content"><h3>@Inventory.ActiveProducts.Count()</h3><p>Products</p></div>
-        </div>
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-card-icon si-lime"><i class="fa-solid fa-peso-sign"></i></div>
+        <div class="stat-card-value">₱@AppSettings.FormatCurrency(FilteredRevenue)</div>
+        <div class="stat-card-label">Revenue</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card" style="padding: 0.75rem 1rem;">
-            <div class="stat-icon stat-success"><i class="fa-solid fa-wallet"></i></div>
-            <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(FilteredRevenue)</h3><p>Revenue</p></div>
-        </div>
+    <div class="stat-card">
+        <div class="stat-card-icon si-green"><i class="fa-solid fa-chart-pie"></i></div>
+        <div class="stat-card-value">₱@AppSettings.FormatCurrency(FilteredProfit)</div>
+        <div class="stat-card-label">Profit</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card" style="padding: 0.75rem 1rem;">
-            <div class="stat-icon stat-accent"><i class="fa-solid fa-chart-pie"></i></div>
-            <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(FilteredProfit)</h3><p>Profit</p></div>
-        </div>
+    <div class="stat-card">
+        <div class="stat-card-icon si-amber"><i class="fa-solid fa-receipt"></i></div>
+        <div class="stat-card-value">@FilteredSales.Count(s => !s.IsVoided)</div>
+        <div class="stat-card-label">Transactions</div>
+        <div class="stat-card-sub">@FilteredSales.Count() total incl. voided</div>
     </div>
-    <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card" style="padding: 0.75rem 1rem;">
-            <div class="stat-icon stat-warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
-            <div class="stat-content"><h3>@LowStockIngredients.Count</h3><p>Low Stock</p></div>
-        </div>
+    <div class="stat-card">
+        <div class="stat-card-icon si-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <div class="stat-card-value">@LowStockIngredients.Count</div>
+        <div class="stat-card-label">Low Stock</div>
+        <div class="stat-card-sub">items need restocking</div>
     </div>
 </div>
 }
 
-
-<div class="row g-3 mb-3">
-    @* ── Revenue Chart (CSS bar chart) ── *@
+@* ── Charts ── *@
+<div class="grid-2">
     @if (AppSettings.ShowRevenueChart)
     {
-    <div class="col-12 col-md-6">
-    <div class="glass-panel h-100">
-        <h2 class="mb-3"><i class="fa-solid fa-chart-bar" style="color: var(--primary);"></i> Revenue Trend</h2>
+    <div class="card card-p">
+        <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Revenue Trend</div>
         @if (DailyRevenue.Any())
         {
-            <div class="dashboard-chart">
-                @{ var maxRev = DailyRevenue.Max(d => d.Value); }
+            <div class="bar-chart">
+                @{ var maxRev = DailyRevenue.Max(d => d.Value); if (maxRev == 0) maxRev = 1; }
                 @foreach (var day in DailyRevenue)
                 {
-                    var pct = maxRev > 0 ? (day.Value / maxRev * 100) : 0;
-                    <div class="chart-bar-group">
-                        <div class="chart-bar" style="height:@pct.ToString("0")%;" title="₱@AppSettings.FormatCurrency(day.Value)"></div>
-                        <span class="chart-label">@day.Key</span>
+                    var pct = day.Value / maxRev * 100;
+                    <div class="bar-group">
+                        <div class="bar bar-lime" style="height: @pct.ToString("0")%;" title="₱@AppSettings.FormatCurrency(day.Value)"></div>
+                        <div class="bar-label">@day.Key</div>
                     </div>
                 }
             </div>
@@ -111,91 +110,22 @@ else
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-chart-bar" Title="No revenue data" Message="Sales data will appear here." />
         }
     </div>
-    </div>
     }
 
-    @* ── Top Products ── *@
-    @if (AppSettings.ShowTopProducts)
-    {
-    <div class="col-12 col-md-6">
-    <div class="glass-panel h-100">
-        <h2 class="mb-3"><i class="fa-solid fa-trophy" style="color: var(--warning);"></i> Top Products</h2>
-        @if (TopProducts.Any())
-        {
-            <div class="top-products-list">
-                @{ var topMax = TopProducts.First().Value; }
-                @foreach (var tp in TopProducts)
-                {
-                    var barPct = topMax > 0 ? ((double)tp.Value / topMax * 100) : 0;
-                    <div class="top-product-row">
-                        <span class="top-product-name">@tp.Key</span>
-                        <div class="top-product-bar-track">
-                            <div class="top-product-bar" style="width:@barPct.ToString("0")%"></div>
-                        </div>
-                        <span class="top-product-count">@tp.Value sold</span>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-trophy" Title="No sales yet" Message="Top products will appear after your first sale." />
-        }
-    </div>
-    </div>
-    }
-
-    @* ── Payment Breakdown ── *@
-    @if (AppSettings.ShowPaymentBreakdown)
-    {
-    <div class="col-12 col-md-6">
-    <div class="glass-panel h-100">
-        <h2 class="mb-3"><i class="fa-solid fa-credit-card" style="color: var(--accent);"></i> Payment Methods</h2>
-        @if (PaymentBreakdown.Any())
-        {
-            <div class="payment-breakdown">
-                @{ var totalPay = PaymentBreakdown.Values.Sum(); }
-                @foreach (var pm in PaymentBreakdown)
-                {
-                    var pct = totalPay > 0 ? (pm.Value / totalPay * 100) : 0;
-                    <div class="payment-row">
-                        <div class="payment-label">
-                            <i class="@GetPaymentIcon(pm.Key)"></i>
-                            <span>@pm.Key</span>
-                        </div>
-                        <div class="payment-bar-track">
-                            <div class="payment-bar" style="width:@pct.ToString("0")%"></div>
-                        </div>
-                        <span class="payment-amount">₱@AppSettings.FormatCurrency(pm.Value) (@pct.ToString("0")%)</span>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-credit-card" Title="No payments yet" Message="Payment breakdown will appear here." />
-        }
-    </div>
-    </div>
-    }
-
-    @* ── Profit Trend ── *@
     @if (AppSettings.ShowProfitTrend)
     {
-    <div class="col-12 col-md-6">
-    <div class="glass-panel h-100">
-        <h2 class="mb-3"><i class="fa-solid fa-arrow-trend-up" style="color: var(--success);"></i> Profit Trend</h2>
+    <div class="card card-p">
+        <div class="card-title"><i class="fa-solid fa-arrow-trend-up"></i> Profit Trend</div>
         @if (DailyProfit.Any())
         {
-            <div class="dashboard-chart">
+            <div class="bar-chart">
                 @{ var maxProf = DailyProfit.Max(d => Math.Abs(d.Value)); if (maxProf == 0) maxProf = 1; }
                 @foreach (var day in DailyProfit)
                 {
-                    var pct = maxProf > 0 ? (Math.Abs(day.Value) / maxProf * 100) : 0;
-                    var barClass = day.Value >= 0 ? "chart-bar" : "chart-bar chart-bar-negative";
-                    <div class="chart-bar-group">
-                        <div class="@barClass" style="height:@pct.ToString("0")%;" title="₱@AppSettings.FormatCurrency(day.Value)"></div>
-                        <span class="chart-label">@day.Key</span>
+                    var pct = Math.Abs(day.Value) / maxProf * 100;
+                    <div class="bar-group">
+                        <div class="bar @(day.Value >= 0 ? "bar-green" : "bar-dim")" style="height: @pct.ToString("0")%;" title="₱@AppSettings.FormatCurrency(day.Value)"></div>
+                        <div class="bar-label">@day.Key</div>
                     </div>
                 }
             </div>
@@ -205,50 +135,100 @@ else
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-arrow-trend-up" Title="No profit data" Message="Profit trend will appear after sales." />
         }
     </div>
+    }
+</div>
+
+@* ── Top Products + Payments ── *@
+<div class="grid-2">
+    @if (AppSettings.ShowTopProducts)
+    {
+    <div class="card card-p">
+        <div class="card-title"><i class="fa-solid fa-trophy"></i> Top Products</div>
+        @if (TopProducts.Any())
+        {
+            var topMax = TopProducts.First().Value; if (topMax == 0) topMax = 1;
+            @foreach (var tp in TopProducts)
+            {
+                var barPct = (double)tp.Value / topMax * 100;
+                <div class="progress-row">
+                    <div class="progress-label">@tp.Key</div>
+                    <div class="progress-track"><div class="progress-fill" style="width: @barPct.ToString("0")%;"></div></div>
+                    <div class="progress-value">@tp.Value</div>
+                </div>
+            }
+        }
+        else
+        {
+            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-trophy" Title="No sales yet" Message="Top products will appear after your first sale." />
+        }
     </div>
     }
 
-    @* ── Recent Sales ── *@
+    @if (AppSettings.ShowPaymentBreakdown)
+    {
+    <div class="card card-p">
+        <div class="card-title"><i class="fa-solid fa-credit-card"></i> Payments</div>
+        @if (PaymentBreakdown.Any())
+        {
+            var totalPay = PaymentBreakdown.Values.Sum(); if (totalPay == 0) totalPay = 1;
+            @foreach (var pm in PaymentBreakdown)
+            {
+                var pct = pm.Value / totalPay * 100;
+                <div class="progress-row">
+                    <div class="progress-label">@pm.Key</div>
+                    <div class="progress-track"><div class="progress-fill" style="width: @pct.ToString("0")%; background: var(--green);"></div></div>
+                    <div class="progress-value" style="font-size: 9px;">₱@AppSettings.FormatCurrency(pm.Value)</div>
+                </div>
+            }
+            <div style="display: grid; grid-template-columns: repeat(@PaymentBreakdown.Count, 1fr); gap: 8px; margin-top: 10px;">
+                @{
+                    var payColors = new[] { "var(--green)", "var(--lime)", "var(--amber)", "var(--cyan)" };
+                    var ci = 0;
+                }
+                @foreach (var pm in PaymentBreakdown)
+                {
+                    var pct = pm.Value / totalPay * 100;
+                    <div style="padding: 9px; background: var(--bg3); border-radius: var(--radius-sm); text-align: center; border: 1px solid var(--border);">
+                        <div style="font-size: 18px; font-weight: 700; color: @payColors[ci % payColors.Length]; font-family: 'Space Mono', monospace;">@pct.ToString("0")%</div>
+                        <div style="font-size: 9px; color: var(--fg3); text-transform: uppercase; letter-spacing: .07em; margin-top: 2px;">@pm.Key</div>
+                    </div>
+                    ci++;
+                }
+            </div>
+        }
+        else
+        {
+            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-credit-card" Title="No payments yet" Message="Payment breakdown will appear here." />
+        }
+    </div>
+    }
+</div>
+
+@* ── Recent Sales + Low Stock ── *@
+<div class="grid-2">
     @if (AppSettings.ShowRecentSales)
     {
-    <div class="col-12 col-md-6">
-    <div class="glass-panel h-100">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="mb-0"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Recent Sales</h2>
-            <button class="btn btn-sm btn-outline-secondary" @onclick='() => Nav.NavigateTo("reports")'>View All</button>
+    <div class="card card-p">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div class="card-title" style="margin-bottom: 0;"><i class="fa-solid fa-receipt"></i> Recent Sales</div>
+            <button class="btn btn-ghost btn-sm" @onclick='() => Nav.NavigateTo("reports")'>View all</button>
         </div>
         @if (RecentSales.Any())
         {
-            <div class="table-responsive table-view">
-            <table class="table table-hover mb-0">
-                <thead><tr><th>Product</th><th>Qty</th><th>Total</th><th>Time</th></tr></thead>
-                <tbody>
-                    @foreach (var sale in RecentSales)
-                    {
-                        <tr>
-                            <td>@sale.ProductName</td>
-                            <td>@sale.QuantitySold</td>
-                            <td class="text-success">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
-                            <td class="text-muted">@sale.Date.ToString("MMM dd h:mm tt")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            </div>
-            <div class="card-view">
-                @foreach (var sale in RecentSales)
-                {
-                    <div class="stock-card">
-                        <div class="stock-card-header">
-                            <span class="stock-card-name">@sale.ProductName</span>
-                            <span class="text-success fw-bold">₱@AppSettings.FormatCurrency(sale.TotalAmount)</span>
-                        </div>
-                        <div class="stock-card-body">
-                            <div class="stock-card-row"><span class="stock-card-label">Qty</span><span>@sale.QuantitySold</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Time</span><span class="text-muted">@sale.Date.ToString("h:mm tt")</span></div>
-                        </div>
-                    </div>
-                }
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Product</th><th>Qty</th><th>Total</th></tr></thead>
+                    <tbody>
+                        @foreach (var sale in RecentSales)
+                        {
+                            <tr>
+                                <td style="font-weight: 600;">@sale.ProductName</td>
+                                <td style="color: var(--fg2);">@sale.QuantitySold</td>
+                                <td class="td-mono" style="color: var(--lime);">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         }
         else
@@ -256,52 +236,40 @@ else
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-receipt" Title="No sales yet" Message="Sales will appear here after your first transaction." />
         }
     </div>
-    </div>
     }
 
-    @* ── Low Stock ── *@
     @if (AppSettings.ShowLowStock)
     {
-    <div class="col-12 col-md-6">
-    <div class="glass-panel h-100">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="mb-0"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Low Stock Alerts</h2>
-            <button class="btn btn-sm btn-outline-secondary" @onclick='() => Nav.NavigateTo("stocks")'>Manage</button>
+    <div class="card card-p">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div class="card-title" style="margin-bottom: 0;"><i class="fa-solid fa-triangle-exclamation"></i> Low Stock</div>
+            <button class="btn btn-ghost btn-sm" @onclick='() => Nav.NavigateTo("stocks")'>Manage</button>
         </div>
         @if (LowStockIngredients.Any())
         {
-            <div class="table-responsive table-view">
-            <table class="table table-hover mb-0">
-                <thead><tr><th>Item</th><th>Stock</th><th>Status</th></tr></thead>
-                <tbody>
-                    @foreach (var ing in LowStockIngredients)
-                    {
-                        <tr>
-                            <td>@ing.Name</td>
-                            <td>@ing.Stock @ing.Unit</td>
-                            <td>
-                                @if(ing.Stock <= 0) { <span class="badge bg-danger-subtle">Out</span> }
-                                else { <span class="badge bg-warning-subtle">Low</span> }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            </div>
-            <div class="card-view">
-                @foreach (var ing in LowStockIngredients)
-                {
-                    <div class="stock-card">
-                        <div class="stock-card-header">
-                            <span class="stock-card-name">@ing.Name</span>
-                            @if (ing.Stock <= 0) { <span class="badge bg-danger-subtle">Out</span> }
-                            else { <span class="badge bg-warning-subtle">Low</span> }
-                        </div>
-                        <div class="stock-card-body">
-                            <div class="stock-card-row"><span class="stock-card-label">Stock</span><span>@ing.Stock @ing.Unit</span></div>
-                        </div>
-                    </div>
-                }
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Item</th><th>Stock</th><th>Status</th></tr></thead>
+                    <tbody>
+                        @foreach (var ing in LowStockIngredients)
+                        {
+                            <tr>
+                                <td style="font-weight: 600;">@ing.Name</td>
+                                <td class="td-mono" style="color: var(--amber);">@ing.Stock @ing.Unit</td>
+                                <td>
+                                    @if (ing.Stock <= 0)
+                                    {
+                                        <span class="badge badge-red">Out</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-amber">Low</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         }
         else
@@ -309,9 +277,8 @@ else
             <InventoryPlus.Components.EmptyState Icon="fa-solid fa-check-circle" Title="All stocked" Message="No low stock items!" />
         }
     </div>
-    </div>
     }
 </div>
 
-
+</div>
 } @* end loading guard *@

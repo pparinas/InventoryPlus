@@ -2,104 +2,45 @@
 
 <PageTitle>Admin Dashboard | @AppSettings.CompanyName</PageTitle>
 
-<div class="page-header">
-    <div>
-        <h1>Admin Dashboard</h1>
-        <p class="text-muted">Manage system users and subscription statuses.</p>
-    </div>
-</div>
-
-<div class="d-flex flex-column gap-4">
-    <!-- User Management Table -->
-    <div class="glass-panel">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Account Management</h2>
-            <div class="text-sm text-muted">Total Accounts: @Users.Count</div>
+<div class="section-gap fade-in">
+    <div class="page-header">
+        <div>
+            <h1>Admin</h1>
+            <p>Manage users and invite tokens.</p>
         </div>
+        <div class="page-header-right">
+            <button class="btn btn-primary" @onclick="GenerateInviteLink" disabled="@isGeneratingInvite"><i class="fa-solid fa-user-plus"></i> Invite User</button>
+        </div>
+    </div>
+
+    @* ── Users ── *@
+    <div class="card card-p">
+        <div class="card-title"><i class="fa-solid fa-users"></i> Users</div>
 
         @if (isLoading)
         {
-            <div class="text-center py-4"><span class="spinner"></span> Loading accounts...</div>
+            <div style="text-align:center;padding:20px;color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin"></i> Loading accounts...</div>
         }
         else
         {
-        <div class="table-responsive table-view">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr>
-                    <th>Email Address</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Created Date</th>
-                    <th class="text-end">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var user in Users.Skip((_page - 1) * PageSize).Take(PageSize))
-                {
-                    <tr style="@(!user.IsActive ? "opacity: 0.6" : "")">
-                        <td><strong>@user.Email</strong></td>
-                        <td>
-                            <span class="badge @(user.IsAdmin ? "bg-primary-subtle" : "bg-secondary")">
-                                @(user.IsAdmin ? "Admin" : "User")
-                            </span>
-                        </td>
-                        <td>
-                            @if (!user.IsActive)
-                            {
-                                <span class="badge bg-danger-subtle">Deactivated</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-success-subtle">Active</span>
-                            }
-                        </td>
-                        <td class="text-muted">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
-                        <td class="text-end">
-                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditUser(user)">
-                                <i class="fa-solid fa-user-pen"></i> Manage
-                            </button>
-                            <button class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-success") ms-2" @onclick="() => ToggleUserStatusAsync(user)">
-                                <i class="fa-solid @(user.IsActive ? "fa-user-slash" : "fa-user-check")"></i>
-                                @(user.IsActive ? " Deactivate" : " Activate")
-                            </button>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        </div>
-        <div class="card-view">
+        <div style="display:flex;flex-direction:column;gap:7px">
             @foreach (var user in Users.Skip((_page - 1) * PageSize).Take(PageSize))
             {
-                <div class="stock-card" style="@(!user.IsActive ? "opacity: 0.7" : "")">
-                    <div class="stock-card-header">
-                        <span class="stock-card-name">@user.Email</span>
-                        <span class="badge @(user.IsAdmin ? "bg-primary-subtle" : "bg-secondary")">@(user.IsAdmin ? "Admin" : "User")</span>
+                <div class="admin-user-card" style="@(!user.IsActive ? "opacity:0.6" : "")">
+                    <div style="width:34px;height:34px;border-radius:50%;background:@(user.IsAdmin ? "var(--lime)" : "var(--bg4)");display:flex;align-items:center;justify-content:center;color:@(user.IsAdmin ? "#0a0a0a" : "var(--fg2)");font-size:11px;font-weight:700;flex-shrink:0;font-family:'Space Mono',monospace">
+                        @(user.Email.Length >= 2 ? user.Email[..2].ToUpper() : "??")
                     </div>
-                    <div class="stock-card-body">
-                        <div class="stock-card-row">
-                            <span class="stock-card-label">Status</span>
-                            @if (!user.IsActive)
-                            {
-                                <span class="badge bg-danger-subtle">Deactivated</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-success-subtle">Active</span>
-                            }
-                        </div>
-                        <div class="stock-card-row">
-                            <span class="stock-card-label">Created</span>
-                            <span>@user.CreatedAt.ToString("MMM dd, yyyy")</span>
-                        </div>
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:700;font-size:12px">@user.Email</div>
+                        <div style="font-size:10px;color:var(--fg3)">Created @user.CreatedAt.ToString("MMM dd, yyyy")</div>
                     </div>
-                    <div class="stock-card-actions">
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditUser(user)"><i class="fa-solid fa-user-pen"></i> Manage</button>
-                        <button class="btn btn-sm @(user.IsActive ? "btn-outline-danger" : "btn-success")" @onclick="() => ToggleUserStatusAsync(user)">
-                            <i class="fa-solid @(user.IsActive ? "fa-user-slash" : "fa-user-check")"></i>
-                            @(user.IsActive ? "Deactivate" : "Activate")
-                        </button>
+                    <div style="display:flex;gap:5px;align-items:center">
+                        @if (user.IsAdmin)
+                        {
+                            <span class="badge badge-lime">Admin</span>
+                        }
+                        <span class="badge @(user.IsActive ? "badge-green" : "badge-red")">@(user.IsActive ? "Active" : "Inactive")</span>
+                        <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => EditUser(user)"><i class="fa-solid fa-pen"></i></button>
                     </div>
                 </div>
             }
@@ -108,62 +49,61 @@
         }
     </div>
 
-    <!-- Invite Link Generator -->
-    <div class="glass-panel">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h2>Registration Invite</h2>
-                <p class="text-muted text-sm">Generate a one-time registration link. Expires after the selected duration.</p>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <select class="form-select form-select-sm" @bind="inviteExpiryHours" style="width: auto;">
-                    <option value="1">1 hour</option>
-                    <option value="6">6 hours</option>
-                    <option value="12">12 hours</option>
-                    <option value="24">24 hours</option>
-                    <option value="48">48 hours</option>
-                    <option value="72">72 hours</option>
-                </select>
-                <button class="btn btn-primary" @onclick="GenerateInviteLink" disabled="@isGeneratingInvite">
+    @* ── Invite Token Generator ── *@
+    <div class="card card-p">
+        <div class="card-title"><i class="fa-solid fa-ticket"></i> Invite Tokens</div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+            <select class="form-control" @bind="inviteExpiryHours" style="width:auto;font-size:11px">
+                <option value="1">1 hour</option>
+                <option value="6">6 hours</option>
+                <option value="12">12 hours</option>
+                <option value="24">24 hours</option>
+                <option value="48">48 hours</option>
+                <option value="72">72 hours</option>
+            </select>
+            <button class="btn btn-primary btn-sm" @onclick="GenerateInviteLink" disabled="@isGeneratingInvite">
                 @if (isGeneratingInvite)
                 {
-                    <span class="spinner"></span> <span>Generating...</span>
+                    <i class="fa-solid fa-spinner fa-spin"></i> <text>Generating...</text>
                 }
                 else
                 {
-                    <i class="fa-solid fa-link me-1"></i> <span>Generate Link</span>
+                    <i class="fa-solid fa-ticket"></i> <text>Generate</text>
                 }
             </button>
-            </div>
+            <button class="btn btn-ghost btn-sm btn-icon" @onclick="LoadInviteHistory" disabled="@isLoadingHistory" title="Refresh">
+                <i class="fa-solid @(isLoadingHistory ? "fa-spinner fa-spin" : "fa-arrows-rotate")"></i>
+            </button>
         </div>
 
         @if (!string.IsNullOrEmpty(generatedInviteUrl))
         {
-            <div class="alert @(inviteExpired ? "alert-danger" : "alert-success") d-flex flex-column gap-2">
+            <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:10px">
                 @if (inviteExpired)
                 {
-                    <div><i class="fa-solid fa-clock"></i> <strong>Link expired.</strong> Generate a new one.</div>
+                    <div style="font-size:11px;color:var(--red)"><i class="fa-solid fa-clock"></i> Link expired. Generate a new one.</div>
                 }
                 else
                 {
-                    <div><i class="fa-solid fa-circle-check"></i> <strong>Invite link ready!</strong> Share this with the new user. It can only be used once.</div>
-                    <div class="d-flex align-items-center gap-2">
-                        <input type="text" class="form-control form-control-sm" value="@generatedInviteUrl" readonly style="font-family: monospace; font-size: 0.8rem;" />
-                        <button class="btn btn-sm btn-outline-secondary flex-shrink-0" @onclick="CopyInviteLink" title="Copy link">
+                    <div style="font-size:11px;color:var(--green);margin-bottom:6px"><i class="fa-solid fa-circle-check"></i> Invite link ready! Share with the new user (one-time use).</div>
+                    <div style="display:flex;align-items:center;gap:5px">
+                        <input class="form-control" value="@generatedInviteUrl" readonly style="font-family:'Space Mono',monospace;font-size:10px" />
+                        <button class="btn btn-ghost btn-sm btn-icon" @onclick="CopyInviteLink" title="Copy">
                             <i class="fa-solid @(inviteCopied ? "fa-check" : "fa-copy")"></i>
                         </button>
                     </div>
-                    <div class="small text-muted">
-                        <i class="fa-solid fa-stopwatch me-1"></i> Expires: <strong>@inviteExpiresAt?.ToString("MMM dd, hh:mm tt")</strong>
+                    <div style="font-size:10px;color:var(--fg3);margin-top:5px">
+                        <i class="fa-solid fa-stopwatch"></i> Expires: <strong>@inviteExpiresAt?.ToString("MMM dd, hh:mm tt")</strong>
                         @if (inviteTimeRemaining.HasValue)
                         {
                             @if (inviteTimeRemaining.Value.TotalHours >= 1)
                             {
-                                <span class="ms-2">(@((int)inviteTimeRemaining.Value.TotalHours)h @inviteTimeRemaining.Value.Minutes min remaining)</span>
+                                <span> (@((int)inviteTimeRemaining.Value.TotalHours)h @inviteTimeRemaining.Value.Minutes min remaining)</span>
                             }
                             else
                             {
-                                <span class="ms-2">(@inviteTimeRemaining.Value.Minutes min @inviteTimeRemaining.Value.Seconds sec remaining)</span>
+                                <span> (@inviteTimeRemaining.Value.Minutes min @inviteTimeRemaining.Value.Seconds sec remaining)</span>
                             }
                         }
                     </div>
@@ -173,121 +113,80 @@
 
         @if (!string.IsNullOrEmpty(inviteError))
         {
-            <div class="alert alert-danger">@inviteError</div>
+            <div style="background:var(--red);color:#fff;border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;margin-bottom:10px">@inviteError</div>
         }
-    </div>
-
-    <!-- Invite History -->
-    <div class="glass-panel">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h2>Invite History</h2>
-                <p class="text-muted text-sm">All generated invite links and their usage status.</p>
-            </div>
-            <button class="btn btn-sm btn-outline-secondary" @onclick="LoadInviteHistory" disabled="@isLoadingHistory">
-                <i class="fa-solid @(isLoadingHistory ? "fa-spinner fa-spin" : "fa-arrows-rotate")"></i> Refresh
-            </button>
-        </div>
 
         @if (inviteHistory.Any())
         {
-            <div class="table-responsive table-view">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr><th>Token</th><th>Created</th><th>Expires</th><th>Status</th><th>Used By</th></tr>
-                </thead>
-                <tbody>
-                    @foreach (var inv in inviteHistory)
-                    {
-                        var expired = inv.ExpiresAt < DateTime.UtcNow;
-                        <tr style="@(inv.IsUsed || expired ? "opacity: 0.6" : "")">
-                            <td><code style="font-size: 0.78rem;">@inv.Token[..Math.Min(12, inv.Token.Length)]...</code></td>
-                            <td>@inv.CreatedAt.ToLocalTime().ToString("MMM dd, h:mm tt")</td>
-                            <td>@inv.ExpiresAt.ToLocalTime().ToString("MMM dd, h:mm tt")</td>
-                            <td>
-                                @if (inv.IsUsed)
-                                {
-                                    <span class="badge bg-success-subtle">Used</span>
-                                }
-                                else if (expired)
-                                {
-                                    <span class="badge bg-danger-subtle">Expired</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-primary-subtle">Active</span>
-                                }
-                            </td>
-                            <td>@(string.IsNullOrEmpty(inv.UsedByEmail) ? "—" : inv.UsedByEmail)</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            </div>
-            <div class="card-view">
-                @foreach (var inv in inviteHistory)
-                {
-                    var expiredCard = inv.ExpiresAt < DateTime.UtcNow;
-                    <div class="stock-card" style="@(inv.IsUsed || expiredCard ? "opacity: 0.7" : "")">
-                        <div class="stock-card-header">
-                            <code style="font-size: 0.75rem;">@inv.Token[..Math.Min(12, inv.Token.Length)]...</code>
-                            @if (inv.IsUsed)
-                            {
-                                <span class="badge bg-success-subtle">Used</span>
-                            }
-                            else if (expiredCard)
-                            {
-                                <span class="badge bg-danger-subtle">Expired</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-primary-subtle">Active</span>
-                            }
-                        </div>
-                        <div class="stock-card-body">
-                            <div class="stock-card-row"><span class="stock-card-label">Created</span><span>@inv.CreatedAt.ToLocalTime().ToString("MMM dd, h:mm tt")</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Expires</span><span>@inv.ExpiresAt.ToLocalTime().ToString("MMM dd, h:mm tt")</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Used By</span><span>@(string.IsNullOrEmpty(inv.UsedByEmail) ? "—" : inv.UsedByEmail)</span></div>
-                        </div>
-                    </div>
-                }
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Token</th><th>Created</th><th>Expires</th><th>Status</th><th>Used By</th></tr></thead>
+                    <tbody>
+                        @foreach (var inv in inviteHistory)
+                        {
+                            var expired = inv.ExpiresAt < DateTime.UtcNow;
+                            <tr style="@(inv.IsUsed || expired ? "opacity:0.6" : "")">
+                                <td class="mono" style="font-size:10px;color:var(--fg3)">@inv.Token[..Math.Min(12, inv.Token.Length)]…</td>
+                                <td style="font-size:10px;color:var(--fg3)">@inv.CreatedAt.ToLocalTime().ToString("MMM dd, h:mm tt")</td>
+                                <td style="font-size:10px;color:var(--fg3)">@inv.ExpiresAt.ToLocalTime().ToString("MMM dd, h:mm tt")</td>
+                                <td>
+                                    @if (inv.IsUsed)
+                                    {
+                                        <span class="badge badge-green">Used</span>
+                                    }
+                                    else if (expired)
+                                    {
+                                        <span class="badge badge-red">Expired</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-lime">Active</span>
+                                    }
+                                </td>
+                                <td style="font-size:11px">@(string.IsNullOrEmpty(inv.UsedByEmail) ? "—" : inv.UsedByEmail)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         }
         else
         {
-            <p class="text-muted text-center py-3">No invite links generated yet.</p>
+            <div class="empty-state" style="padding:24px">
+                <i class="fa-solid fa-ticket" style="font-size:22px;opacity:.25"></i>
+                <h4>No invite tokens</h4>
+                <p>Generate a token to invite new users</p>
+            </div>
         }
     </div>
 
-    <!-- System Status -->
-    <div class="glass-panel">
-        <div class="mb-4">
-            <h2>System Status</h2>
-            <p class="text-muted text-sm">Real-time system health and configuration.</p>
-        </div>
-        
-        <div class="alert alert-success">
+    @* ── System Status ── *@
+    <div class="card card-p">
+        <div class="card-title"><i class="fa-solid fa-server"></i> System Status</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--green);margin-bottom:10px">
             <i class="fa-solid fa-check-circle"></i> All services are online (Supabase, Database, Hosting).
         </div>
-        
-        <div class="row g-3 mt-3">
-            <div class="col-12 col-md-4">
-            <div class="stat-mini">
-                <span class="text-muted" style="font-size: 0.75rem">Total Products</span>
-                <div class="fw-bold">@AppSettings.CompanyName System</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+            <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+                <div class="stat-card-icon si-lime"><i class="fa-solid fa-building"></i></div>
+                <div>
+                    <div class="stat-card-value" style="font-size:12px">@AppSettings.CompanyName</div>
+                    <div class="stat-card-label">System</div>
+                </div>
             </div>
+            <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+                <div class="stat-card-icon si-green"><i class="fa-solid fa-shield-halved"></i></div>
+                <div>
+                    <div class="stat-card-value" style="font-size:12px">Supabase</div>
+                    <div class="stat-card-label">Auth Provider</div>
+                </div>
             </div>
-            <div class="col-12 col-md-4">
-            <div class="stat-mini">
-                <span class="text-muted" style="font-size: 0.75rem">Auth Provider</span>
-                <div class="fw-bold">Supabase</div>
-            </div>
-            </div>
-            <div class="col-12 col-md-4">
-            <div class="stat-mini">
-                <span class="text-muted" style="font-size: 0.75rem">Currency</span>
-                <div class="fw-bold">₱ (Philippine Peso)</div>
-            </div>
+            <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+                <div class="stat-card-icon si-amber"><i class="fa-solid fa-peso-sign"></i></div>
+                <div>
+                    <div class="stat-card-value" style="font-size:12px">₱ PHP</div>
+                    <div class="stat-card-label">Currency</div>
+                </div>
             </div>
         </div>
     </div>
@@ -295,33 +194,32 @@
 
 <AppModal IsOpen="showEditModal" IsOpenChanged="@((v) => { showEditModal = v; })" Size="Large">
     <Header>
-        <h5 class="modal-title">Manage Account</h5>
+        <h5>Manage Account</h5>
     </Header>
     <Content>
-                <p class="text-muted mb-4"><strong>@selectedUser.Email</strong></p>
-
-                <div class="row g-3">
-                    <div class="col-6">
-                        <label class="form-label">User Role</label>
-                        <div class="d-flex align-items-center gap-2 mt-2">
-                            <input type="checkbox" class="form-check-input" id="isAdmin" @bind="selectedUser.IsAdmin" />
-                            <label for="isAdmin">Administrator</label>
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label">Account Status</label>
-                        <div class="d-flex align-items-center gap-2 mt-2">
-                            <input type="checkbox" class="form-check-input" id="isActive" @bind="selectedUser.IsActive" />
-                            <label for="isActive">Account is Active</label>
-                        </div>
-                    </div>
+        <p style="color:var(--fg2);margin-bottom:12px"><strong>@selectedUser.Email</strong></p>
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">User Role</label>
+                <div style="display:flex;gap:5px">
+                    <button class="btn @(selectedUser.IsAdmin ? "btn-primary" : "btn-ghost") btn-sm" style="flex:1;justify-content:center" @onclick="() => selectedUser.IsAdmin = true">Admin</button>
+                    <button class="btn @(!selectedUser.IsAdmin ? "btn-primary" : "btn-ghost") btn-sm" style="flex:1;justify-content:center" @onclick="() => selectedUser.IsAdmin = false">User</button>
                 </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Account Status</label>
+                <div style="display:flex;gap:5px">
+                    <button class="btn @(selectedUser.IsActive ? "btn-primary" : "btn-ghost") btn-sm" style="flex:1;justify-content:center" @onclick="() => selectedUser.IsActive = true">Active</button>
+                    <button class="btn @(!selectedUser.IsActive ? "btn-danger" : "btn-ghost") btn-sm" style="flex:1;justify-content:center" @onclick="() => selectedUser.IsActive = false">Inactive</button>
+                </div>
+            </div>
+        </div>
     </Content>
     <Footer>
-                <button class="btn btn-outline-secondary" @onclick="CloseModal">Cancel</button>
-                <button class="btn btn-primary" @onclick="SaveUserAsync" disabled="@isSaving">
-                    @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> }
-                    Save Changes
-                </button>
+        <button class="btn btn-ghost" @onclick="CloseModal">Cancel</button>
+        <button class="btn btn-primary" @onclick="SaveUserAsync" disabled="@isSaving">
+            @if (isSaving) { <i class="fa-solid fa-spinner fa-spin"></i> }
+            Save Changes
+        </button>
     </Footer>
 </AppModal>
