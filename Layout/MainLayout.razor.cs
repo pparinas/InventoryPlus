@@ -126,15 +126,6 @@ namespace InventoryPlus.Layout
 
         private async Task LoadDataAsync()
         {
-            // Guest mode: load from localStorage only, skip Supabase
-            if (AppSettings.IsGuestMode)
-            {
-                currentUserEmail = "Guest User";
-                if (!Inventory.IsLoaded && !Inventory.IsLoading)
-                    await Inventory.LoadGuestAsync(JSRuntime);
-                return;
-            }
-
             try
             {
                 // Await the auth state provider — this handles full session restoration
@@ -276,21 +267,6 @@ namespace InventoryPlus.Layout
 
         protected async Task SignOut()
         {
-            if (AppSettings.IsGuestMode)
-            {
-                // Clear guest mode and navigate to login
-                AppSettings.IsGuestMode = false;
-                Inventory.IsGuestMode = false;
-                Inventory.IsLoaded = false;
-                Inventory.Ingredients = new();
-                Inventory.Products = new();
-                Inventory.Sales = new();
-                var authProvider = (SupabaseAuthenticationStateProvider)AuthStateProvider;
-                await authProvider.DisableGuestModeAsync();
-                NavManager.NavigateTo("login");
-                return;
-            }
-
             try
             {
                 await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_access_token");

@@ -69,7 +69,6 @@ namespace InventoryPlus.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            if (AppSettings.IsGuestMode) return;
             AppSettings.OnStateChanged += HandleStateChanged;
 
             currentUser = SupabaseClient.Auth.CurrentUser;

@@ -104,7 +104,7 @@ namespace InventoryPlus.Pages
                     else
                         await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sb_remembered_email");
 
-                    // Check subscription status
+                    // Check account status
                     if (Guid.TryParse(session.User.Id, out var userId))
                     {
                         var profileResp = await Supabase.From<UserProfile>()
@@ -117,21 +117,6 @@ namespace InventoryPlus.Pages
                                 await Supabase.Auth.SignOut();
                                 ErrorMessage = "Your account has been deactivated. Please contact an administrator.";
                                 return;
-                            }
-                            // Admins bypass trial/subscription checks
-                            if (!profile.IsAdmin)
-                            {
-                                var hasActiveTrial = profile.TrialExpiresAt.HasValue && profile.TrialExpiresAt.Value.ToUniversalTime() >= DateTime.UtcNow;
-                                var hasActiveSubscription = profile.SubscriptionExpiry.HasValue && profile.SubscriptionExpiry.Value.ToUniversalTime() >= DateTime.UtcNow;
-
-                                if (!hasActiveTrial && !hasActiveSubscription)
-                                {
-                                    await Supabase.Auth.SignOut();
-                                    ErrorMessage = profile.TrialExpiresAt.HasValue && !profile.SubscriptionExpiry.HasValue
-                                        ? "Your 7-day free trial has expired. Please contact an administrator to subscribe."
-                                        : "Your subscription has expired. Please contact an administrator to renew your plan.";
-                                    return;
-                                }
                             }
                         }
                     }
@@ -152,14 +137,6 @@ namespace InventoryPlus.Pages
             {
                 IsLoading = false;
             }
-        }
-
-        protected async Task HandleGuestMode()
-        {
-            AppSettings.IsGuestMode = true;
-            var authProvider = (SupabaseAuthenticationStateProvider)AuthStateProvider;
-            await authProvider.EnableGuestModeAsync();
-            NavigationManager.NavigateTo("dashboard");
         }
     }
 }

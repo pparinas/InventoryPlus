@@ -108,9 +108,6 @@ namespace InventoryPlus.Services
         public bool OnboardingCompleted { get; set; } = false;
         public bool ShowOnboardingOnLogin { get; set; } = true;
 
-        // Guest mode
-        public bool IsGuestMode { get; set; } = false;
-
         // POS Mode
         private bool _isPosMode = false;
         public bool IsPosMode

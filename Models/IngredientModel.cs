@@ -31,6 +31,9 @@ namespace InventoryPlus.Models
         [Column("is_archived")]
         public bool IsArchived { get; set; } = false;
 
+        [Column("low_stock_threshold")]
+        public double LowStockThreshold { get; set; } = 5.0;
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

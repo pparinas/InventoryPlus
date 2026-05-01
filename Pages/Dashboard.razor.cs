@@ -48,7 +48,7 @@ namespace InventoryPlus.Pages
         protected double FilteredProfit => ActiveFilteredSales.Sum(s => s.ProfitAmount);
 
         protected List<Ingredient> LowStockIngredients => Inventory.ActiveIngredients
-            .Where(i => i.Stock < 5).ToList();
+            .Where(i => i.Stock <= i.LowStockThreshold).ToList();
 
         protected List<Sale> RecentSales => FilteredSales
             .OrderByDescending(s => s.Date).Take(8).ToList();

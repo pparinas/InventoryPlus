@@ -21,7 +21,6 @@ namespace InventoryPlus.Pages
         protected SystemUser selectedUser = new();
         protected bool isSaving;
         protected bool isLoading;
-        protected string selectedPlan = "1month";
         protected int _page = 1;
         protected const int PageSize = 10;
         protected void SetPage(int p) { _page = p; StateHasChanged(); }
@@ -67,23 +66,9 @@ namespace InventoryPlus.Pages
                 Email = user.Email,
                 IsAdmin = user.IsAdmin,
                 IsActive = user.IsActive,
-                CreatedAt = user.CreatedAt,
-                SubscriptionExpiresAt = user.SubscriptionExpiresAt
+                CreatedAt = user.CreatedAt
             };
-            selectedPlan = "1month";
             showEditModal = true;
-        }
-
-        protected void ApplyPlan()
-        {
-            var from = selectedUser.SubscriptionExpiresAt.HasValue && selectedUser.SubscriptionExpiresAt.Value > DateTime.UtcNow
-                ? selectedUser.SubscriptionExpiresAt.Value
-                : DateTime.UtcNow;
-
-            selectedUser.SubscriptionExpiresAt = selectedPlan == "1year"
-                ? from.AddYears(1)
-                : from.AddMonths(1);
-            selectedUser.IsActive = true;
         }
 
         protected async Task SaveUserAsync()

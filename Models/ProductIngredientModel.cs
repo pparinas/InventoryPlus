@@ -29,7 +29,7 @@ namespace InventoryPlus.Models
         [Column("usage_unit")]
         public string UsageUnit { get; set; } = string.Empty;
 
-        [Reference(typeof(Ingredient))]
+        [Reference(typeof(Ingredient), includeInQuery: false)]
         public Ingredient? Ingredient { get; set; }
 
         /// <summary>

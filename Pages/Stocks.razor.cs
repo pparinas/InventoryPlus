@@ -26,6 +26,7 @@ namespace InventoryPlus.Pages
         protected bool showPinPrompt;
         private Action? _pendingPinAction;
         protected UnitCategory _selectedUnitCategory = UnitCategory.Weight;
+        protected string _originalUnit = "";
 
         protected void SetPage(int p) { _page = p; StateHasChanged(); }
 
@@ -110,9 +111,11 @@ namespace InventoryPlus.Pages
                 Unit = item.Unit,
                 Stock = item.Stock,
                 CostPerUnit = item.CostPerUnit,
-                Type = item.Type
+                Type = item.Type,
+                LowStockThreshold = item.LowStockThreshold
             };
             isEditing = true;
+            _originalUnit = item.Unit;
             _selectedUnitCategory = UnitConverter.GetCategory(currentIngredient.Unit);
             showModal = true;
         }
@@ -174,6 +177,7 @@ namespace InventoryPlus.Pages
                         existing.Stock = currentIngredient.Stock;
                         existing.CostPerUnit = currentIngredient.CostPerUnit;
                         existing.Type = currentIngredient.Type;
+                        existing.LowStockThreshold = currentIngredient.LowStockThreshold;
                         await Inventory.UpdateIngredientAsync(existing, JS);
                         Toast.Show($"\"{existing.Name}\" updated successfully!");
                     }
