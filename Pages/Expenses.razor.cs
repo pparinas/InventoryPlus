@@ -56,6 +56,9 @@ namespace InventoryPlus.Pages
             get
             {
                 var items = Inventory.ActiveOpex;
+                // Free users are restricted to 30 days of data
+                if (!AppSettings.IsPro)
+                    items = items.Where(o => o.Date >= DateTime.Now.AddDays(-30));
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                     items = items.Where(o => o.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
                         || o.Note.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));

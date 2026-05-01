@@ -70,9 +70,9 @@ namespace InventoryPlus.Pages
             get
             {
                 var now = DateTime.Now;
-                // Free users are restricted to Daily/Weekly only
-                var effectiveFilter = !AppSettings.IsPro && selectedFilter is "Monthly" or "Yearly" or "All"
-                    ? "Daily"
+                // Free users are restricted to 30 days max (Daily/Weekly/Monthly)
+                var effectiveFilter = !AppSettings.IsPro && selectedFilter is "Yearly" or "All"
+                    ? "Monthly"
                     : selectedFilter;
                 return effectiveFilter switch
                 {
@@ -137,8 +137,8 @@ namespace InventoryPlus.Pages
             {
                 var now = DateTime.Now;
                 var items = Inventory.ActiveOpex;
-                var effectiveFilter = !AppSettings.IsPro && selectedFilter is "Monthly" or "Yearly" or "All"
-                    ? "Daily"
+                var effectiveFilter = !AppSettings.IsPro && selectedFilter is "Yearly" or "All"
+                    ? "Monthly"
                     : selectedFilter;
                 return effectiveFilter switch
                 {
@@ -163,6 +163,7 @@ namespace InventoryPlus.Pages
 
         protected async Task ExportCsv()
         {
+            if (!AppSettings.IsPro) return;
             var sb = new StringBuilder();
             sb.AppendLine("Date,Product,Qty,PaymentMethod,Amount,Tax,Profit");
             foreach (var s in FilteredSales.OrderByDescending(s => s.Date))
