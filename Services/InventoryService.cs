@@ -24,7 +24,6 @@ namespace InventoryPlus.Services
         public bool IsLoaded { get; set; }
         public bool IsLoading { get; private set; }
         public bool IsOffline { get; private set; }
-        public bool IsGuestMode { get; set; }
 
         private const string CacheKeyPrefix = "inv_cache_";
         private const string PendingKeyPrefix = "inv_pending_";
@@ -138,10 +137,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (IsGuestMode) return;
-
-            // Background sync
-            _ = SyncSafeAsync(js, async () =>
+            await SyncSafeAsync(js, async () =>
             {
                 var resp = await _supabase.From<Ingredient>().Insert(ingredient);
                 var saved = resp.Models.FirstOrDefault();
@@ -155,8 +151,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (!IsGuestMode)
-                _ = SyncSafeAsync(js, () => _supabase.From<Ingredient>().Upsert(ingredient));
+            await SyncSafeAsync(js, () => _supabase.From<Ingredient>().Upsert(ingredient));
         }
 
         public async Task DeleteIngredientAsync(Ingredient ingredient, IJSRuntime? js = null)
@@ -165,8 +160,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (!IsGuestMode)
-                _ = SyncSafeAsync(js, () => _supabase.From<Ingredient>().Upsert(ingredient));
+            await SyncSafeAsync(js, () => _supabase.From<Ingredient>().Upsert(ingredient));
         }
 
         // ── Products ───────────────────────────────────────────────────────────
@@ -187,9 +181,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (IsGuestMode) return;
-
-            _ = SyncSafeAsync(js, async () =>
+            await SyncSafeAsync(js, async () =>
             {
                 var requirements = product.RequiredIngredients.ToList();
                 product.RequiredIngredients = new();
@@ -215,9 +207,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (IsGuestMode) return;
-
-            _ = SyncSafeAsync(js, async () =>
+            await SyncSafeAsync(js, async () =>
             {
                 var requirements = product.RequiredIngredients.ToList();
                 product.RequiredIngredients = new();
@@ -250,9 +240,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (IsGuestMode) return;
-
-            _ = SyncSafeAsync(js, async () =>
+            await SyncSafeAsync(js, async () =>
             {
                 var requirements = product.RequiredIngredients.ToList();
                 product.RequiredIngredients = new();
@@ -319,14 +307,8 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (IsGuestMode)
-            {
-                sale.Guid = Guid.NewGuid();
-                return sale;
-            }
-
-            // Background sync
-            _ = SyncSafeAsync(js, async () =>
+            // Sync to DB
+            await SyncSafeAsync(js, async () =>
             {
                 try
                 {
@@ -403,9 +385,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (IsGuestMode) return;
-
-            _ = SyncSafeAsync(js, async () =>
+            await SyncSafeAsync(js, async () =>
             {
                 var resp = await _supabase.From<Opex>().Insert(opex);
                 var saved = resp.Models.FirstOrDefault();
@@ -419,8 +399,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (!IsGuestMode)
-                _ = SyncSafeAsync(js, () => _supabase.From<Opex>().Upsert(opex));
+            await SyncSafeAsync(js, () => _supabase.From<Opex>().Upsert(opex));
         }
 
         public async Task DeleteOpexAsync(Opex opex, IJSRuntime? js = null)
@@ -429,8 +408,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (!IsGuestMode)
-                _ = SyncSafeAsync(js, () => _supabase.From<Opex>().Upsert(opex));
+            await SyncSafeAsync(js, () => _supabase.From<Opex>().Upsert(opex));
         }
 
         // ── Void Sale ──────────────────────────────────────────────────────────
@@ -464,9 +442,7 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (IsGuestMode) return;
-
-            _ = SyncSafeAsync(js, async () =>
+            await SyncSafeAsync(js, async () =>
             {
                 try
                 {
@@ -518,15 +494,14 @@ namespace InventoryPlus.Services
             if (js != null) await SaveCacheAsync(js);
             NotifyStateChanged();
 
-            if (!IsGuestMode)
-                _ = SyncSafeAsync(js, () => _supabase.From<Sale>().Upsert(sale));
+            await SyncSafeAsync(js, () => _supabase.From<Sale>().Upsert(sale));
         }
 
         // ── Background sync helper ─────────────────────────────────────────────
 
         /// <summary>
-        /// Runs a Supabase operation in the background.
-        /// On failure, marks the service as offline (if not already) but keeps local state intact.
+        /// Runs a Supabase operation and awaits the result.
+        /// On failure, marks the service as offline and re-throws so callers can handle it.
         /// </summary>
         private async Task SyncSafeAsync(IJSRuntime? js, Func<Task> operation)
         {
@@ -543,112 +518,11 @@ namespace InventoryPlus.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Background sync failed: {ex.Message}");
+                Console.WriteLine($"Sync failed: {ex.Message}");
                 IsOffline = true;
                 NotifyStateChanged();
+                throw;
             }
-        }
-
-        // ── Guest Mode ─────────────────────────────────────────────────────────
-
-        private const string GuestCacheKey = "inv_cache_guest";
-
-        public async Task LoadGuestAsync(IJSRuntime js)
-        {
-            if (IsLoading) return;
-            IsLoading = true;
-            IsGuestMode = true;
-            try
-            {
-                var json = await js.InvokeAsync<string?>("localStorage.getItem", GuestCacheKey);
-                if (!string.IsNullOrEmpty(json))
-                {
-                    using var doc = JsonDocument.Parse(json);
-                    var root = doc.RootElement;
-
-                    if (root.TryGetProperty("ingredients", out var ingEl))
-                        Ingredients = ingEl.EnumerateArray().Select(e => new Ingredient
-                        {
-                            Guid = e.GetProperty("guid").GetGuid(),
-                            OwnerGuid = Guid.Empty,
-                            Name = e.GetProperty("name").GetString() ?? "",
-                            Unit = e.GetProperty("unit").GetString() ?? "",
-                            Stock = e.GetProperty("stock").GetDouble(),
-                            CostPerUnit = e.GetProperty("costPerUnit").GetDouble(),
-                            Type = e.TryGetProperty("type", out var t) ? t.GetString() ?? "Ingredient" : "Ingredient",
-                            IsArchived = e.TryGetProperty("isArchived", out var a) && a.GetBoolean()
-                        }).ToList();
-
-                    if (root.TryGetProperty("products", out var prodEl))
-                        Products = prodEl.EnumerateArray().Select(e => new Product
-                        {
-                            Guid = e.GetProperty("guid").GetGuid(),
-                            OwnerGuid = Guid.Empty,
-                            Name = e.GetProperty("name").GetString() ?? "",
-                            SellingPrice = e.GetProperty("sellingPrice").GetDouble(),
-                            TaxRate = e.TryGetProperty("taxRate", out var tr) ? tr.GetDouble() : 0,
-                            IsArchived = e.TryGetProperty("isArchived", out var a2) && a2.GetBoolean()
-                        }).ToList();
-
-                    if (root.TryGetProperty("sales", out var saleEl))
-                        Sales = saleEl.EnumerateArray().Select(e => new Sale
-                        {
-                            Guid = e.GetProperty("guid").GetGuid(),
-                            OwnerId = Guid.Empty,
-                            ProductName = e.GetProperty("productName").GetString() ?? "",
-                            QuantitySold = e.GetProperty("quantitySold").GetInt32(),
-                            TotalAmount = e.GetProperty("totalAmount").GetDouble(),
-                            ProfitAmount = e.TryGetProperty("profitAmount", out var pa) ? pa.GetDouble() : 0,
-                            Date = e.GetProperty("date").GetDateTime(),
-                            PaymentMethod = e.TryGetProperty("paymentMethod", out var pm) ? pm.GetString() ?? "Cash" : "Cash"
-                        }).ToList();
-
-                    if (root.TryGetProperty("opex", out var opexGuestEl))
-                        OpexItems = opexGuestEl.EnumerateArray().Select(e => new Opex
-                        {
-                            Guid = e.GetProperty("guid").GetGuid(),
-                            OwnerGuid = Guid.Empty,
-                            Name = e.GetProperty("name").GetString() ?? "",
-                            Category = e.TryGetProperty("category", out var c) ? c.GetString() ?? "Other" : "Other",
-                            Amount = e.GetProperty("amount").GetDouble(),
-                            Date = e.GetProperty("date").GetDateTime(),
-                            Note = e.TryGetProperty("note", out var n) ? n.GetString() ?? "" : "",
-                            IsRecurring = e.TryGetProperty("isRecurring", out var ir) && ir.GetBoolean(),
-                            Recurrence = e.TryGetProperty("recurrence", out var r) ? r.GetString() ?? "None" : "None",
-                            IsArchived = e.TryGetProperty("isArchived", out var ar) && ar.GetBoolean()
-                        }).OrderByDescending(o => o.Date).ToList();
-                }
-
-                IsLoaded = true;
-                NotifyStateChanged();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"LoadGuestAsync error: {ex.Message}");
-                IsLoaded = true;
-                NotifyStateChanged();
-            }
-            finally
-            {
-                IsLoading = false;
-            }
-        }
-
-        public async Task SaveGuestCacheAsync(IJSRuntime js)
-        {
-            try
-            {
-                var snapshot = new
-                {
-                    ingredients = Ingredients.Select(i => new { guid = i.Guid, name = i.Name, unit = i.Unit, stock = i.Stock, costPerUnit = i.CostPerUnit, type = i.Type, isArchived = i.IsArchived }),
-                    products = Products.Select(p => new { guid = p.Guid, name = p.Name, sellingPrice = p.SellingPrice, taxRate = p.TaxRate, isArchived = p.IsArchived }),
-                    sales = Sales.Select(s => new { guid = s.Guid, productName = s.ProductName, quantitySold = s.QuantitySold, totalAmount = s.TotalAmount, profitAmount = s.ProfitAmount, date = s.Date, paymentMethod = s.PaymentMethod }),
-                    opex = OpexItems.Select(o => new { guid = o.Guid, name = o.Name, category = o.Category, amount = o.Amount, date = o.Date, note = o.Note, isRecurring = o.IsRecurring, recurrence = o.Recurrence, isArchived = o.IsArchived })
-                };
-                var json = JsonSerializer.Serialize(snapshot);
-                await js.InvokeVoidAsync("localStorage.setItem", GuestCacheKey, json);
-            }
-            catch (Exception ex) { Console.WriteLine($"SaveGuestCacheAsync error: {ex.Message}"); }
         }
 
         // ── Cache ──────────────────────────────────────────────────────────────

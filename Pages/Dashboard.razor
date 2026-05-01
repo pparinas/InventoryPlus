@@ -43,15 +43,12 @@ else
         <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("stocks")'>
             <i class="fa-solid fa-boxes-stacked"></i><span>Restock</span>
         </button>
-        @if (!AppSettings.IsGuestMode)
-        {
         <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("reports")'>
             <i class="fa-solid fa-file-lines"></i><span>Reports</span>
         </button>
         <button class="quick-action-btn" @onclick='() => Nav.NavigateTo("settings")'>
             <i class="fa-solid fa-gear"></i><span>Settings</span>
         </button>
-        }
     </div>
 </div>
 }
@@ -87,78 +84,6 @@ else
 </div>
 }
 
-@if (AppSettings.IsGuestMode)
-{
-@* ── Guest Mode: Locked widgets ── *@
-<div class="row g-3 mb-3">
-    <div class="col-12 col-md-6">
-        <div class="glass-panel h-100 locked-widget">
-            <div class="locked-widget-overlay">
-                <i class="fa-solid fa-lock"></i>
-                <span>Sign in to unlock</span>
-            </div>
-            <h2 class="mb-3"><i class="fa-solid fa-chart-bar" style="color: var(--primary);"></i> Revenue Trend</h2>
-            <div style="height: 120px;"></div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="glass-panel h-100 locked-widget">
-            <div class="locked-widget-overlay">
-                <i class="fa-solid fa-lock"></i>
-                <span>Sign in to unlock</span>
-            </div>
-            <h2 class="mb-3"><i class="fa-solid fa-trophy" style="color: var(--warning);"></i> Top Products</h2>
-            <div style="height: 120px;"></div>
-        </div>
-    </div>
-</div>
-<div class="row g-3 mb-3">
-    <div class="col-12 col-md-6">
-        <div class="glass-panel h-100 locked-widget">
-            <div class="locked-widget-overlay">
-                <i class="fa-solid fa-lock"></i>
-                <span>Sign in to unlock</span>
-            </div>
-            <h2 class="mb-3"><i class="fa-solid fa-credit-card" style="color: var(--accent);"></i> Payment Methods</h2>
-            <div style="height: 120px;"></div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="glass-panel h-100 locked-widget">
-            <div class="locked-widget-overlay">
-                <i class="fa-solid fa-lock"></i>
-                <span>Sign in to unlock</span>
-            </div>
-            <h2 class="mb-3"><i class="fa-solid fa-arrow-trend-up" style="color: var(--success);"></i> Profit Trend</h2>
-            <div style="height: 120px;"></div>
-        </div>
-    </div>
-</div>
-<div class="row g-3 mb-3">
-    <div class="col-12 col-md-6">
-        <div class="glass-panel h-100 locked-widget">
-            <div class="locked-widget-overlay">
-                <i class="fa-solid fa-lock"></i>
-                <span>Sign in to unlock</span>
-            </div>
-            <h2 class="mb-3"><i class="fa-solid fa-receipt" style="color: var(--primary);"></i> Recent Sales</h2>
-            <div style="height: 120px;"></div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6">
-        <div class="glass-panel h-100 locked-widget">
-            <div class="locked-widget-overlay">
-                <i class="fa-solid fa-lock"></i>
-                <span>Sign in to unlock</span>
-            </div>
-            <h2 class="mb-3"><i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Low Stock Alerts</h2>
-            <div style="height: 120px;"></div>
-        </div>
-    </div>
-</div>
-}
-else
-{
 
 <div class="row g-3 mb-3">
     @* ── Revenue Chart (CSS bar chart) ── *@
@@ -388,5 +313,5 @@ else
     }
 </div>
 
-} @* end else (signed-in widgets) *@
+
 } @* end loading guard *@

@@ -40,7 +40,7 @@ namespace InventoryPlus.Pages
 
         protected override void OnInitialized()
         {
-            if (!AppSettings.IsGuestMode && !AppSettings.ShowOpexTab) { Nav.NavigateTo("dashboard"); return; }
+            if (!AppSettings.ShowOpexTab) { Nav.NavigateTo("dashboard"); return; }
             Inventory.OnStateChanged += HandleStateChanged;
         }
 

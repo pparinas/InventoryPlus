@@ -68,18 +68,16 @@
                     <div class="dropdown-menu show p-3" style="position: absolute; top: calc(100% + 0.5rem); right: 0; min-width: 260px; border-radius: 12px;">
                         <div class="d-flex align-items-center gap-3 mb-3">
                             <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 40px; height: 40px; background: var(--primary);">
-                                <i class="fa-solid @(AppSettings.IsGuestMode ? "fa-user-secret" : "fa-user")"></i>
+                                <i class="fa-solid fa-user"></i>
                             </div>
                             <div style="min-width: 0;">
-                                <div class="fw-semibold">@(AppSettings.IsGuestMode ? "Guest User" : currentUserEmail ?? "Loading...")</div>
-                                <div class="text-muted small text-truncate">@(AppSettings.IsGuestMode ? "Local data only" : AppSettings.CompanyName)</div>
+                                <div class="fw-semibold">@(currentUserEmail ?? "Loading...")</div>
+                                <div class="text-muted small text-truncate">@AppSettings.CompanyName</div>
                             </div>
                         </div>
                         
                         <hr class="my-2" style="border-color: var(--border);">
                         
-                        @if (!AppSettings.IsGuestMode)
-                        {
                         <AuthorizeView>
                             <Authorized>
                                 <NavLink class="dropdown-item rounded d-flex align-items-center gap-2 py-2" href="settings" @onclick="() => showDropdown = false">
@@ -87,17 +85,9 @@
                                 </NavLink>
                             </Authorized>
                         </AuthorizeView>
-                        }
                         
                         <button class="btn btn-outline-danger btn-sm w-100 mt-2 d-flex align-items-center gap-2" @onclick="SignOut" style="justify-content: flex-start; padding-left: 1rem;">
-                            @if (AppSettings.IsGuestMode)
-                            {
-                                <i class="fa-solid fa-right-to-bracket"></i> <span>Sign In</span>
-                            }
-                            else
-                            {
-                                <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span>
-                            }
+                            <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Sign Out</span>
                         </button>
                     </div>
                 }
@@ -111,15 +101,6 @@
         <div class="offline-banner">
             <i class="fa-solid fa-wifi" style="opacity:0.6;"></i>
             Offline &mdash; showing cached data. Changes require an internet connection.
-        </div>
-    }
-
-    @if (AppSettings.IsGuestMode)
-    {
-        <div class="guest-banner">
-            <i class="fa-solid fa-user-secret" style="opacity:0.8;"></i>
-            Guest Mode &mdash; data is stored locally only.
-            <a href="login" class="guest-banner-link" @onclick="SignOut" @onclick:preventDefault>Sign In</a>
         </div>
     }
 
@@ -182,20 +163,10 @@
             <span>OPEX</span>
         </a>
         }
-        @if (AppSettings.IsGuestMode)
-        {
-            <a href="login" class="bottom-bar-item disabled" @onclick="SignOut" @onclick:preventDefault>
-                <i class="fa-solid fa-lock"></i>
-                <span>Reports</span>
-            </a>
-        }
-        else
-        {
-            <a href="reports" class="bottom-bar-item @(IsActive("reports") ? "active" : "")">
-                <i class="fa-solid fa-file-lines"></i>
-                <span>Reports</span>
-            </a>
-        }
+        <a href="reports" class="bottom-bar-item @(IsActive("reports") ? "active" : "")">
+            <i class="fa-solid fa-file-lines"></i>
+            <span>Reports</span>
+        </a>
         }
     </nav>
 

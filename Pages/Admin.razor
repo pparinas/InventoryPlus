@@ -31,15 +31,13 @@
                     <th>Role</th>
                     <th>Status</th>
                     <th>Created Date</th>
-                    <th>Subscription Expiry</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var user in Users.Skip((_page - 1) * PageSize).Take(PageSize))
                 {
-                    var isExpired = user.SubscriptionExpiresAt.HasValue && user.SubscriptionExpiresAt.Value < DateTime.UtcNow;
-                    <tr style="@(!user.IsActive || isExpired ? "opacity: 0.6" : "")">
+                    <tr style="@(!user.IsActive ? "opacity: 0.6" : "")">
                         <td><strong>@user.Email</strong></td>
                         <td>
                             <span class="badge @(user.IsAdmin ? "bg-primary-subtle" : "bg-secondary")">
@@ -51,26 +49,12 @@
                             {
                                 <span class="badge bg-danger-subtle">Deactivated</span>
                             }
-                            else if (isExpired)
-                            {
-                                <span class="badge bg-danger-subtle">Expired</span>
-                            }
                             else
                             {
                                 <span class="badge bg-success-subtle">Active</span>
                             }
                         </td>
                         <td class="text-muted">@user.CreatedAt.ToString("MMM dd, yyyy")</td>
-                        <td>
-                            @if (user.SubscriptionExpiresAt.HasValue)
-                            {
-                                <span class="@(isExpired ? "text-danger" : "")">@user.SubscriptionExpiresAt.Value.ToString("MMM dd, yyyy")</span>
-                            }
-                            else
-                            {
-                                <span class="text-muted">N/A</span>
-                            }
-                        </td>
                         <td class="text-end">
                             <button class="btn btn-sm btn-outline-secondary" @onclick="() => EditUser(user)">
                                 <i class="fa-solid fa-user-pen"></i> Manage
@@ -88,8 +72,7 @@
         <div class="card-view">
             @foreach (var user in Users.Skip((_page - 1) * PageSize).Take(PageSize))
             {
-                var isExpiredCard = user.SubscriptionExpiresAt.HasValue && user.SubscriptionExpiresAt.Value < DateTime.UtcNow;
-                <div class="stock-card" style="@(!user.IsActive || isExpiredCard ? "opacity: 0.7" : "")">
+                <div class="stock-card" style="@(!user.IsActive ? "opacity: 0.7" : "")">
                     <div class="stock-card-header">
                         <span class="stock-card-name">@user.Email</span>
                         <span class="badge @(user.IsAdmin ? "bg-primary-subtle" : "bg-secondary")">@(user.IsAdmin ? "Admin" : "User")</span>
@@ -101,10 +84,6 @@
                             {
                                 <span class="badge bg-danger-subtle">Deactivated</span>
                             }
-                            else if (isExpiredCard)
-                            {
-                                <span class="badge bg-danger-subtle">Expired</span>
-                            }
                             else
                             {
                                 <span class="badge bg-success-subtle">Active</span>
@@ -113,17 +92,6 @@
                         <div class="stock-card-row">
                             <span class="stock-card-label">Created</span>
                             <span>@user.CreatedAt.ToString("MMM dd, yyyy")</span>
-                        </div>
-                        <div class="stock-card-row">
-                            <span class="stock-card-label">Subscription</span>
-                            @if (user.SubscriptionExpiresAt.HasValue)
-                            {
-                                <span class="@(isExpiredCard ? "text-danger" : "")">@user.SubscriptionExpiresAt.Value.ToString("MMM dd, yyyy")</span>
-                            }
-                            else
-                            {
-                                <span class="text-muted">N/A</span>
-                            }
                         </div>
                     </div>
                     <div class="stock-card-actions">
@@ -332,44 +300,7 @@
     <Content>
                 <p class="text-muted mb-4"><strong>@selectedUser.Email</strong></p>
 
-                <div class="mb-3">
-                    <label class="form-label">Current Subscription Expiry</label>
-                    <div class="mt-1">
-                        @if (selectedUser.SubscriptionExpiresAt.HasValue)
-                        {
-                            var expired = selectedUser.SubscriptionExpiresAt.Value < DateTime.UtcNow;
-                            <span class="badge @(expired ? "bg-danger-subtle" : "bg-success-subtle")">
-                                @selectedUser.SubscriptionExpiresAt.Value.ToString("MMM dd, yyyy")
-                                @(expired ? " (Expired)" : "")
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="text-muted">No subscription set</span>
-                        }
-                    </div>
-                </div>
-
-                <div class="mb-3 mt-4">
-                    <label class="form-label">Renewal Plan</label>
-                    <div class="d-flex gap-2 mt-2">
-                        <button class="btn @(selectedPlan == "1month" ? "btn-primary" : "btn-outline-secondary")" @onclick='() => selectedPlan = "1month"'>
-                            1 Month
-                        </button>
-                        <button class="btn @(selectedPlan == "1year" ? "btn-primary" : "btn-outline-secondary")" @onclick='() => selectedPlan = "1year"'>
-                            1 Year
-                        </button>
-                    </div>
-                    <button class="btn btn-outline-secondary mt-2" @onclick="ApplyPlan">
-                        <i class="fa-solid fa-calendar-plus"></i> Apply Plan
-                    </button>
-                    @if (selectedUser.SubscriptionExpiresAt.HasValue)
-                    {
-                        <p class="text-muted text-xs mt-1">New expiry: <strong>@selectedUser.SubscriptionExpiresAt.Value.ToString("MMM dd, yyyy")</strong></p>
-                    }
-                </div>
-
-                <div class="row g-3 mt-3">
+                <div class="row g-3">
                     <div class="col-6">
                         <label class="form-label">User Role</label>
                         <div class="d-flex align-items-center gap-2 mt-2">

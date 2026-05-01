@@ -22,12 +22,12 @@
 
         <div class="mb-3">
             <label for="email" class="form-label small fw-medium text-muted">Email or Username</label>
-            <input id="email" type="text" @bind="Email" class="form-control" placeholder="you@example.com or username" />
+            <input id="email" type="text" @bind="Email" @bind:event="oninput" class="form-control" placeholder="you@example.com or username" />
         </div>
 
         <div class="mb-3">
             <label for="password" class="form-label small fw-medium text-muted">Password</label>
-            <input id="password" type="password" @bind="Password" class="form-control" placeholder="Your password" />
+            <input id="password" type="password" @bind="Password" @bind:event="oninput" class="form-control" placeholder="Your password" />
         </div>
 
         <div class="form-check mb-3">
@@ -46,21 +46,8 @@
             }
         </button>
 
-        <div class="d-flex align-items-center gap-3 my-3">
-            <hr class="flex-grow-1" style="border-color: var(--border);" />
-            <span class="text-muted small">or</span>
-            <hr class="flex-grow-1" style="border-color: var(--border);" />
-        </div>
-
-        <button @onclick="HandleGuestMode" class="btn btn-outline-secondary w-100" disabled="@IsLoading">
-            <i class="fa-solid fa-user-secret me-1"></i> Continue as Guest
-        </button>
-        <p class="text-center mt-2 small text-muted" style="font-size: 0.75rem;">
-            <i class="fa-solid fa-circle-info me-1"></i> Guest data is stored locally on this device only
-        </p>
-        
         <div class="text-center mt-3 small text-muted">
-            <p>Don't have an account? <a href="contact" class="fw-semibold text-decoration-none" style="color: var(--primary);">Contact us to subscribe</a></p>
+            <p>Don't have an account? <a href="register" class="fw-semibold text-decoration-none" style="color: var(--primary);">Create a free account</a></p>
             <p><a href="/" class="text-decoration-none" style="color: var(--primary);">Back to home</a></p>
         </div>
     </div>

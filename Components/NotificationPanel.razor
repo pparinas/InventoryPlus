@@ -62,7 +62,7 @@
         var newNotifications = new List<InventoryPlus.Models.AppNotification>();
 
         // Low stock alerts
-        foreach (var ing in Inventory.ActiveIngredients.Where(i => i.Stock < 5 && i.Type == "Ingredient"))
+        foreach (var ing in Inventory.ActiveIngredients.Where(i => i.Stock <= i.LowStockThreshold && i.Type == "Ingredient"))
         {
             var existing = notifications.FirstOrDefault(n => n.Id == $"low-stock-{ing.Guid}");
             if (existing != null)

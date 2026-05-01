@@ -63,7 +63,7 @@ else
                         </span>
                     </td>
                     <td>
-                        @if (item.Stock < 5 && item.Type == "Ingredient")
+                        @if (item.Stock <= item.LowStockThreshold && item.Type == "Ingredient")
                         {
                             <span class="text-warning fw-bold">@item.Stock @item.Unit (Low)</span>
                         }
@@ -106,7 +106,7 @@ else
                 <div class="stock-card-body">
                     <div class="stock-card-row">
                         <span class="stock-card-label">Stock</span>
-                        @if (item.Stock < 5 && item.Type == "Ingredient")
+                        @if (item.Stock <= item.LowStockThreshold && item.Type == "Ingredient")
                         {
                             <span class="text-warning fw-bold">@item.Stock @item.Unit <small>(Low)</small></span>
                         }
@@ -191,8 +191,25 @@ else
                         <input type="number" class="form-control" step="0.1" @bind="currentIngredient.Stock" />
                     </div>
                     <div class="col-6">
-                        <label class="form-label">Cost per Unit (₱)</label>
+                        <label class="form-label">Cost per @(string.IsNullOrEmpty(currentIngredient.Unit) ? "Unit" : currentIngredient.Unit) (₱)</label>
                         <input type="number" class="form-control" step="0.01" @bind="currentIngredient.CostPerUnit" />
+                    </div>
+                </div>
+
+                @if (isEditing && _originalUnit != currentIngredient.Unit && currentIngredient.Stock > 0)
+                {
+                    <div class="alert alert-warning mt-2 mb-0 py-2 px-3" style="font-size: 0.85rem;">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Unit changed from <strong>@_originalUnit</strong> to <strong>@currentIngredient.Unit</strong>.
+                        Make sure your stock quantity (@currentIngredient.Stock) is correct for the new unit.
+                    </div>
+                }
+
+                <div class="row g-3 mt-1">
+                    <div class="col-6">
+                        <label class="form-label">Low Stock Alert (@(string.IsNullOrEmpty(currentIngredient.Unit) ? "units" : currentIngredient.Unit))</label>
+                        <input type="number" class="form-control" step="0.1" @bind="currentIngredient.LowStockThreshold" />
+                        <small class="text-muted">Alert when stock falls to this level</small>
                     </div>
                 </div>
     </Content>
