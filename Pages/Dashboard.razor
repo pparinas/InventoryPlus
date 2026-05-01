@@ -23,7 +23,14 @@ else
             <option value="today">Today</option>
             <option value="7d">7 Days</option>
             <option value="30d">30 Days</option>
-            <option value="all">All Time</option>
+            @if (AppSettings.IsPro)
+            {
+                <option value="all">All Time</option>
+            }
+            else
+            {
+                <option value="all" disabled>All Time 🔒</option>
+            }
         </select>
         <button class="btn btn-ghost btn-sm" @onclick="Refresh"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
         <button class="btn btn-primary btn-sm" @onclick='() => Nav.NavigateTo("sales")'><i class="fa-solid fa-plus"></i> New Sale</button>

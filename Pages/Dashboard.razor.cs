@@ -33,7 +33,9 @@ namespace InventoryPlus.Pages
             get
             {
                 var now = DateTime.Now;
-                return timeRange switch
+                // Free users are restricted to 30 days max
+                var effectiveRange = !AppSettings.IsPro && timeRange == "all" ? "30d" : timeRange;
+                return effectiveRange switch
                 {
                     "today" => Inventory.Sales.Where(s => s.Date.Date == now.Date),
                     "7d" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-7)),
