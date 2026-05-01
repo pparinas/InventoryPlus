@@ -1,6 +1,19 @@
 namespace InventoryPlus.Models
 {
     [Flags]
+    public enum PinScope
+    {
+        None       = 0,
+        Products   = 1 << 0,
+        Stocks     = 1 << 1,
+        Sales      = 1 << 2,
+        Expenses   = 1 << 3,
+        PosMode    = 1 << 4,
+        Reports    = 1 << 5,
+        All        = Products | Stocks | Sales | Expenses | PosMode | Reports
+    }
+
+    [Flags]
     public enum DashboardWidgets
     {
         None             = 0,
