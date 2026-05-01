@@ -72,6 +72,7 @@
 
 <style>
     @@media(max-width:900px){ .hero > div:last-child > .hero-mockup { display:none; } }
+    @@media(max-width:600px){ .pricing-grid-2col { grid-template-columns:1fr !important; } }
 </style>
 
 <!-- FEATURES -->
@@ -142,7 +143,7 @@
     <div class="land-section-label">Pricing</div>
     <h2>Start free, upgrade when ready.</h2>
     <p class="sub">No commitment. Upgrade to Pro when your business grows.</p>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:740px;margin:0 auto;">
+    <div class="pricing-grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:740px;margin:0 auto;">
         <!-- Free Plan -->
         <div class="pricing-card" style="background:var(--land-card);color:var(--land-fg);border:1px solid var(--land-border);">
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--land-fg3);margin-bottom:10px;">Free</div>
@@ -151,9 +152,11 @@
                 <div class="pricing-feature" style="color:var(--land-fg2);"><i class="fa-solid fa-check" style="color:var(--land-fg);"></i> Inventory Management</div>
                 <div class="pricing-feature" style="color:var(--land-fg2);"><i class="fa-solid fa-check" style="color:var(--land-fg);"></i> Unlimited Products</div>
                 <div class="pricing-feature" style="color:var(--land-fg2);"><i class="fa-solid fa-check" style="color:var(--land-fg);"></i> Record Sales</div>
+                <div class="pricing-feature" style="color:var(--land-fg2);"><i class="fa-solid fa-check" style="color:var(--land-fg);"></i> POS Counter</div>
                 <div class="pricing-feature" style="color:var(--land-fg2);"><i class="fa-solid fa-check" style="color:var(--land-fg);"></i> Current Month Reports</div>
                 <div class="pricing-feature" style="color:var(--land-fg2);"><i class="fa-solid fa-check" style="color:var(--land-fg);"></i> Receipt Generation</div>
                 <div class="pricing-feature" style="color:var(--land-fg2);"><i class="fa-solid fa-check" style="color:var(--land-fg);"></i> Low Stock Alerts</div>
+                <div class="pricing-feature" style="color:var(--land-fg2);"><i class="fa-solid fa-check" style="color:var(--land-fg);"></i> Dashboard Customization</div>
                 <div class="pricing-feature" style="color:var(--land-fg2);"><i class="fa-solid fa-check" style="color:var(--land-fg);"></i> Dark & Light Mode</div>
             </div>
             <a href="register" class="pricing-cta" style="background:var(--land-fg);color:var(--land-bg);">Get started · free</a>
@@ -164,11 +167,10 @@
             <div class="pricing-price">Pro<small> / monthly</small></div>
             <div class="pricing-features">
                 <div class="pricing-feature"><i class="fa-solid fa-check"></i> Everything in Free</div>
-                <div class="pricing-feature"><i class="fa-solid fa-check"></i> POS Counter Mode</div>
+                <div class="pricing-feature"><i class="fa-solid fa-check"></i> Secured POS Counter Mode</div>
                 <div class="pricing-feature"><i class="fa-solid fa-check"></i> PIN Security</div>
                 <div class="pricing-feature"><i class="fa-solid fa-check"></i> Full Historical Reports</div>
-                <div class="pricing-feature"><i class="fa-solid fa-check"></i> Advanced Analytics + CSV</div>
-                <div class="pricing-feature"><i class="fa-solid fa-check"></i> Dashboard Customization</div>
+                <div class="pricing-feature"><i class="fa-solid fa-check"></i> Advanced Analytics + CSV Export</div>
                 <div class="pricing-feature"><i class="fa-solid fa-check"></i> Future Pro Features</div>
             </div>
             <a href="register" class="pricing-cta">Start free, upgrade later →</a>
@@ -181,13 +183,13 @@
     <div class="cta-section">
         <h2>Ready to streamline your business?</h2>
         <p>Create a free account in seconds. No strings attached.</p>
-        <a href="register" class="pricing-cta" style="max-width:280px;display:inline-flex;align-items:center;gap:6px;justify-content:center;">
+        <a href="register" class="pricing-cta" style="max-width:320px;width:100%;display:flex;align-items:center;gap:8px;justify-content:center;padding:14px 32px;font-size:14px;">
             <i class="fa-solid fa-store"></i> Create your store · free
         </a>
 
         @if (showInstallSection && !isStandalone)
         {
-            <hr style="border-color:rgba(200,240,0,.2);margin:20px 0;">
+            <hr style="border-color:rgba(200,240,0,.2);margin:20px 0;width:100%;">
             @if (canInstallNative)
             {
                 <button class="btn btn-ghost" @onclick="InstallApp"><i class="fa-solid fa-download"></i> Install App</button>

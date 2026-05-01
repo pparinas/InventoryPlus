@@ -219,12 +219,10 @@ namespace InventoryPlus.Services
 
         // ── Pro Subscription ──
         public DateTime? SubscriptionExpiry { get; set; }
-        public DateTime? TrialExpiresAt { get; set; }
 
-        /// <summary>True when user has an active Pro subscription or trial.</summary>
+        /// <summary>True when user has an active Pro subscription.</summary>
         public bool IsPro =>
-            (SubscriptionExpiry.HasValue && SubscriptionExpiry.Value > DateTime.UtcNow) ||
-            (TrialExpiresAt.HasValue && TrialExpiresAt.Value > DateTime.UtcNow);
+            SubscriptionExpiry.HasValue && SubscriptionExpiry.Value > DateTime.UtcNow;
 
         private static string? ExtractStoragePath(string? urlOrPath, string bucket)
         {
@@ -369,7 +367,6 @@ namespace InventoryPlus.Services
                 if (profile != null)
                 {
                     SubscriptionExpiry = profile.SubscriptionExpiry;
-                    TrialExpiresAt = profile.TrialExpiresAt;
                 }
             }
             catch (Exception ex)

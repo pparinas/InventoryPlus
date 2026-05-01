@@ -29,7 +29,8 @@ namespace InventoryPlus.Services
                         Email = p.Email,
                         IsAdmin = p.IsAdmin,
                         IsActive = p.IsActive,
-                        CreatedAt = p.CreatedAt
+                        CreatedAt = p.CreatedAt,
+                        SubscriptionExpiry = p.SubscriptionExpiry
                     })
                     .OrderBy(u => u.CreatedAt)
                     .ToList();
@@ -47,6 +48,7 @@ namespace InventoryPlus.Services
                 .Where(p => p.Guid == user.Id)
                 .Set(p => p.IsActive, user.IsActive)
                 .Set(p => p.IsAdmin, user.IsAdmin)
+                .Set(p => p.SubscriptionExpiry, user.SubscriptionExpiry)
                 .Update();
 
             var existing = Users.FirstOrDefault(u => u.Id == user.Id);
@@ -54,6 +56,7 @@ namespace InventoryPlus.Services
             {
                 existing.IsActive = user.IsActive;
                 existing.IsAdmin = user.IsAdmin;
+                existing.SubscriptionExpiry = user.SubscriptionExpiry;
             }
             NotifyStateChanged();
         }
