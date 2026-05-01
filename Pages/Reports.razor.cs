@@ -16,7 +16,7 @@ namespace InventoryPlus.Pages
         [Inject] public IJSRuntime JS { get; set; } = default!;
         [Inject] public NavigationManager Nav { get; set; } = default!;
 
-        protected string selectedFilter = "All";
+        protected string selectedFilter = "Daily";
         protected DateTime? stockDateFilter = null;
         protected HashSet<string> openSections = new() { "sales" };
 
@@ -70,7 +70,11 @@ namespace InventoryPlus.Pages
             get
             {
                 var now = DateTime.Now;
-                return selectedFilter switch
+                // Free users are restricted to Daily/Weekly only
+                var effectiveFilter = !AppSettings.IsPro && selectedFilter is "Monthly" or "Yearly" or "All"
+                    ? "Daily"
+                    : selectedFilter;
+                return effectiveFilter switch
                 {
                     "Daily" => Inventory.Sales.Where(s => s.Date.Date == now.Date),
                     "Weekly" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-7)),
@@ -133,7 +137,10 @@ namespace InventoryPlus.Pages
             {
                 var now = DateTime.Now;
                 var items = Inventory.ActiveOpex;
-                return selectedFilter switch
+                var effectiveFilter = !AppSettings.IsPro && selectedFilter is "Monthly" or "Yearly" or "All"
+                    ? "Daily"
+                    : selectedFilter;
+                return effectiveFilter switch
                 {
                     "Daily" => items.Where(o => o.Date.Date == now.Date),
                     "Weekly" => items.Where(o => o.Date >= now.AddDays(-7)),

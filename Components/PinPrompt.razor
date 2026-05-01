@@ -1,35 +1,35 @@
-@inject InventoryPlus.Services.SettingsService AppSettings
+﻿@inject InventoryPlus.Services.SettingsService AppSettings
 @inject InventoryPlus.Services.ToastService Toast
 @inject NavigationManager Nav
 
 @if (IsVisible)
 {
-<div class="app-modal-overlay" @onclick="Cancel">
-    <div class="app-modal-panel" style="max-width: 360px;" @onclick:stopPropagation>
-        <div class="app-modal-header">
-            <h5>@Title</h5>
+<div class="modal-backdrop" @onclick="Cancel">
+    <div class="modal-panel modal-sm" @onclick:stopPropagation>
+        <div class="modal-header">
+            <h3>@Title</h3>
         </div>
-        <div class="app-modal-body text-center">
+        <div class="modal-body" style="text-align:center">
             @if (!AppSettings.HasPin)
             {
-                <div class="mb-3">
-                    <i class="fa-solid fa-lock fa-2x text-warning mb-2"></i>
-                    <p class="text-muted">You need to create a PIN first before performing this action.</p>
+                <div style="margin-bottom:12px">
+                    <i class="fa-solid fa-lock" style="font-size:28px;color:var(--amber);margin-bottom:8px;display:block"></i>
+                    <p style="color:var(--fg2);font-size:12px">You need to create a PIN first before performing this action.</p>
                 </div>
-                <button class="btn btn-primary w-100" @onclick="GoToSettings">
-                    <i class="fa-solid fa-gear me-1"></i> Go to Settings
+                <button class="btn btn-primary" style="width:100%" @onclick="GoToSettings">
+                    <i class="fa-solid fa-gear"></i> Go to Settings
                 </button>
             }
             else
             {
-                <p class="text-muted mb-3">Enter your 4-digit PIN to continue.</p>
-                <div class="d-flex justify-content-center gap-2 mb-3">
+                <p style="color:var(--fg2);font-size:12px;margin-bottom:12px">Enter your 4-digit PIN to continue.</p>
+                <div style="display:flex;justify-content:center;gap:8px;margin-bottom:12px">
                     @for (int i = 0; i < 4; i++)
                     {
                         var idx = i;
                         <input type="password" maxlength="1" inputmode="numeric" pattern="[0-9]"
-                               class="form-control text-center fw-bold"
-                               style="width: 48px; height: 56px; font-size: 1.5rem; letter-spacing: 0;"
+                               class="form-control"
+                               style="width:48px;height:56px;font-size:1.5rem;text-align:center;font-weight:700;letter-spacing:0"
                                value="@(pinDigits.Length > idx ? pinDigits[idx].ToString() : "")"
                                @oninput="(e) => HandlePinInput(idx, e)"
                                @onkeydown="(e) => HandlePinKeyDown(idx, e)"
@@ -38,12 +38,12 @@
                 </div>
                 @if (!string.IsNullOrEmpty(error))
                 {
-                    <div class="text-danger small mb-2">@error</div>
+                    <div style="color:var(--red);font-size:11px;margin-bottom:8px">@error</div>
                 }
             }
         </div>
-        <div class="app-modal-footer">
-            <button class="btn btn-outline-secondary" @onclick="Cancel">Cancel</button>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" @onclick="Cancel">Cancel</button>
         </div>
     </div>
 </div>

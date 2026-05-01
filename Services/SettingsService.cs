@@ -198,7 +198,7 @@ namespace InventoryPlus.Services
         }
 
         // Color Scheme
-        private string _colorScheme = "indigo";
+        private string _colorScheme = "lime";
         public string ColorScheme
         {
             get => _colorScheme;
@@ -216,6 +216,15 @@ namespace InventoryPlus.Services
         public bool ShowDecimals { get; set; } = true;
         public string FormatCurrency(double value) => ShowDecimals ? value.ToString("N2") : value.ToString("N0");
         public string FormatPrice(double value) => ShowDecimals ? value.ToString("0.00") : value.ToString("0");
+
+        // ── Pro Subscription ──
+        public DateTime? SubscriptionExpiry { get; set; }
+        public DateTime? TrialExpiresAt { get; set; }
+
+        /// <summary>True when user has an active Pro subscription or trial.</summary>
+        public bool IsPro =>
+            (SubscriptionExpiry.HasValue && SubscriptionExpiry.Value > DateTime.UtcNow) ||
+            (TrialExpiresAt.HasValue && TrialExpiresAt.Value > DateTime.UtcNow);
 
         private static string? ExtractStoragePath(string? urlOrPath, string bucket)
         {
@@ -271,7 +280,7 @@ namespace InventoryPlus.Services
                     _pinHash = result.PinHash ?? string.Empty;
                     _showInventoryTab = result.ShowInventoryTab;
                     _showOpexTab = result.ShowOpexTab;
-                    _colorScheme = result.ColorScheme ?? "indigo";
+                    _colorScheme = result.ColorScheme ?? "lime";
 
                     _dashboardWidgets = (DashboardWidgets)result.DashboardWidgetFlags;
                     _reportWidgets = (ReportWidgets)result.ReportWidgetFlags;
@@ -348,6 +357,24 @@ namespace InventoryPlus.Services
                 Console.WriteLine($"Settings load error: {ex.Message}");
                 // Keep localStorage-loaded values if Supabase failed
                 if (!IsLoaded) IsLoaded = true;
+            }
+
+            // Load subscription status from user_profiles
+            try
+            {
+                var profileResponse = await _supabase.From<UserProfile>()
+                    .Where(p => p.Guid == ownerGuid)
+                    .Get();
+                var profile = profileResponse.Models.FirstOrDefault();
+                if (profile != null)
+                {
+                    SubscriptionExpiry = profile.SubscriptionExpiry;
+                    TrialExpiresAt = profile.TrialExpiresAt;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Subscription load error: {ex.Message}");
             }
         }
 

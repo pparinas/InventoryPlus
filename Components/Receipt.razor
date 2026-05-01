@@ -1,4 +1,4 @@
-@inject Microsoft.JSInterop.IJSRuntime JS
+﻿@inject Microsoft.JSInterop.IJSRuntime JS
 @inject SettingsService AppSettings
 
 <AppModal IsOpen="IsVisible" IsOpenChanged="@(async (v) => { if (!v) await Close(); })" Size="Large">
@@ -6,7 +6,7 @@
         <div class="d-flex gap-2">
             <button class="btn btn-primary btn-sm" @onclick="PrintReceipt"><i class="fa-solid fa-print"></i> Print</button>
             <button class="btn btn-sm btn-outline-primary" @onclick="ShareReceipt" disabled="@isSharing"><i class="fa-solid @(isSharing ? "fa-spinner fa-spin" : "fa-share-nodes")"></i> Share</button>
-            <button class="btn btn-outline-secondary btn-sm" @onclick="Close"><i class="fa-solid fa-xmark"></i> Close</button>
+            <button class="btn btn-ghost btn-sm" @onclick="Close"><i class="fa-solid fa-xmark"></i> Close</button>
         </div>
     </Header>
     <Content>

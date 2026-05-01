@@ -3,13 +3,13 @@
 @attribute [AllowAnonymous]
 
 
-<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh; padding: 1.5rem;" @onkeydown="HandleKeyDown">
-    <div class="card login-card p-4 p-sm-5 w-100" style="max-width: 450px; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+<div class="auth-wrap" @onkeydown="HandleKeyDown">
+    <div class="auth-card">
         <div class="auth-brand">
-            <i class="fa-solid fa-cube"></i>
+            <div class="mark"><span>N</span></div>
+            <h2>Welcome Back</h2>
+            <p>Sign in to @AppSettings.CompanyName</p>
         </div>
-        <h2>Welcome Back</h2>
-        <p class="text-muted text-center" style="margin-bottom: 1.5rem; margin-top: -0.5rem;">Sign in to @AppSettings.CompanyName</p>
         
         @if (!string.IsNullOrEmpty(SuccessMessage))
         {
@@ -46,9 +46,9 @@
             }
         </button>
 
-        <div class="text-center mt-3 small text-muted">
-            <p>Don't have an account? <a href="register" class="fw-semibold text-decoration-none" style="color: var(--primary);">Create a free account</a></p>
-            <p><a href="/" class="text-decoration-none" style="color: var(--primary);">Back to home</a></p>
+        <div class="text-center mt-3" style="font-size:12px;color:var(--fg3);">
+            <p>Don't have an account? <a href="register" class="auth-link">Create a free account</a></p>
+            <p><a href="/" class="auth-link">Back to home</a></p>
         </div>
     </div>
 </div>

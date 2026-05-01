@@ -4,510 +4,447 @@
 
 @if (Inventory.IsLoading && !Inventory.IsLoaded)
 {
-    <div class="glass-panel text-center" style="padding: 3rem">
-        <i class="fa-solid fa-spinner fa-spin fa-2x text-muted"></i>
-        <p class="text-muted mt-4">Loading reports...</p>
+    <div class="card card-p" style="padding:3rem">
+        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--fg3)"></i>
+        <p style="color:var(--fg3);margin-top:1rem">Loading reports...</p>
     </div>
 }
 else
 {
 
-<div class="page-header">
-    <div>
-        <h1>Reports</h1>
-        <p class="text-muted">Analyze sales, inventory, and profitability.</p>
+<div class="section-gap fade-in">
+    <div class="page-header">
+        <div>
+            <h1>Reports</h1>
+            <p>Analyze sales, inventory, and profitability.</p>
+        </div>
+        <div class="page-header-right">
+            <button class="btn btn-ghost btn-sm" @onclick="ExportCsv"><i class="fa-solid fa-file-csv"></i> Export CSV</button>
+        </div>
     </div>
-    <div class="d-flex gap-2 flex-wrap">
-        <button class="btn btn-outline-secondary" @onclick="ExportCsv"><i class="fa-solid fa-file-csv"></i><span class="d-none d-sm-inline"> Export CSV</span></button>
-    </div>
-</div>
 
-<div class="report-filter-bar">
-    @foreach (var f in new[] { "All", "Daily", "Weekly", "Monthly", "Yearly" })
-    {
-        <button class="report-filter-btn @(selectedFilter == f ? "active" : "")" @onclick="() => { selectedFilter = f; salesPage = 1; }">@f</button>
-    }
-</div>
-
-@* ── Summary Stats ── *@
-<div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3">
-        <div class="glass-panel stat-card">
-        <div class="stat-icon stat-success"><i class="fa-solid fa-chart-line"></i></div>
-        <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(FilteredRevenue)</h3><p>Revenue</p></div>
-    </div>
-    </div>
-    <div class="col-6 col-lg-3">
-    <div class="glass-panel stat-card">
-        <div class="stat-icon stat-accent"><i class="fa-solid fa-money-bill-trend-up"></i></div>
-        <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(FilteredProfit)</h3><p>Profit</p></div>
-    </div>
-    </div>
-    <div class="col-6 col-lg-3">
-    <div class="glass-panel stat-card">
-        <div class="stat-icon stat-primary"><i class="fa-solid fa-receipt"></i></div>
-        <div class="stat-content"><h3>@FilteredSales.Count()</h3><p>Transactions</p></div>
-    </div>
-    </div>
-    <div class="col-6 col-lg-3">
-    <div class="glass-panel stat-card">
-        <div class="stat-icon stat-warning"><i class="fa-solid fa-boxes-packing"></i></div>
-        <div class="stat-content"><h3>₱@AppSettings.FormatCurrency(InventoryValue)</h3><p>Inventory Value</p></div>
-    </div>
-    </div>
-</div>
-
-@* ── 1. Sales Summary ── *@
-@if (AppSettings.ShowReportSalesSummary)
-{
-<div class="glass-panel report-section mb-4">
-    <div class="report-section-header" @onclick='() => ToggleSection("sales")'>
-        <h2><i class="fa-solid fa-receipt text-primary"></i> Sales Summary</h2>
-        <i class="fa-solid @(openSections.Contains("sales") ? "fa-chevron-up" : "fa-chevron-down")"></i>
-    </div>
-    @if (openSections.Contains("sales"))
-    {
-        @if (FilteredSales.Any())
+    <div class="pill-group">
+        @foreach (var f in new[] { "Daily", "Weekly", "Monthly", "Yearly", "All" })
         {
-            <div class="table-responsive table-view mt-3">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr><th>ID</th><th>Date</th><th>Product</th><th>Qty</th><th>Method</th><th>Amount</th><th>Profit</th><th class="text-end">Actions</th></tr>
-                </thead>
-                <tbody>
-                    @foreach (var sale in FilteredSales.OrderByDescending(s => s.Date).Skip((salesPage - 1) * PageSize).Take(PageSize))
-                    {
-                        <tr style="@(sale.IsVoided ? "opacity: 0.5; text-decoration: line-through;" : "")">
-                            <td class="text-muted" style="font-family:monospace;font-size:0.85rem">@sale.Guid.ToString()[..8]</td>
-                            <td>@sale.Date.ToString("MMM dd, h:mm tt")</td>
-                            <td><strong>@sale.ProductName</strong></td>
-                            <td>@sale.QuantitySold</td>
-                            <td><span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span></td>
-                            <td style="color: var(--primary)">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
-                            <td class="text-success">₱@AppSettings.FormatCurrency(sale.ProfitAmount)</td>
-                            <td class="text-end">
-                                @if (!sale.IsVoided)
-                                {
-                                    <button class="btn btn-sm btn-outline-primary" @onclick="() => PrintSaleReceipt(sale)" title="Print Receipt"><i class="fa-solid fa-print"></i></button>
-                                    <button class="btn btn-sm btn-outline-secondary ms-1" @onclick="() => StartEditSale(sale)" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => StartVoidSale(sale)" title="Void"><i class="fa-solid fa-ban"></i></button>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger-subtle">Voided</span>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            </div>
-            <div class="card-view mt-3">
-                @foreach (var sale in FilteredSales.OrderByDescending(s => s.Date).Skip((salesPage - 1) * PageSize).Take(PageSize))
+            var isProOnly = f is "Monthly" or "Yearly" or "All";
+            var isLocked = isProOnly && !AppSettings.IsPro;
+            <button class="pill @(selectedFilter == f ? "active" : "")" disabled="@isLocked"
+                    @onclick="() => { if (!isLocked) { selectedFilter = f; salesPage = 1; } }">
+                @f @if (isLocked) { <i class="fa-solid fa-lock" style="font-size:8px;margin-left:3px;opacity:.5"></i> }
+            </button>
+        }
+    </div>
+
+    @if (!AppSettings.IsPro)
+    {
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--fg2)">
+            <i class="fa-solid fa-lock"></i> Monthly, Yearly, and All-time reports are <strong>Pro</strong> features.
+        </div>
+    }
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-card-icon si-lime"><i class="fa-solid fa-chart-line"></i></div>
+            <div class="stat-card-value">₱@AppSettings.FormatCurrency(FilteredRevenue)</div>
+            <div class="stat-card-label">Revenue</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-icon si-green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+            <div class="stat-card-value">₱@AppSettings.FormatCurrency(FilteredProfit)</div>
+            <div class="stat-card-label">Profit</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-icon si-amber"><i class="fa-solid fa-receipt"></i></div>
+            <div class="stat-card-value">@FilteredSales.Count()</div>
+            <div class="stat-card-label">Transactions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card-icon si-cyan"><i class="fa-solid fa-boxes-packing"></i></div>
+            <div class="stat-card-value">₱@AppSettings.FormatCurrency(InventoryValue)</div>
+            <div class="stat-card-label">Inventory Value</div>
+        </div>
+    </div>
+
+    @* ── 1. Sales Summary ── *@
+    @if (AppSettings.ShowReportSalesSummary)
+    {
+    <div class="card" style="overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:@(openSections.Contains("sales") ? "1px solid var(--border)" : "none");display:flex;justify-content:space-between;align-items:center;cursor:pointer" @onclick='() => ToggleSection("sales")'>
+            <div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--fg)"><i class="fa-solid fa-receipt" style="color:var(--lime);font-size:11px"></i> Sales Summary</div>
+            <i class="fa-solid @(openSections.Contains("sales") ? "fa-chevron-up" : "fa-chevron-down")" style="font-size:10px;color:var(--fg3)"></i>
+        </div>
+        @if (openSections.Contains("sales"))
+        {
+        <div style="padding:14px 16px">
+            @if (FilteredSales.Any())
+            {
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>ID</th><th>Date</th><th>Product</th><th>Qty</th><th>Method</th><th>Amount</th><th>Profit</th><th style="text-align:right">Actions</th></tr></thead>
+                        <tbody>
+                            @foreach (var sale in FilteredSales.OrderByDescending(s => s.Date).Skip((salesPage - 1) * PageSize).Take(PageSize))
+                            {
+                                <tr style="@(sale.IsVoided ? "opacity:.5;text-decoration:line-through" : "")">
+                                    <td class="mono" style="font-size:10px;color:var(--fg3)">@sale.Guid.ToString()[..8]</td>
+                                    <td style="font-size:10px;color:var(--fg3)">@sale.Date.ToString("MMM dd, h:mm tt")</td>
+                                    <td style="font-weight:600">@sale.ProductName</td>
+                                    <td>@sale.QuantitySold</td>
+                                    <td><span class="badge @(sale.PaymentMethod == "GCash" ? "badge-lime" : "badge-gray")">@sale.PaymentMethod</span></td>
+                                    <td class="mono text-lime" style="font-weight:700">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
+                                    <td class="mono" style="color:var(--cyan);font-size:11px">₱@AppSettings.FormatCurrency(sale.ProfitAmount)</td>
+                                    <td>
+                                        <div style="display:flex;gap:3px;justify-content:flex-end">
+                                            @if (!sale.IsVoided)
+                                            {
+                                                <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => PrintSaleReceipt(sale)" title="Receipt"><i class="fa-solid fa-print"></i></button>
+                                                <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => StartEditSale(sale)" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                                                <button class="btn btn-danger btn-sm btn-icon" @onclick="() => StartVoidSale(sale)" title="Void"><i class="fa-solid fa-ban"></i></button>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-red">Voided</span>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <PaginationBar Page="salesPage" PageSize="PageSize" TotalItems="FilteredSales.Count()" OnPageChange="SetSalesPage" />
+            }
+            else
+            {
+                <InventoryPlus.Components.EmptyState Icon="fa-solid fa-receipt" Title="No sales" Message="No transactions for the selected period." />
+            }
+        </div>
+        }
+    </div>
+    }
+
+    @* ── 2. Profit & Loss ── *@
+    @if (AppSettings.ShowReportProfitLoss)
+    {
+    <div class="card" style="overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:@(openSections.Contains("pnl") ? "1px solid var(--border)" : "none");display:flex;justify-content:space-between;align-items:center;cursor:pointer" @onclick='() => ToggleSection("pnl")'>
+            <div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--fg)"><i class="fa-solid fa-scale-balanced" style="color:var(--green);font-size:11px"></i> Profit & Loss</div>
+            <i class="fa-solid @(openSections.Contains("pnl") ? "fa-chevron-up" : "fa-chevron-down")" style="font-size:10px;color:var(--fg3)"></i>
+        </div>
+        @if (openSections.Contains("pnl"))
+        {
+        <div style="padding:14px 16px">
+            @{
+                var pnlRows = new List<(string Label, string Value, string ColorClass)>
                 {
-                    <div class="stock-card" style="@(sale.IsVoided ? "opacity: 0.5;" : "")">
-                        <div class="stock-card-header">
-                            <div>
-                                <span class="stock-card-name">@sale.ProductName</span>
-                                <div class="text-muted" style="font-size:0.72rem;font-family:monospace">@sale.Guid.ToString()[..8]</div>
-                            </div>
-                            @if (sale.IsVoided)
-                            {
-                                <span class="badge bg-danger-subtle">Voided</span>
-                            }
-                            else
-                            {
-                                <span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span>
-                            }
-                        </div>
-                        <div class="stock-card-body">
-                            <div class="stock-card-row"><span class="stock-card-label">Date</span><span>@sale.Date.ToString("MMM dd, h:mm tt")</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Qty</span><span>@sale.QuantitySold</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(sale.TotalAmount)</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Profit</span><span class="text-success">₱@AppSettings.FormatCurrency(sale.ProfitAmount)</span></div>
-                        </div>
-                        @if (!sale.IsVoided)
-                        {
-                            <div class="stock-card-actions">
-                                <button class="btn btn-sm btn-outline-primary" @onclick="() => PrintSaleReceipt(sale)"><i class="fa-solid fa-print"></i> Receipt</button>
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEditSale(sale)"><i class="fa-solid fa-pen"></i> Edit</button>
-                                <button class="btn btn-sm btn-outline-danger" @onclick="() => StartVoidSale(sale)"><i class="fa-solid fa-ban"></i> Void</button>
-                            </div>
-                        }
-                    </div>
+                    ("Revenue", $"₱{AppSettings.FormatCurrency(FilteredRevenue)}", "text-lime"),
+                    ("Tax Collected", $"₱{AppSettings.FormatCurrency(FilteredTax)}", ""),
+                    ("Cost of Goods Sold", $"₱{AppSettings.FormatCurrency(FilteredCOGS)}", "text-red"),
+                };
+                if (AppSettings.ShowOpexTab)
+                {
+                    pnlRows.Add(("Operating Expenses (OPEX)", $"₱{AppSettings.FormatCurrency(FilteredOpexTotal)}", "text-red"));
                 }
-            </div>
-            <PaginationBar Page="salesPage" PageSize="PageSize" TotalItems="FilteredSales.Count()" OnPageChange="SetSalesPage" />
+                pnlRows.Add(($"Net Profit {(AppSettings.ShowOpexTab ? "(after OPEX)" : "")}", $"₱{AppSettings.FormatCurrency(NetProfitAfterOpex)}", NetProfitAfterOpex >= 0 ? "text-green" : "text-red"));
+                pnlRows.Add(("Avg Profit Margin", $"{AverageProfitMargin.ToString("N1")}%", "text-lime"));
+            }
+            @foreach (var row in pnlRows)
+            {
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+                    <span style="font-size:12px;color:var(--fg2)">@row.Label</span>
+                    <span class="@row.ColorClass mono fw-700" style="font-size:12px">@row.Value</span>
+                </div>
+            }
+        </div>
         }
-        else
-        {
-            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-receipt" Title="No sales" Message="No transactions for the selected period." />
-        }
-    }
-</div>
-}
-
-@* ── 2. Top Products ── *@
-@if (AppSettings.ShowReportTopProducts)
-{
-<div class="glass-panel report-section mb-4">
-    <div class="report-section-header" @onclick='() => ToggleSection("top")'>
-        <h2><i class="fa-solid fa-trophy text-warning"></i> Top Products</h2>
-        <i class="fa-solid @(openSections.Contains("top") ? "fa-chevron-up" : "fa-chevron-down")"></i>
     </div>
-    @if (openSections.Contains("top"))
+    }
+
+    @* ── 3. Top Products ── *@
+    @if (AppSettings.ShowReportTopProducts)
     {
-        @if (TopProductsReport.Any())
+    <div class="card" style="overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:@(openSections.Contains("top") ? "1px solid var(--border)" : "none");display:flex;justify-content:space-between;align-items:center;cursor:pointer" @onclick='() => ToggleSection("top")'>
+            <div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--fg)"><i class="fa-solid fa-trophy" style="color:var(--amber);font-size:11px"></i> Top Products</div>
+            <i class="fa-solid @(openSections.Contains("top") ? "fa-chevron-up" : "fa-chevron-down")" style="font-size:10px;color:var(--fg3)"></i>
+        </div>
+        @if (openSections.Contains("top"))
         {
-            <div class="top-products-list mt-3">
-                @{ var topMaxQty = TopProductsReport.First().TotalQty; }
-                @foreach (var tp in TopProductsReport)
+        <div style="padding:14px 16px">
+            @if (TopProductsReport.Any())
+            {
+                var topMaxQty = TopProductsReport.First().TotalQty;
+                @foreach (var (tp, idx) in TopProductsReport.Select((t, i) => (t, i)))
                 {
                     var barPct = topMaxQty > 0 ? ((double)tp.TotalQty / topMaxQty * 100) : 0;
-                    <div class="top-product-row">
-                        <span class="top-product-name">@tp.Name</span>
-                        <div class="top-product-bar-track">
-                            <div class="top-product-bar" style="width:@barPct.ToString("0")%"></div>
+                    <div class="progress-row">
+                        <div style="font-size:11px;font-weight:500;flex:0 0 120px;display:flex;align-items:center;gap:5px">
+                            <span style="color:var(--fg3);font-family:'Space Mono',monospace;font-size:10px">#@(idx + 1)</span> @tp.Name
                         </div>
-                        <span class="top-product-count">@tp.TotalQty sold &middot; ₱@AppSettings.FormatCurrency(tp.TotalRevenue)</span>
+                        <div class="progress-track"><div class="progress-fill" style="width:@barPct.ToString("0")%"></div></div>
+                        <div class="progress-value">@tp.TotalQty sold · ₱@AppSettings.FormatCurrency(tp.TotalRevenue)</div>
                     </div>
                 }
-            </div>
+            }
+            else
+            {
+                <InventoryPlus.Components.EmptyState Icon="fa-solid fa-trophy" Title="No data" Message="Top products will appear after sales." />
+            }
+        </div>
         }
-        else
-        {
-            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-trophy" Title="No data" Message="Top products will appear after sales." />
-        }
-    }
-</div>
-}
-
-@* ── 3. Payment Methods ── *@
-@if (AppSettings.ShowReportPaymentMethods)
-{
-<div class="glass-panel report-section mb-4">
-    <div class="report-section-header" @onclick='() => ToggleSection("payment")'>
-        <h2><i class="fa-solid fa-credit-card text-accent"></i> Payment Methods</h2>
-        <i class="fa-solid @(openSections.Contains("payment") ? "fa-chevron-up" : "fa-chevron-down")"></i>
     </div>
-    @if (openSections.Contains("payment"))
+    }
+
+    @* ── 4. Payment Methods ── *@
+    @if (AppSettings.ShowReportPaymentMethods)
     {
-        @if (PaymentMethodsReport.Any())
+    <div class="card" style="overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:@(openSections.Contains("payment") ? "1px solid var(--border)" : "none");display:flex;justify-content:space-between;align-items:center;cursor:pointer" @onclick='() => ToggleSection("payment")'>
+            <div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--fg)"><i class="fa-solid fa-credit-card" style="color:var(--cyan);font-size:11px"></i> Payment Methods</div>
+            <i class="fa-solid @(openSections.Contains("payment") ? "fa-chevron-up" : "fa-chevron-down")" style="font-size:10px;color:var(--fg3)"></i>
+        </div>
+        @if (openSections.Contains("payment"))
         {
-            <div class="payment-breakdown mt-3">
-                @{ var totalPay = PaymentMethodsReport.Values.Sum(); }
+        <div style="padding:14px 16px">
+            @if (PaymentMethodsReport.Any())
+            {
+                var totalPay = PaymentMethodsReport.Values.Sum();
                 @foreach (var pm in PaymentMethodsReport)
                 {
                     var pct = totalPay > 0 ? (pm.Value / totalPay * 100) : 0;
-                    <div class="payment-row">
-                        <div class="payment-label"><span>@pm.Key</span></div>
-                        <div class="payment-bar-track"><div class="payment-bar" style="width:@pct.ToString("0")%"></div></div>
-                        <span class="payment-amount">₱@AppSettings.FormatCurrency(pm.Value) (@pct.ToString("0")%)</span>
+                    <div class="progress-row">
+                        <div style="font-size:11px;font-weight:500;flex:0 0 80px">@pm.Key</div>
+                        <div class="progress-track"><div class="progress-fill" style="width:@pct.ToString("0")%"></div></div>
+                        <div class="progress-value">₱@AppSettings.FormatCurrency(pm.Value) (@pct.ToString("0")%)</div>
                     </div>
                 }
-            </div>
-        }
-        else
-        {
-            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-credit-card" Title="No data" Message="Payment method breakdown will appear after sales." />
-        }
-    }
-</div>
-}
-
-@* ── 4. Profit & Loss ── *@
-@if (AppSettings.ShowReportProfitLoss)
-{
-<div class="glass-panel report-section mb-4">
-    <div class="report-section-header" @onclick='() => ToggleSection("pnl")'>
-        <h2><i class="fa-solid fa-scale-balanced text-success"></i> Profit & Loss</h2>
-        <i class="fa-solid @(openSections.Contains("pnl") ? "fa-chevron-up" : "fa-chevron-down")"></i>
-    </div>
-    @if (openSections.Contains("pnl"))
-    {
-        <div class="pnl-grid mt-3">
-            <div class="pnl-item">
-                <span class="pnl-label">Gross Revenue</span>
-                <span class="pnl-value">₱@AppSettings.FormatCurrency(FilteredRevenue)</span>
-            </div>
-            <div class="pnl-item">
-                <span class="pnl-label">Tax Collected</span>
-                <span class="pnl-value">₱@AppSettings.FormatCurrency(FilteredTax)</span>
-            </div>
-            <div class="pnl-item">
-                <span class="pnl-label">Cost of Goods Sold</span>
-                <span class="pnl-value text-warning">₱@AppSettings.FormatCurrency(FilteredCOGS)</span>
-            </div>
-            @if (AppSettings.ShowOpexTab)
-            {
-            <div class="pnl-item">
-                <span class="pnl-label">Operating Expenses (OPEX)</span>
-                <span class="pnl-value text-warning">₱@AppSettings.FormatCurrency(FilteredOpexTotal)</span>
-            </div>
             }
-            <div class="pnl-item pnl-total">
-                <span class="pnl-label">Net Profit @(AppSettings.ShowOpexTab ? "(after OPEX)" : "")</span>
-                <span class="pnl-value @(NetProfitAfterOpex >= 0 ? "text-success" : "text-danger")">₱@AppSettings.FormatCurrency(NetProfitAfterOpex)</span>
-            </div>
-            <div class="pnl-item">
-                <span class="pnl-label">Avg Profit Margin</span>
-                <span class="pnl-value">@AverageProfitMargin.ToString("N1")%</span>
-            </div>
-        </div>
-    }
-</div>
-}
-
-@* ── 5. Inventory Valuation ── *@
-@if (AppSettings.ShowReportInventoryValuation)
-{
-<div class="glass-panel report-section mb-4">
-    <div class="report-section-header" @onclick='() => ToggleSection("inv")'>
-        <h2><i class="fa-solid fa-boxes-packing text-warning"></i> Inventory Valuation</h2>
-        <i class="fa-solid @(openSections.Contains("inv") ? "fa-chevron-up" : "fa-chevron-down")"></i>
-    </div>
-    @if (openSections.Contains("inv"))
-    {
-        <div class="d-flex align-items-center gap-2 mt-3 mb-3">
-            <input type="date" @bind="stockDateFilter" @bind:format="yyyy-MM-dd"
-                   class="form-control" style="width:auto" />
-            @if (stockDateFilter.HasValue)
+            else
             {
-                <button class="btn btn-sm btn-outline-secondary" @onclick="() => { stockDateFilter = null; stockPage = 1; }"><i class="fa-solid fa-xmark"></i></button>
+                <InventoryPlus.Components.EmptyState Icon="fa-solid fa-credit-card" Title="No data" Message="Payment method breakdown will appear after sales." />
             }
         </div>
-        @if (FilteredStockItems.Any())
+        }
+    </div>
+    }
+
+    @* ── 5. Inventory Valuation ── *@
+    @if (AppSettings.ShowReportInventoryValuation)
+    {
+    <div class="card" style="overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:@(openSections.Contains("inv") ? "1px solid var(--border)" : "none");display:flex;justify-content:space-between;align-items:center;cursor:pointer" @onclick='() => ToggleSection("inv")'>
+            <div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--fg)"><i class="fa-solid fa-boxes-packing" style="color:var(--amber);font-size:11px"></i> Inventory Valuation</div>
+            <i class="fa-solid @(openSections.Contains("inv") ? "fa-chevron-up" : "fa-chevron-down")" style="font-size:10px;color:var(--fg3)"></i>
+        </div>
+        @if (openSections.Contains("inv"))
         {
-            <div class="table-responsive table-view">
-            <table class="table table-hover mb-0">
-                <thead><tr><th>Item</th><th>Type</th><th>Stock</th><th>Cost/Unit</th><th>Value</th></tr></thead>
-                <tbody>
-                    @foreach (var item in FilteredStockItems.OrderByDescending(i => i.Stock * i.CostPerUnit).Skip((stockPage - 1) * PageSize).Take(PageSize))
-                    {
-                        <tr>
-                            <td><strong>@item.Name</strong></td>
-                            <td><span class="badge @(item.Type == "Ingredient" ? "bg-primary-subtle" : "bg-secondary")">@item.Type</span></td>
-                            <td>
-                                @if (item.Stock <= item.LowStockThreshold) { <span class="text-warning fw-bold">@item.Stock @item.Unit</span> }
-                                else { <span>@item.Stock @item.Unit</span> }
-                            </td>
-                            <td>₱@AppSettings.FormatCurrency(item.CostPerUnit)</td>
-                            <td class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</td>
-                        </tr>
-                    }
-                    <tr style="border-top:2px solid var(--border);font-weight:600">
-                        <td colspan="4" class="text-end">Total (@FilteredStockItems.Count() items)</td>
-                        <td class="text-success">₱@AppSettings.FormatCurrency(FilteredStockItems.Sum(i => i.Stock * i.CostPerUnit))</td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-            <div class="card-view">
-                @foreach (var item in FilteredStockItems.OrderByDescending(i => i.Stock * i.CostPerUnit).Skip((stockPage - 1) * PageSize).Take(PageSize))
+        <div style="padding:14px 16px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <input type="date" @bind="stockDateFilter" @bind:format="yyyy-MM-dd" class="form-control" style="width:auto;font-size:11px" />
+                @if (stockDateFilter.HasValue)
                 {
-                    <div class="stock-card">
-                        <div class="stock-card-header">
-                            <span class="stock-card-name">@item.Name</span>
-                            <span class="badge @(item.Type == "Ingredient" ? "bg-primary-subtle" : "bg-secondary")">@item.Type</span>
-                        </div>
-                        <div class="stock-card-body">
-                            <div class="stock-card-row"><span class="stock-card-label">Stock</span><span>@item.Stock @item.Unit</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Value</span><span class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</span></div>
-                        </div>
-                    </div>
+                    <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => { stockDateFilter = null; stockPage = 1; }"><i class="fa-solid fa-xmark"></i></button>
                 }
             </div>
-            <PaginationBar Page="stockPage" PageSize="PageSize" TotalItems="FilteredStockItems.Count()" OnPageChange="SetStockPage" />
+            @if (FilteredStockItems.Any())
+            {
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Item</th><th>Type</th><th>Stock</th><th>Cost/Unit</th><th>Value</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in FilteredStockItems.OrderByDescending(i => i.Stock * i.CostPerUnit).Skip((stockPage - 1) * PageSize).Take(PageSize))
+                            {
+                                <tr>
+                                    <td style="font-weight:600">@item.Name</td>
+                                    <td><span class="badge @(item.Type == "Ingredient" ? "badge-lime" : "badge-gray")">@item.Type</span></td>
+                                    <td class="@(item.Stock <= item.LowStockThreshold ? "text-amber fw-700" : "")">
+                                        <span class="mono">@item.Stock @item.Unit</span>
+                                        @if (item.Stock <= item.LowStockThreshold)
+                                        {
+                                            <span class="badge badge-amber" style="margin-left:5px">Low</span>
+                                        }
+                                    </td>
+                                    <td class="mono" style="font-size:11px;color:var(--fg2)">₱@AppSettings.FormatCurrency(item.CostPerUnit)</td>
+                                    <td class="mono text-lime" style="font-weight:700">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</td>
+                                </tr>
+                            }
+                            <tr style="border-top:2px solid var(--border);font-weight:600">
+                                <td colspan="4" style="text-align:right">Total (@FilteredStockItems.Count() items)</td>
+                                <td class="text-green mono fw-700">₱@AppSettings.FormatCurrency(FilteredStockItems.Sum(i => i.Stock * i.CostPerUnit))</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <PaginationBar Page="stockPage" PageSize="PageSize" TotalItems="FilteredStockItems.Count()" OnPageChange="SetStockPage" />
+            }
+            else
+            {
+                <InventoryPlus.Components.EmptyState Icon="fa-solid fa-boxes-stacked" Title="No items" Message="@(stockDateFilter.HasValue ? "No stock from this date." : "No inventory items.")" />
+            }
+        </div>
         }
-        else
-        {
-            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-boxes-stacked" Title="No items" Message="@(stockDateFilter.HasValue ? "No stock from this date." : "No inventory items.")" />
-        }
-    }
-</div>
-}
-
-@* ── 6. Stock Movement ── *@
-@if (AppSettings.ShowReportStockMovement)
-{
-<div class="glass-panel report-section mb-4">
-    <div class="report-section-header" @onclick='() => ToggleSection("movement")'>
-        <h2><i class="fa-solid fa-arrows-rotate text-primary"></i> Stock Movement</h2>
-        <i class="fa-solid @(openSections.Contains("movement") ? "fa-chevron-up" : "fa-chevron-down")"></i>
     </div>
-    @if (openSections.Contains("movement"))
-    {
-        @if (StockMovement.Any())
-        {
-            <div class="table-responsive table-view mt-3">
-            <table class="table table-hover mb-0">
-                <thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th><th>Avg Price</th></tr></thead>
-                <tbody>
-                    @foreach (var sm in StockMovement)
-                    {
-                        <tr>
-                            <td><strong>@sm.Name</strong></td>
-                            <td>@sm.UnitsSold</td>
-                            <td style="color: var(--primary)">₱@AppSettings.FormatCurrency(sm.Revenue)</td>
-                            <td>₱@AppSettings.FormatCurrency(sm.AvgPrice)</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            </div>
-            <div class="card-view mt-3">
-                @foreach (var sm in StockMovement)
-                {
-                    <div class="stock-card">
-                        <div class="stock-card-header">
-                            <span class="stock-card-name">@sm.Name</span>
-                            <span style="color: var(--primary)" class="fw-bold">₱@AppSettings.FormatCurrency(sm.Revenue)</span>
-                        </div>
-                        <div class="stock-card-body">
-                            <div class="stock-card-row"><span class="stock-card-label">Units Sold</span><span>@sm.UnitsSold</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Avg Price</span><span>₱@AppSettings.FormatCurrency(sm.AvgPrice)</span></div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-arrows-rotate" Title="No movement" Message="Stock movement data will appear after sales." />
-        }
     }
-</div>
-}
 
-@* ── 7. OPEX Summary ── *@
-@if (AppSettings.ShowOpexTab)
-{
-<div class="glass-panel report-section mb-4">
-    <div class="report-section-header" @onclick='() => ToggleSection("opex")'>
-        <h2><i class="fa-solid fa-file-invoice-dollar text-warning"></i> Operating Expenses (OPEX)</h2>
-        <i class="fa-solid @(openSections.Contains("opex") ? "fa-chevron-up" : "fa-chevron-down")"></i>
-    </div>
-    @if (openSections.Contains("opex"))
+    @* ── 6. Stock Movement ── *@
+    @if (AppSettings.ShowReportStockMovement)
     {
-        @if (OpexByCategory.Any())
+    <div class="card" style="overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:@(openSections.Contains("movement") ? "1px solid var(--border)" : "none");display:flex;justify-content:space-between;align-items:center;cursor:pointer" @onclick='() => ToggleSection("movement")'>
+            <div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--fg)"><i class="fa-solid fa-arrows-rotate" style="color:var(--lime);font-size:11px"></i> Stock Movement</div>
+            <i class="fa-solid @(openSections.Contains("movement") ? "fa-chevron-up" : "fa-chevron-down")" style="font-size:10px;color:var(--fg3)"></i>
+        </div>
+        @if (openSections.Contains("movement"))
         {
-            <div class="row g-3 mt-3 mb-3">
-                <div class="col-6 col-lg-4">
-                    <div class="glass-panel stat-card" style="padding: 0.75rem;">
-                        <div class="stat-content text-center"><h3>₱@AppSettings.FormatCurrency(FilteredOpexTotal)</h3><p>Total OPEX</p></div>
-                    </div>
+        <div style="padding:14px 16px">
+            @if (StockMovement.Any())
+            {
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Product</th><th>Units Sold</th><th>Revenue</th><th>Avg Price</th></tr></thead>
+                        <tbody>
+                            @foreach (var sm in StockMovement)
+                            {
+                                <tr>
+                                    <td style="font-weight:600">@sm.Name</td>
+                                    <td>@sm.UnitsSold</td>
+                                    <td class="mono text-lime" style="font-weight:700">₱@AppSettings.FormatCurrency(sm.Revenue)</td>
+                                    <td class="mono" style="font-size:11px;color:var(--fg2)">₱@AppSettings.FormatCurrency(sm.AvgPrice)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
-                <div class="col-6 col-lg-4">
-                    <div class="glass-panel stat-card" style="padding: 0.75rem;">
-                        <div class="stat-content text-center"><h3>@FilteredOpex.Count()</h3><p>Entries</p></div>
-                    </div>
-                </div>
-                <div class="col-12 col-lg-4">
-                    <div class="glass-panel stat-card" style="padding: 0.75rem;">
-                        <div class="stat-content text-center"><h3>@OpexByCategory.Count</h3><p>Categories</p></div>
-                    </div>
-                </div>
-            </div>
+            }
+            else
+            {
+                <InventoryPlus.Components.EmptyState Icon="fa-solid fa-arrows-rotate" Title="No movement" Message="Stock movement data will appear after sales." />
+            }
+        </div>
+        }
+    </div>
+    }
 
-            <div class="payment-breakdown">
-                @{ var totalOpex = OpexByCategory.Values.Sum(); }
+    @* ── 7. OPEX Summary ── *@
+    @if (AppSettings.ShowOpexTab)
+    {
+    <div class="card" style="overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:@(openSections.Contains("opex") ? "1px solid var(--border)" : "none");display:flex;justify-content:space-between;align-items:center;cursor:pointer" @onclick='() => ToggleSection("opex")'>
+            <div style="display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--fg)"><i class="fa-solid fa-file-invoice-dollar" style="color:var(--amber);font-size:11px"></i> Operating Expenses (OPEX)</div>
+            <i class="fa-solid @(openSections.Contains("opex") ? "fa-chevron-up" : "fa-chevron-down")" style="font-size:10px;color:var(--fg3)"></i>
+        </div>
+        @if (openSections.Contains("opex"))
+        {
+        <div style="padding:14px 16px">
+            @if (OpexByCategory.Any())
+            {
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px">
+                    <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+                        <div class="stat-card-icon si-red"><i class="fa-solid fa-peso-sign"></i></div>
+                        <div>
+                            <div class="stat-card-value" style="font-size:14px">₱@AppSettings.FormatCurrency(FilteredOpexTotal)</div>
+                            <div class="stat-card-label">Total OPEX</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+                        <div class="stat-card-icon si-amber"><i class="fa-solid fa-receipt"></i></div>
+                        <div>
+                            <div class="stat-card-value" style="font-size:14px">@FilteredOpex.Count()</div>
+                            <div class="stat-card-label">Entries</div>
+                        </div>
+                    </div>
+                    <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+                        <div class="stat-card-icon si-lime"><i class="fa-solid fa-tags"></i></div>
+                        <div>
+                            <div class="stat-card-value" style="font-size:14px">@OpexByCategory.Count</div>
+                            <div class="stat-card-label">Categories</div>
+                        </div>
+                    </div>
+                </div>
+
+                var totalOpex = OpexByCategory.Values.Sum();
                 @foreach (var cat in OpexByCategory.OrderByDescending(c => c.Value))
                 {
                     var pct = totalOpex > 0 ? (cat.Value / totalOpex * 100) : 0;
-                    <div class="payment-row">
-                        <div class="payment-label"><span>@cat.Key</span></div>
-                        <div class="payment-bar-track"><div class="payment-bar" style="width:@pct.ToString("0")%; background: var(--warning);"></div></div>
-                        <span class="payment-amount">₱@AppSettings.FormatCurrency(cat.Value) (@pct.ToString("0")%)</span>
+                    <div class="progress-row">
+                        <div style="font-size:11px;font-weight:500;flex:0 0 100px">@cat.Key</div>
+                        <div class="progress-track"><div class="progress-fill" style="width:@pct.ToString("0")%;background:var(--amber)"></div></div>
+                        <div class="progress-value">₱@AppSettings.FormatCurrency(cat.Value) (@pct.ToString("0")%)</div>
                     </div>
                 }
-            </div>
 
-            <div class="table-responsive table-view mt-3">
-            <table class="table table-hover mb-0">
-                <thead><tr><th>Name</th><th>Category</th><th>Amount</th><th>Date</th></tr></thead>
-                <tbody>
-                    @foreach (var item in FilteredOpex.OrderByDescending(o => o.Date).Take(10))
-                    {
-                        <tr>
-                            <td><strong>@item.Name</strong></td>
-                            <td><span class="badge bg-primary-subtle">@item.Category</span></td>
-                            <td class="fw-bold" style="color: var(--warning)">₱@AppSettings.FormatCurrency(item.Amount)</td>
-                            <td>@item.Date.ToString("MMM dd, yyyy")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-            </div>
-            <div class="card-view mt-3">
-                @foreach (var item in FilteredOpex.OrderByDescending(o => o.Date).Take(10))
-                {
-                    <div class="stock-card">
-                        <div class="stock-card-header">
-                            <span class="stock-card-name">@item.Name</span>
-                            <span class="badge bg-primary-subtle">@item.Category</span>
-                        </div>
-                        <div class="stock-card-body">
-                            <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="fw-bold" style="color: var(--warning)">₱@AppSettings.FormatCurrency(item.Amount)</span></div>
-                            <div class="stock-card-row"><span class="stock-card-label">Date</span><span>@item.Date.ToString("MMM dd, yyyy")</span></div>
-                        </div>
-                    </div>
-                }
-            </div>
+                <div class="table-wrap" style="margin-top:12px">
+                    <table>
+                        <thead><tr><th>Name</th><th>Category</th><th>Amount</th><th>Date</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in FilteredOpex.OrderByDescending(o => o.Date).Take(10))
+                            {
+                                <tr>
+                                    <td style="font-weight:600">@item.Name</td>
+                                    <td><span class="badge badge-lime">@item.Category</span></td>
+                                    <td class="mono text-red fw-700">₱@AppSettings.FormatCurrency(item.Amount)</td>
+                                    <td style="font-size:11px;color:var(--fg3)">@item.Date.ToString("MMM dd, yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <InventoryPlus.Components.EmptyState Icon="fa-solid fa-file-invoice-dollar" Title="No expenses" Message="Operating expenses will show here once added." />
+            }
+        </div>
         }
-        else
-        {
-            <InventoryPlus.Components.EmptyState Icon="fa-solid fa-file-invoice-dollar" Title="No expenses" Message="Operating expenses will show here once added." />
-        }
+    </div>
     }
 </div>
-}
 
 @* ── Edit Sale Modal ── *@
 <AppModal IsOpen="showEditSaleModal" IsOpenChanged="@((v) => { showEditSaleModal = v; })" Size="Large">
     <Header>
-        <h5 class="modal-title">Edit Sale</h5>
+        <h5>Edit Sale</h5>
     </Header>
     <Content>
         @if (editingSale != null)
         {
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Product</label>
-                <input type="text" class="form-control" value="@editingSale.ProductName" readonly />
+                <input class="form-control" value="@editingSale.ProductName" readonly />
             </div>
-            <div class="row g-3">
-                <div class="col-6">
+            <div class="form-row">
+                <div class="form-group">
                     <label class="form-label">Quantity</label>
-                    <input type="number" class="form-control" @bind="editQty" min="1" />
+                    <input class="form-control" type="number" @bind="editQty" min="1" />
                 </div>
-                <div class="col-6">
+                <div class="form-group">
                     <label class="form-label">Payment Method</label>
-                    <select class="form-select" @bind="editPaymentMethod">
+                    <select class="form-control" @bind="editPaymentMethod">
                         <option value="Cash">Cash</option>
                         <option value="GCash">GCash</option>
                     </select>
                 </div>
             </div>
-            <div class="row g-3 mt-1">
-                <div class="col-6">
+            <div class="form-row">
+                <div class="form-group">
                     <label class="form-label">Discount Type</label>
-                    <select class="form-select" @bind="editDiscountType">
+                    <select class="form-control" @bind="editDiscountType">
                         <option value="None">None</option>
                         <option value="Percentage">% Off</option>
                         <option value="Fixed">₱ Fixed</option>
                     </select>
                 </div>
-                <div class="col-6">
+                <div class="form-group">
                     @if (editDiscountType != "None")
                     {
                         <label class="form-label">Discount Amount</label>
-                        <input type="number" class="form-control" step="0.01" @bind="editDiscountAmount" />
+                        <input class="form-control" type="number" step="0.01" @bind="editDiscountAmount" />
                     }
                 </div>
             </div>
         }
     </Content>
     <Footer>
-        <button class="btn btn-outline-secondary" @onclick="() => showEditSaleModal = false">Cancel</button>
+        <button class="btn btn-ghost" @onclick="() => showEditSaleModal = false">Cancel</button>
         <button class="btn btn-primary" @onclick="SaveEditSale">Save Changes</button>
     </Footer>
 </AppModal>

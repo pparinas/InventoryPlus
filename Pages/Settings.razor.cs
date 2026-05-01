@@ -45,9 +45,10 @@ namespace InventoryPlus.Pages
         protected bool showPinSuccess = false;
 
         // Color Scheme
-        protected string selectedColorScheme = "indigo";
+        protected string selectedColorScheme = "lime";
         protected Dictionary<string, string> colorSchemes = new()
         {
+            { "lime", "#c8f000" },
             { "indigo", "#6366f1" },
             { "emerald", "#10b981" },
             { "rose", "#f43f5e" },
@@ -66,6 +67,9 @@ namespace InventoryPlus.Pages
         protected bool canInstallNative = false;
         protected bool isIosDevice = false;
         protected bool isAppStandalone = false;
+
+        // Settings tab
+        protected string settingsTab = "general";
 
         protected override async Task OnInitializedAsync()
         {

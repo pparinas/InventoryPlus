@@ -2,262 +2,421 @@
 
 <PageTitle>Settings | @AppSettings.CompanyName</PageTitle>
 
-<div class="page-header mb-3">
+<div class="section-gap fade-in">
+
+<div class="page-header">
     <div>
-        <h1>System Settings</h1>
-        <p class="text-muted">Manage your application branding and global configurations.</p>
+        <h1>Settings</h1>
+        <p>Manage your account and preferences.</p>
     </div>
 </div>
 
-@* ── Row 1: Brand + Account ── *@
-<div class="row g-3">
-    <div class="col-12 col-lg-6">
-    <div class="glass-panel">
-        <h2 class="mb-1">Brand Settings</h2>
-        <p class="text-muted text-sm mb-3">Update how your app brand appears to all users.</p>
-
-        <div class="mb-3">
-            <label for="companyName" class="form-label">Company Name</label>
-            <input id="companyName" class="form-control" @bind="newCompanyName" placeholder="e.g. My Cafe" />
+<div class="settings-grid">
+    @* ── Sidebar Nav ── *@
+    <div>
+        <div class="settings-nav">
+            <div class="settings-nav-item @(settingsTab == "general" ? "active" : "")" @onclick='() => settingsTab = "general"'>
+                <i class="fa-solid fa-sliders"></i> General
+            </div>
+            <div class="settings-nav-item @(settingsTab == "appearance" ? "active" : "")" @onclick='() => settingsTab = "appearance"'>
+                <i class="fa-solid fa-palette"></i> Appearance
+            </div>
+            <div class="settings-nav-item @(settingsTab == "security" ? "active" : "")" @onclick='() => settingsTab = "security"'>
+                <i class="fa-solid fa-shield-halved"></i> Security
+            </div>
+            <div class="settings-nav-item @(settingsTab == "widgets" ? "active" : "")" @onclick='() => settingsTab = "widgets"'>
+                <i class="fa-solid fa-table-cells"></i> Widgets
+            </div>
+            <div class="settings-nav-item @(settingsTab == "account" ? "active" : "")" @onclick='() => settingsTab = "account"'>
+                <i class="fa-solid fa-user"></i> Account
+            </div>
         </div>
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Brand Logo</label>
-            <div class="d-flex align-items-center gap-3 mb-2">
-                @if (!string.IsNullOrEmpty(newLogoUrl))
+    @* ── Content Area ── *@
+    <div>
+        @* ── GENERAL ── *@
+        @if (settingsTab == "general")
+        {
+            <div class="card card-p">
+                <div class="card-title">General</div>
+                <div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Company Name</div>
+                            <div class="settings-row-desc">Shown on receipts and dashboard</div>
+                        </div>
+                        <input class="form-control" @bind="newCompanyName" placeholder="e.g. My Cafe" style="max-width: 200px;" />
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Show Inventory Tab</div>
+                            <div class="settings-row-desc">Enable stock management</div>
+                        </div>
+                        <div class="toggle @(showInventoryTab ? "on" : "")" @onclick="() => showInventoryTab = !showInventoryTab">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Show OPEX Tab</div>
+                            <div class="settings-row-desc">Enable expenses tracking</div>
+                        </div>
+                        <div class="toggle @(showOpexTab ? "on" : "")" @onclick="() => showOpexTab = !showOpexTab">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row" style="border-bottom: none;">
+                        <div>
+                            <div class="settings-row-label">Show Decimals</div>
+                            <div class="settings-row-desc">Display centavo values</div>
+                        </div>
+                        <div class="toggle @(AppSettings.ShowDecimals ? "on" : "")" @onclick="() => AppSettings.ShowDecimals = !AppSettings.ShowDecimals">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" style="margin-top: 14px;" @onclick="SaveNavPreferences"><i class="fa-solid fa-save"></i> Save</button>
+            </div>
+        }
+
+        @* ── APPEARANCE ── *@
+        @if (settingsTab == "appearance")
+        {
+            <div class="card card-p">
+                <div class="card-title">Appearance</div>
+                <div class="settings-row">
+                    <div>
+                        <div class="settings-row-label">Branding Name</div>
+                        <div class="settings-row-desc">Shown in topbar and receipts</div>
+                    </div>
+                    <input class="form-control" @bind="newCompanyName" placeholder="e.g. My Cafe" style="max-width: 200px;" />
+                </div>
+                <div class="settings-row" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                    <div>
+                        <div class="settings-row-label">Color Scheme</div>
+                        <div class="settings-row-desc">Choose your accent color</div>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        @foreach (var scheme in colorSchemes)
+                        {
+                            <div class="color-swatch @(selectedColorScheme == scheme.Key ? "active" : "")"
+                                 style="background: @scheme.Value;"
+                                 title="@(scheme.Key[0..1].ToUpper() + scheme.Key[1..])"
+                                 @onclick="() => selectedColorScheme = scheme.Key"></div>
+                        }
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div>
+                        <div class="settings-row-label">Custom Logo</div>
+                        <div class="settings-row-desc">Upload a logo for branding</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        @if (!string.IsNullOrEmpty(newLogoUrl))
+                        {
+                            <img src="@newLogoUrl" style="width: 28px; height: 28px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border);" />
+                            <button class="btn btn-ghost btn-sm" @onclick="() => newLogoUrl = null"><i class="fa-solid fa-trash"></i></button>
+                        }
+                        <InputFile OnChange="HandleLogoUpload" class="form-control" accept="image/*" style="max-width: 160px;" />
+                        @if (pendingLogoFile != null && !isUploading)
+                        {
+                            <button class="btn btn-ghost btn-sm" @onclick="UploadLogo"><i class="fa-solid fa-upload"></i> Upload</button>
+                        }
+                        @if (isUploading)
+                        {
+                            <i class="fa-solid fa-spinner fa-spin" style="color: var(--fg3);"></i>
+                        }
+                    </div>
+                </div>
+                <div class="settings-row" style="border-bottom: none;">
+                    <div>
+                        <div class="settings-row-label">Use Logo for Branding</div>
+                        <div class="settings-row-desc">Show only logo in sidebar</div>
+                    </div>
+                    <div class="toggle @(useLogo ? "on" : "")" @onclick="() => useLogo = !useLogo">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" style="margin-top: 14px;" @onclick="SaveSettings"><i class="fa-solid fa-save"></i> Save Appearance</button>
+                @if (showSuccess) { <span style="font-size: 11px; color: var(--green); margin-left: 10px;"><i class="fa-solid fa-check"></i> Saved!</span> }
+            </div>
+        }
+
+        @* ── SECURITY ── *@
+        @if (settingsTab == "security")
+        {
+            <div class="card card-p">
+                <div class="card-title">Security</div>
+                <div class="settings-row">
+                    <div>
+                        <div class="settings-row-label">PIN Protection <span class="badge badge-lime" style="font-size: 8px; vertical-align: middle;">Pro</span></div>
+                        <div class="settings-row-desc">Protect sensitive actions with a 4-digit PIN</div>
+                    </div>
+                    @if (AppSettings.IsPro)
+                    {
+                        <div class="toggle @(AppSettings.HasPin ? "on" : "")" style="pointer-events: none;">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="badge badge-gray" style="font-size: 9px;"><i class="fa-solid fa-lock"></i> Pro</span>
+                    }
+                </div>
+                @if (AppSettings.IsPro)
                 {
-                    <img src="@newLogoUrl" style="width: 44px; height: 44px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border)" />
+                    @if (AppSettings.HasPin)
+                    {
+                        <div style="padding: 14px 0;">
+                            <div class="settings-row-desc" style="margin-bottom: 8px;">Change or remove your PIN</div>
+                            <div style="display: flex; flex-direction: column; gap: 6px; max-width: 200px;">
+                                <input type="password" class="form-control" maxlength="4" inputmode="numeric" @bind="currentPin" placeholder="Current PIN" />
+                                <input type="password" class="form-control" maxlength="4" inputmode="numeric" @bind="newPin" placeholder="New PIN" />
+                                <input type="password" class="form-control" maxlength="4" inputmode="numeric" @bind="confirmPin" placeholder="Confirm PIN" />
+                            </div>
+                            @if (!string.IsNullOrEmpty(pinError)) { <div style="font-size: 11px; color: var(--red); margin-top: 6px;">@pinError</div> }
+                            @if (showPinSuccess) { <div style="font-size: 11px; color: var(--green); margin-top: 6px;">PIN saved!</div> }
+                            <div style="display: flex; gap: 6px; margin-top: 10px;">
+                                <button class="btn btn-ghost btn-sm" @onclick="SavePin"><i class="fa-solid fa-lock"></i> Change PIN</button>
+                                <button class="btn btn-danger btn-sm" @onclick="RemovePin"><i class="fa-solid fa-lock-open"></i> Remove</button>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="padding: 14px 0;">
+                            <div class="settings-row-desc" style="margin-bottom: 8px;">Create a 4-digit PIN</div>
+                            <div style="display: flex; flex-direction: column; gap: 6px; max-width: 200px;">
+                                <input type="password" class="form-control" maxlength="4" inputmode="numeric" @bind="newPin" placeholder="New PIN (4 digits)" />
+                                <input type="password" class="form-control" maxlength="4" inputmode="numeric" @bind="confirmPin" placeholder="Confirm PIN" />
+                            </div>
+                            @if (!string.IsNullOrEmpty(pinError)) { <div style="font-size: 11px; color: var(--red); margin-top: 6px;">@pinError</div> }
+                            @if (showPinSuccess) { <div style="font-size: 11px; color: var(--green); margin-top: 6px;">PIN saved!</div> }
+                            <button class="btn btn-ghost btn-sm" style="margin-top: 10px;" @onclick="SavePin"><i class="fa-solid fa-lock"></i> Create PIN</button>
+                        </div>
+                    }
+                }
+
+                <div class="settings-row">
+                    <div>
+                        <div class="settings-row-label">POS Mode <span class="badge badge-lime" style="font-size: 8px; vertical-align: middle;">Pro</span></div>
+                        <div class="settings-row-desc">Lock into Point of Sale mode</div>
+                    </div>
+                    @if (AppSettings.IsPro)
+                    {
+                        <button class="btn @(AppSettings.IsPosMode ? "btn-danger" : "btn-ghost") btn-sm" @onclick="TogglePosMode">
+                            <i class="fa-solid @(AppSettings.IsPosMode ? "fa-lock-open" : "fa-lock")"></i>
+                            @(AppSettings.IsPosMode ? "Exit" : "Enter")
+                        </button>
+                    }
+                    else
+                    {
+                        <span class="badge badge-gray" style="font-size: 9px;"><i class="fa-solid fa-lock"></i> Pro</span>
+                    }
+                </div>
+
+                <div class="settings-row" style="border-bottom: none;">
+                    <div class="settings-row-label">Change Password</div>
+                    <button class="btn btn-ghost btn-sm" @onclick='() => settingsTab = "password"'><i class="fa-solid fa-key"></i> Change</button>
+                </div>
+            </div>
+        }
+
+        @* ── PASSWORD (sub-tab) ── *@
+        @if (settingsTab == "password")
+        {
+            <div class="card card-p">
+                <div class="card-title">Change Password</div>
+                <div style="display: flex; flex-direction: column; gap: 8px; max-width: 280px;">
+                    <input type="password" class="form-control" @bind="currentPassword" placeholder="Current password" />
+                    <input type="password" class="form-control" @bind="newPassword" placeholder="New password (min 6 chars)" />
+                    <input type="password" class="form-control" @bind="confirmPassword" placeholder="Confirm password" />
+                </div>
+                @if (!string.IsNullOrEmpty(passErrorMessage)) { <div style="font-size: 11px; color: var(--red); margin-top: 6px;">@passErrorMessage</div> }
+                @if (showPassSuccess) { <div style="font-size: 11px; color: var(--green); margin-top: 6px;">Password updated!</div> }
+                <div style="display: flex; gap: 6px; margin-top: 12px;">
+                    <button class="btn btn-ghost btn-sm" @onclick='() => settingsTab = "security"'><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    <button class="btn btn-primary btn-sm" @onclick="HandleChangePassword" disabled="@isChangingPass">
+                        @if (isChangingPass) { <i class="fa-solid fa-spinner fa-spin"></i> } else { <i class="fa-solid fa-lock"></i> } Update
+                    </button>
+                </div>
+            </div>
+        }
+
+        @* ── WIDGETS ── *@
+        @if (settingsTab == "widgets")
+        {
+            <div class="card card-p">
+                <div class="card-title">Dashboard Widgets</div>
+                <div class="settings-row">
+                    <div class="settings-row-label">Today's Snapshot</div>
+                    <div class="toggle @(AppSettings.ShowTodaySnapshot ? "on" : "")" @onclick="() => AppSettings.ShowTodaySnapshot = !AppSettings.ShowTodaySnapshot">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-row-label">Revenue Chart</div>
+                    <div class="toggle @(AppSettings.ShowRevenueChart ? "on" : "")" @onclick="() => AppSettings.ShowRevenueChart = !AppSettings.ShowRevenueChart">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-row-label">Top Products</div>
+                    <div class="toggle @(AppSettings.ShowTopProducts ? "on" : "")" @onclick="() => AppSettings.ShowTopProducts = !AppSettings.ShowTopProducts">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-row-label">Payment Breakdown</div>
+                    <div class="toggle @(AppSettings.ShowPaymentBreakdown ? "on" : "")" @onclick="() => AppSettings.ShowPaymentBreakdown = !AppSettings.ShowPaymentBreakdown">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-row-label">Profit Trend</div>
+                    <div class="toggle @(AppSettings.ShowProfitTrend ? "on" : "")" @onclick="() => AppSettings.ShowProfitTrend = !AppSettings.ShowProfitTrend">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-row-label">Low Stock Alerts</div>
+                    <div class="toggle @(AppSettings.ShowLowStock ? "on" : "")" @onclick="() => AppSettings.ShowLowStock = !AppSettings.ShowLowStock">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <div class="settings-row-label">Recent Sales</div>
+                    <div class="toggle @(AppSettings.ShowRecentSales ? "on" : "")" @onclick="() => AppSettings.ShowRecentSales = !AppSettings.ShowRecentSales">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+                <div class="settings-row" style="border-bottom: none;">
+                    <div class="settings-row-label">Quick Actions</div>
+                    <div class="toggle @(AppSettings.ShowQuickActions ? "on" : "")" @onclick="() => AppSettings.ShowQuickActions = !AppSettings.ShowQuickActions">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+
+                <div style="border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px;">
+                    <div class="card-title">Report Sections</div>
+                    <div class="settings-row">
+                        <div class="settings-row-label">Sales Summary</div>
+                        <div class="toggle @(AppSettings.ShowReportSalesSummary ? "on" : "")" @onclick="() => AppSettings.ShowReportSalesSummary = !AppSettings.ShowReportSalesSummary">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label">Top Products</div>
+                        <div class="toggle @(AppSettings.ShowReportTopProducts ? "on" : "")" @onclick="() => AppSettings.ShowReportTopProducts = !AppSettings.ShowReportTopProducts">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label">Payment Methods</div>
+                        <div class="toggle @(AppSettings.ShowReportPaymentMethods ? "on" : "")" @onclick="() => AppSettings.ShowReportPaymentMethods = !AppSettings.ShowReportPaymentMethods">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label">Profit & Loss</div>
+                        <div class="toggle @(AppSettings.ShowReportProfitLoss ? "on" : "")" @onclick="() => AppSettings.ShowReportProfitLoss = !AppSettings.ShowReportProfitLoss">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div class="settings-row-label">Inventory Valuation</div>
+                        <div class="toggle @(AppSettings.ShowReportInventoryValuation ? "on" : "")" @onclick="() => AppSettings.ShowReportInventoryValuation = !AppSettings.ShowReportInventoryValuation">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row" style="border-bottom: none;">
+                        <div class="settings-row-label">Stock Movement</div>
+                        <div class="toggle @(AppSettings.ShowReportStockMovement ? "on" : "")" @onclick="() => AppSettings.ShowReportStockMovement = !AppSettings.ShowReportStockMovement">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-sm" style="margin-top: 14px;" @onclick="SavePreferences"><i class="fa-solid fa-save"></i> Save Preferences</button>
+            </div>
+        }
+
+        @* ── ACCOUNT ── *@
+        @if (settingsTab == "account")
+        {
+            <div class="card card-p">
+                <div class="card-title">Account</div>
+                @if (currentUser != null)
+                {
+                    <div style="display: flex; align-items: center; gap: 11px; padding: 10px 0; border-bottom: 1px solid var(--border);">
+                        <div style="width: 46px; height: 46px; border-radius: 50%; background: var(--lime); display: flex; align-items: center; justify-content: center; color: #0a0a0a; font-size: 15px; font-weight: 700; font-family: 'Space Mono', monospace;">
+                            @(currentUser.Email?.Length >= 2 ? currentUser.Email[..2].ToUpper() : "U")
+                        </div>
+                        <div>
+                            <div style="font-size: 13px; font-weight: 700; color: var(--fg);">@currentUser.Email</div>
+                            <div style="font-size: 11px; color: var(--fg3);">@currentUser.Id</div>
+                            <div style="display: flex; gap: 5px; margin-top: 4px;">
+                                @if (AppSettings.IsPro)
+                                {
+                                    <span class="badge badge-lime">Pro</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-gray">Free</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Created</div>
+                            <div class="settings-row-desc">@currentUser.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</div>
+                        </div>
+                    </div>
+                    <div class="settings-row">
+                        <div>
+                            <div class="settings-row-label">Last Sign In</div>
+                            <div class="settings-row-desc">@(currentUser.LastSignInAt?.ToLocalTime().ToString("MMM dd, yyyy HH:mm") ?? "N/A")</div>
+                        </div>
+                    </div>
+                    @if (AppSettings.IsPro && AppSettings.SubscriptionExpiry.HasValue)
+                    {
+                        <div class="settings-row">
+                            <div>
+                                <div class="settings-row-label">Pro Expires</div>
+                                <div class="settings-row-desc">@AppSettings.SubscriptionExpiry.Value.ToLocalTime().ToString("MMM dd, yyyy")</div>
+                            </div>
+                        </div>
+                    }
                 }
                 else
                 {
-                    <div style="width: 44px; height: 44px; border-radius: 8px; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border)">
-                        <i class="fa-solid fa-cube text-muted"></i>
+                    <div style="display: flex; flex-direction: column; align-items: center; padding: 20px; color: var(--fg3);">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size: 20px; margin-bottom: 8px;"></i>
+                        <span style="font-size: 11px;">Loading...</span>
                     </div>
                 }
-                <div class="flex-grow-1">
-                    <InputFile OnChange="HandleLogoUpload" class="form-control" accept="image/*" />
-                    @if (pendingLogoFile != null && !isUploading)
-                    {
-                        <button class="btn btn-sm btn-primary mt-2" @onclick="UploadLogo"><i class="fa-solid fa-upload"></i> Upload</button>
-                    }
-                    @if (isUploading)
-                    {
-                        <p class="text-sm text-muted mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Uploading...</p>
-                    }
-                </div>
-            </div>
-            @if (!string.IsNullOrEmpty(newLogoUrl))
-            {
-                <button class="btn btn-sm btn-outline-danger" style="padding: 0.2rem 0.6rem" @onclick="() => newLogoUrl = null"><i class="fa-solid fa-trash"></i> Remove</button>
-            }
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Display Mode</label>
-            <div class="d-flex gap-2">
-                <button class="btn btn-sm @(!useLogo ? "btn-primary" : "btn-outline-secondary") w-100" @onclick="() => useLogo = false"><i class="fa-solid fa-font"></i> Show Name</button>
-                <button class="btn btn-sm @(useLogo ? "btn-primary" : "btn-outline-secondary") w-100" @onclick="() => useLogo = true"><i class="fa-solid fa-image"></i> Logo Only</button>
-            </div>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Color Scheme</label>
-            <div class="d-flex flex-wrap gap-2">
-                @foreach (var scheme in colorSchemes)
+                @if (showInstallSection && !isAppStandalone)
                 {
-                    <button class="d-flex align-items-center justify-content-center"
-                            style="width: 36px; height: 36px; border-radius: 8px; background: @scheme.Value; border: 3px solid @(selectedColorScheme == scheme.Key ? "var(--text-primary)" : "transparent"); cursor: pointer; transition: all 0.2s;"
-                            title="@(scheme.Key[0..1].ToUpper() + scheme.Key[1..])"
-                            @onclick="() => selectedColorScheme = scheme.Key">
-                        @if (selectedColorScheme == scheme.Key)
+                    <div class="settings-row" style="border-bottom: none;">
+                        <div>
+                            <div class="settings-row-label">Install as App</div>
+                            <div class="settings-row-desc">Add to home screen for faster access</div>
+                        </div>
+                        @if (canInstallNative)
                         {
-                            <i class="fa-solid fa-check" style="color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.5); font-size: 0.7rem;"></i>
+                            <button class="btn btn-ghost btn-sm" @onclick="InstallApp"><i class="fa-solid fa-download"></i> Install PWA</button>
                         }
-                    </button>
+                        else if (isIosDevice)
+                        {
+                            <span style="font-size: 10px; color: var(--fg3);">Tap Share → Add to Home Screen</span>
+                        }
+                    </div>
                 }
             </div>
-        </div>
-
-        <button class="btn btn-primary w-100" @onclick="SaveSettings"><i class="fa-solid fa-save"></i> Save Brand</button>
-        @if (showSuccess) { <div class="alert alert-success mt-2 mb-0">Saved!</div> }
-    </div>
-    </div>
-
-    <div class="col-12 col-lg-6">
-    <div class="glass-panel">
-        <h2 class="mb-1">Account Information</h2>
-        <p class="text-muted text-sm mb-3">Your account details.</p>
-        
-        @if (currentUser != null)
-        {
-            <div class="alert alert-primary mb-3 py-2">
-                <i class="fa-solid fa-circle-user"></i> <strong>@currentUser.Email</strong>
-            </div>
-            <div class="d-flex flex-column gap-2">
-                <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom: 1px solid var(--border)">
-                    <span class="text-muted small">User ID</span>
-                    <span style="font-size: 0.7rem; font-family: monospace;">@currentUser.Id</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom: 1px solid var(--border)">
-                    <span class="text-muted small">Created</span>
-                    <span class="small">@currentUser.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom: 1px solid var(--border)">
-                    <span class="text-muted small">Last Sign In</span>
-                    <span class="small">@(currentUser.LastSignInAt?.ToLocalTime().ToString("MMM dd, yyyy HH:mm") ?? "N/A")</span>
-                </div>
-                <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom: 1px solid var(--border)">
-                    <span class="text-muted small">Subscription</span>
-                    <span class="badge bg-success-subtle text-success">Active</span>
-                </div>
-            </div>
         }
-        else
-        {
-            <div class="d-flex flex-column align-items-center justify-content-center p-4 text-muted">
-                <i class="fa-solid fa-spinner fa-spin fa-2x mb-2"></i>
-                <p>Loading...</p>
-            </div>
-        }
-
-        <hr class="my-3" style="border-color: var(--border);">
-
-        <h2 class="mb-1">Password</h2>
-        <p class="text-muted text-sm mb-2">Must be at least 6 characters.</p>
-        <div class="mb-2">
-            <input type="password" class="form-control form-control-sm" @bind="currentPassword" placeholder="Current password" />
-        </div>
-        <div class="mb-2">
-            <input type="password" class="form-control form-control-sm" @bind="newPassword" placeholder="New password" />
-        </div>
-        <div class="mb-2">
-            <input type="password" class="form-control form-control-sm" @bind="confirmPassword" placeholder="Confirm password" />
-        </div>
-        @if (!string.IsNullOrEmpty(passErrorMessage)) { <div class="alert alert-danger py-1 small">@passErrorMessage</div> }
-        @if (showPassSuccess) { <div class="alert alert-success py-1 small">Password updated!</div> }
-        <button class="btn btn-outline-secondary btn-sm w-100" @onclick="HandleChangePassword" disabled="@isChangingPass">
-            @if (isChangingPass) { <i class="fa-solid fa-spinner fa-spin"></i> } else { <i class="fa-solid fa-lock"></i> } Update Password
-        </button>
-    </div>
     </div>
 </div>
 
-@* ── Row 2: Security/Preferences + Dashboard/Report widgets ── *@
-<div class="row g-3 mt-1">
-    <div class="col-12 col-lg-6">
-    <div class="glass-panel">
-        <h2 class="mb-1">App Security</h2>
-        <p class="text-muted text-sm mb-3">4-digit PIN to protect add/edit/void actions.</p>
-
-        @if (AppSettings.HasPin)
-        {
-            <div class="alert alert-success py-1 mb-2 small"><i class="fa-solid fa-shield-halved"></i> PIN is set.</div>
-            <div class="mb-2">
-                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="currentPin" placeholder="Current PIN" />
-            </div>
-            <div class="mb-2">
-                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="newPin" placeholder="New PIN (4 digits)" />
-            </div>
-            <div class="mb-2">
-                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="confirmPin" placeholder="Confirm new PIN" />
-            </div>
-        }
-        else
-        {
-            <div class="mb-2">
-                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="newPin" placeholder="New PIN (4 digits)" />
-            </div>
-            <div class="mb-2">
-                <input type="password" class="form-control form-control-sm" maxlength="4" inputmode="numeric" @bind="confirmPin" placeholder="Confirm PIN" />
-            </div>
-        }
-        @if (!string.IsNullOrEmpty(pinError)) { <div class="alert alert-danger py-1 small">@pinError</div> }
-        @if (showPinSuccess) { <div class="alert alert-success py-1 small">PIN saved!</div> }
-        <button class="btn btn-outline-secondary btn-sm w-100" @onclick="SavePin"><i class="fa-solid fa-lock"></i> @(AppSettings.HasPin ? "Change PIN" : "Create PIN")</button>
-        @if (AppSettings.HasPin)
-        {
-            <button class="btn btn-outline-danger btn-sm mt-1 w-100" @onclick="RemovePin"><i class="fa-solid fa-lock-open"></i> Remove PIN</button>
-        }
-
-        <hr class="my-3" style="border-color: var(--border);">
-
-        <h2 class="mb-1">Navigation & Display</h2>
-        <p class="text-muted text-sm mb-2">Customize tabs and value formatting.</p>
-        <label class="toggle-row"><input type="checkbox" @bind="showInventoryTab" /><span>Show Inventory Tab</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="showOpexTab" /><span>Show OPEX Tab (Operating Expenses)</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowDecimals" /><span>Show Decimals (₱1,357.40 vs ₱1,357)</span></label>
-        <button class="btn btn-primary btn-sm mt-2 w-100" @onclick="SaveNavPreferences"><i class="fa-solid fa-save"></i> Save</button>
-
-        <hr class="my-3" style="border-color: var(--border);">
-
-        <h2 class="mb-1"><i class="fa-solid fa-cash-register me-2" style="color: var(--primary);"></i>POS Mode</h2>
-        <p class="text-muted text-sm mb-2">Lock the app into Point of Sale mode. Hides all other pages — only POS and sales history are accessible. @(AppSettings.HasPin ? "PIN is required to exit." : "")</p>
-        @if (!AppSettings.HasPin)
-        {
-            <div class="alert alert-warning py-1 small mb-2">
-                <i class="fa-solid fa-triangle-exclamation"></i> Set a PIN above first to protect POS mode exit.
-            </div>
-        }
-        <button class="btn @(AppSettings.IsPosMode ? "btn-danger" : "btn-primary") btn-sm w-100" @onclick="TogglePosMode">
-            <i class="fa-solid @(AppSettings.IsPosMode ? "fa-lock-open" : "fa-lock")"></i>
-            @(AppSettings.IsPosMode ? "Exit POS Mode" : "Enter POS Mode")
-        </button>
-    </div>
-    </div>
-
-    <div class="col-12 col-lg-6">
-    <div class="glass-panel">
-        <h2 class="mb-1">Dashboard Widgets</h2>
-        <p class="text-muted text-sm mb-2">Toggle widgets on your dashboard.</p>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowTodaySnapshot" /><span>Today's Snapshot</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowRevenueChart" /><span>Revenue Chart</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowTopProducts" /><span>Top Products</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowPaymentBreakdown" /><span>Payment Breakdown</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowProfitTrend" /><span>Profit Trend</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowLowStock" /><span>Low Stock Alerts</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowRecentSales" /><span>Recent Sales</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowQuickActions" /><span>Quick Actions</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowOnboardingOnLogin" /><span>Onboarding Wizard</span></label>
-
-        <hr class="my-3" style="border-color: var(--border);">
-
-        <h2 class="mb-1">Report Sections</h2>
-        <p class="text-muted text-sm mb-2">Toggle report sections.</p>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportSalesSummary" /><span>Sales Summary</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportTopProducts" /><span>Top Products</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportPaymentMethods" /><span>Payment Methods</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportProfitLoss" /><span>Profit & Loss</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportInventoryValuation" /><span>Inventory Valuation</span></label>
-        <label class="toggle-row"><input type="checkbox" @bind="AppSettings.ShowReportStockMovement" /><span>Stock Movement</span></label>
-
-        <button class="btn btn-primary btn-sm mt-3 w-100" @onclick="SavePreferences"><i class="fa-solid fa-save"></i> Save Preferences</button>
-    </div>
-    </div>
 </div>
-
-@* ── Install App ── *@
-@if (showInstallSection && !isAppStandalone)
-{
-<div class="row g-3 mt-1">
-    <div class="col-12 col-lg-6">
-    <div class="glass-panel">
-        <h2 class="mb-1"><i class="fa-solid fa-download me-2" style="color: var(--primary);"></i>Install App</h2>
-        <p class="text-muted text-sm mb-2">Install on your device for quick access.</p>
-        @if (canInstallNative)
-        {
-            <button class="btn btn-primary btn-sm w-100" @onclick="InstallApp"><i class="fa-solid fa-download me-1"></i> Install InventoryPlus</button>
-        }
-        else if (isIosDevice)
-        {
-            <div class="p-2 rounded-3 small" style="background: var(--bg-surface); border: 1px solid var(--border);">
-                <p class="fw-semibold mb-1"><i class="fa-solid fa-mobile-screen-button me-1"></i> iPhone / iPad:</p>
-                <ol class="mb-0 text-muted ps-3">
-                    <li>Tap <i class="fa-solid fa-arrow-up-from-bracket" style="color: var(--primary);"></i> <strong>Share</strong></li>
-                    <li>Tap <strong>Add to Home Screen</strong></li>
-                </ol>
-            </div>
-        }
-    </div>
-    </div>
-</div>
-}

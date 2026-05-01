@@ -5,28 +5,28 @@
 
 @if (Inventory.IsLoading)
 {
-    <div class="glass-panel text-center" style="padding: 3rem">
-        <i class="fa-solid fa-spinner fa-spin fa-2x text-muted"></i>
-        <p class="text-muted mt-4">Loading products...</p>
+    <div class="card card-p" style="padding:3rem">
+        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--fg3)"></i>
+        <p style="color:var(--fg3);margin-top:1rem">Loading products...</p>
     </div>
 }
 else
 {
 
-<div class="page-header">
-    <div>
-        <h1>Products</h1>
-        <p class="text-muted">Bundles of ingredients ready for sale.</p>
-    </div>
-    <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i><span class="d-none d-sm-inline"> Add Product</span></button>
-</div>
-
-<div class="filter-bar">
-    <div class="d-flex gap-2 flex-wrap align-items-center">
-        <div class="flex-grow-1" style="min-width:180px">
-            <input type="text" class="form-control" placeholder="Search products..." @bind="searchQuery" @bind:event="oninput" />
+<div class="section-gap fade-in">
+    <div class="page-header">
+        <div>
+            <h1>Products</h1>
+            <p>Bundles of ingredients ready for sale.</p>
         </div>
-        <select class="form-select" style="width:auto" @bind="categoryFilter">
+        <div class="page-header-right">
+            <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Product</button>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <input class="form-control search-input" placeholder="Search products…" @bind="searchQuery" @bind:event="oninput" />
+        <select class="form-control" style="width:auto" @bind="categoryFilter">
             <option value="All">All Categories</option>
             @foreach (var cat in Inventory.ActiveProducts.Select(p => string.IsNullOrEmpty(p.Category) ? "Other" : p.Category).Distinct().OrderBy(c => c))
             {
@@ -34,149 +34,85 @@ else
             }
         </select>
     </div>
-</div>
 
-<div class="glass-panel">
-    @* Desktop table *@
-    <div class="table-responsive table-view">
-    <table class="table table-hover mb-0">
-        <thead>
-            <tr>
-                <th>Product Name</th>
-                <th>Price</th>
-                <th>Cost</th>
-                <th>Profit Margin</th>
-                <th>Available</th>
-                <th class="text-end">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Inventory.ActiveProducts.Skip((_page - 1) * PageSize).Take(PageSize))
-            {
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center gap-3">
-                            @if (!string.IsNullOrEmpty(item.ImageUrl))
-                            {
-                                <img src="@item.ImageUrl" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border)" alt="@item.Name" />
-                            }
-                            else
-                            {
-                                <div style="width: 40px; height: 40px; border-radius: 8px; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border)">
-                                    <i class="fa-solid fa-image text-muted"></i>
+    <div class="card" style="overflow:hidden">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Cost</th>
+                        <th>Margin</th>
+                        <th>Stock</th>
+                        <th style="text-align:right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in FilteredProducts.Skip((_page - 1) * PageSize).Take(PageSize))
+                    {
+                        <tr>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:9px">
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" style="width:32px;height:32px;border-radius:var(--radius-sm);object-fit:cover;border:1px solid var(--border);flex-shrink:0" alt="@item.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;border:1px solid var(--border)">
+                                            <i class="fa-solid fa-image" style="color:var(--fg3)"></i>
+                                        </div>
+                                    }
+                                    <div>
+                                        <div style="font-weight:600;font-size:12px">@item.Name</div>
+                                        <div style="font-size:10px;color:var(--fg3)">
+                                            @if (!string.IsNullOrEmpty(item.Category))
+                                            {
+                                                @item.Category
+                                            }
+                                            else
+                                            {
+                                                <text>Uncategorized</text>
+                                            }
+                                        </div>
+                                    </div>
                                 </div>
-                            }
-                            <div>
-                                <strong>@item.Name</strong><br />
-                                <span class="text-muted" style="font-size:0.8rem">
-                                @if (item.HasIngredients && item.RequiredIngredients.Any(ri => ri.Ingredient != null))
-                                {
-                                    @(string.Join(", ", item.RequiredIngredients.Where(ri => ri.Ingredient != null).Select(ri => $"{ri.QuantityRequired}{ri.Ingredient!.Unit} {ri.Ingredient!.Name}")))
-                                }
-                                else if (!item.HasIngredients)
-                                {
-                                    <span>Direct stock</span>
-                                }
+                            </td>
+                            <td class="mono text-lime" style="font-size:12px;font-weight:700">₱@AppSettings.FormatPrice(item.SellingPrice)</td>
+                            <td class="mono text-red" style="font-size:11px">₱@AppSettings.FormatPrice(item.TotalCost)</td>
+                            <td>
+                                <span class="badge @(item.ProfitMargin > 0 ? "badge-green" : "badge-red")">
+                                    ₱@AppSettings.FormatPrice(item.ProfitMargin) (@((item.ProfitMarginPercentage * 100).ToString("0"))%)
                                 </span>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="text-success">₱@AppSettings.FormatPrice(item.SellingPrice)</td>
-                    <td class="text-danger">₱@AppSettings.FormatPrice(item.TotalCost)</td>
-                    <td>
-                        <span class="@(item.ProfitMargin > 0 ? "text-success" : "text-danger")">
-                            ₱@AppSettings.FormatPrice(item.ProfitMargin) (@((item.ProfitMarginPercentage * 100).ToString("0.0"))%)
-                        </span>
-                    </td>
-                    <td>
-                        @if (item.AvailableCount <= 0)
-                        {
-                            <span class="badge bg-danger-subtle">Out of Stock</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-success-subtle">@item.AvailableCount Available</span>
-                        }
-                    </td>
-                    <td class="text-end">
-                        <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
-                        <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            }
-            @if (!FilteredProducts.Any())
-            {
-                <tr>
-                    <td colspan="6" class="text-center text-muted" style="padding: 3rem">No products configured yet.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    </div>
-
-    @* Mobile card list *@
-    <div class="card-view">
-        @if (!FilteredProducts.Any())
-        {
-            <p class="text-center text-muted" style="padding: 2rem 0">No products configured yet.</p>
-        }
-            @foreach (var item in FilteredProducts.Skip((_page - 1) * PageSize).Take(PageSize))
-        {
-            <div class="stock-card">
-                <div class="stock-card-header">
-                    <div class="d-flex align-items-center gap-2" style="flex: 1; min-width: 0; overflow: hidden;">
-                        @if (!string.IsNullOrEmpty(item.ImageUrl))
-                        {
-                            <img src="@item.ImageUrl" style="width: 36px; height: 36px; border-radius: 6px; object-fit: cover; flex-shrink: 0;" />
-                        }
-                        else
-                        {
-                            <div style="width: 36px; height: 36px; border-radius: 6px; background: var(--bg-surface); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); flex-shrink: 0;">
-                                <i class="fa-solid fa-image text-muted" style="font-size: 0.75rem;"></i>
-                            </div>
-                        }
-                        <span class="stock-card-name">@item.Name</span>
-                    </div>
-                    @if (item.AvailableCount <= 0)
-                    {
-                        <span class="badge bg-danger-subtle">Out of Stock</span>
+                            </td>
+                            <td>
+                                @if (item.AvailableCount <= 0)
+                                {
+                                    <span class="badge badge-red">Out</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-green">@item.AvailableCount avail.</span>
+                                }
+                            </td>
+                            <td>
+                                <div style="display:flex;gap:4px;justify-content:flex-end">
+                                    <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
+                                    <button class="btn btn-danger btn-sm btn-icon" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>
                     }
-                    else
+                    @if (!FilteredProducts.Any())
                     {
-                        <span class="badge bg-success-subtle">@item.AvailableCount avail.</span>
+                        <tr>
+                            <td colspan="6" style="text-align:center;color:var(--fg3);padding:3rem">No products configured yet.</td>
+                        </tr>
                     }
-                </div>
-                <div class="stock-card-body">
-                    <div class="stock-card-row">
-                        <span class="stock-card-label">Price</span>
-                        <span class="text-success">₱@AppSettings.FormatPrice(item.SellingPrice)</span>
-                    </div>
-                    <div class="stock-card-row">
-                        <span class="stock-card-label">Cost</span>
-                        <span class="text-danger">₱@AppSettings.FormatPrice(item.TotalCost)</span>
-                    </div>
-                    <div class="stock-card-row">
-                        <span class="stock-card-label">Profit</span>
-                        <span class="@(item.ProfitMargin > 0 ? "text-success" : "text-danger")">
-                            ₱@AppSettings.FormatPrice(item.ProfitMargin) (@((item.ProfitMarginPercentage * 100).ToString("0.0"))%)
-                        </span>
-                    </div>
-                    @if (item.RequiredIngredients.Any(ri => ri.Ingredient != null))
-                    {
-                        <div class="stock-card-row" style="align-items: flex-start;">
-                            <span class="stock-card-label" style="flex-shrink: 0;">Ingredients</span>
-                            <span class="text-muted" style="font-size: 0.78rem; text-align: right;">
-                                @string.Join(", ", item.RequiredIngredients.Where(ri => ri.Ingredient != null).Select(ri => $"{ri.QuantityRequired}{ri.Ingredient!.Unit} {ri.Ingredient!.Name}"))
-                            </span>
-                        </div>
-                    }
-                </div>
-                <div class="stock-card-actions">
-                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="btn btn-sm btn-outline-danger" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
-                </div>
-            </div>
-        }
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <PaginationBar Page="_page" PageSize="PageSize" TotalItems="FilteredProducts.Count()" OnPageChange="SetPage" />
@@ -186,174 +122,168 @@ else
 
 <AppModal IsOpen="showModal" IsOpenChanged="@((v) => { showModal = v; })" Size="ExtraLarge">
     <Header>
-        <h5 class="modal-title">@(isEditing ? "Edit Product" : "New Product")</h5>
+        <h5>@(isEditing ? "Edit Product" : "New Product")</h5>
     </Header>
     <Content>
-                <div class="row">
-                    <!-- Basic Info -->
-                    <div class="@(currentProduct.HasIngredients ? "col-12 col-md-6" : "col-12")">
-                        <h4>Product Details</h4>
-                        <div class="mb-3">
-                            <label class="form-label">Product Name <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @(validationErrors.Contains("Name") ? "is-invalid" : "")" @bind="currentProduct.Name" placeholder="e.g. Hamburger" />
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Category <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @(validationErrors.Contains("Category") ? "is-invalid" : "")" @bind="currentProduct.Category" placeholder="e.g. Food, Beverage, Retail" />
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label class="form-label">Product Image</label>
-                            <div class="d-flex align-items-center gap-3">
-                                @if (!string.IsNullOrEmpty(currentProduct.ImageUrl))
-                                {
-                                    <img src="@currentProduct.ImageUrl" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover;" />
-                                }
-                                <InputFile OnChange="HandleFileSelected" class="form-control" accept="image/*" />
-                            </div>
-                            @if (pendingImageFile != null && !isUploading)
-                            {
-                                <button class="btn btn-sm btn-primary mt-2" @onclick="UploadImage">
-                                    <i class="fa-solid fa-upload"></i> Upload Image
-                                </button>
-                            }
-                            @if (isUploading)
-                            {
-                                <p class="text-muted text-sm mt-1"><i class="fa-solid fa-spinner fa-spin"></i> Uploading...</p>
-                            }
-                        </div>
-
-                        <div class="row g-3 mb-4">
-                            <div class="col-6">
-                                <label class="form-label">Selling Price (₱) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control @(validationErrors.Contains("Price") ? "is-invalid" : "")" step="0.01" @bind="currentProduct.SellingPrice" />
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">Tax Rate (%)</label>
-                                <input type="number" class="form-control" step="0.1" @bind="taxRatePercent" placeholder="e.g. 5 for 5%" />
-                            </div>
-                        </div>
-
-                        @if (AppSettings.ShowInventoryTab)
-                        {
-                        <div class="mb-3">
-                            <label class="form-label">Uses Ingredients?</label>
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm @(currentProduct.HasIngredients ? "btn-primary" : "btn-outline-secondary") w-100"
-                                        @onclick="() => currentProduct.HasIngredients = true">
-                                    <i class="fa-solid fa-check"></i> Yes
-                                </button>
-                                <button class="btn btn-sm @(!currentProduct.HasIngredients ? "btn-primary" : "btn-outline-secondary") w-100"
-                                        @onclick="() => currentProduct.HasIngredients = false">
-                                    <i class="fa-solid fa-xmark"></i> No
-                                </button>
-                            </div>
-                        </div>
-                        }
-
-                        @if (!currentProduct.HasIngredients)
-                        {
-                            <div class="mb-4">
-                                <label class="form-label">Stock Count</label>
-                                <input type="number" class="form-control" step="1" @bind="currentProduct.StockCount" placeholder="0" />
-                            </div>
-                        }
-
-                        <div class="glass-card mb-4">
-                            <h5>Summary</h5>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Cost</span>
-                                <span class="text-danger">₱@AppSettings.FormatPrice(currentProduct.TotalCost)</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Selling Price</span>
-                                <span class="text-success">₱@AppSettings.FormatPrice(currentProduct.SellingPrice)</span>
-                            </div>
-                            <div class="d-flex justify-content-between" style="border-top: 1px solid var(--border); padding-top: 0.5rem">
-                                <strong>Profit Margin</strong>
-                                <strong class="text-success">₱@AppSettings.FormatPrice(currentProduct.ProfitMargin)</strong>
-                            </div>
-                        </div>
+        <div class="form-row">
+            <div>
+                <div class="form-group">
+                    <label class="form-label">Product Name <span class="req">*</span></label>
+                    <input class="form-control @(validationErrors.Contains("Name") ? "is-invalid" : "")" @bind="currentProduct.Name" placeholder="e.g. Pork BBQ" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <input class="form-control @(validationErrors.Contains("Category") ? "is-invalid" : "")" @bind="currentProduct.Category" placeholder="e.g. Food, Drinks" />
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Selling Price (₱) <span class="req">*</span></label>
+                        <input class="form-control @(validationErrors.Contains("Price") ? "is-invalid" : "")" type="number" step="0.01" @bind="currentProduct.SellingPrice" />
                     </div>
+                    <div class="form-group">
+                        <label class="form-label">Tax Rate (%)</label>
+                        <input class="form-control" type="number" step="0.1" @bind="taxRatePercent" placeholder="0" />
+                    </div>
+                </div>
 
-                    <!-- Ingredients -->
-                    @if (currentProduct.HasIngredients)
+                @if (AppSettings.ShowInventoryTab)
+                {
+                <div class="form-group">
+                    <label class="form-label">Uses Ingredients?</label>
+                    <div style="display:flex;gap:5px">
+                        <button class="btn @(currentProduct.HasIngredients ? "btn-primary" : "btn-ghost") btn-sm" style="flex:1;justify-content:center"
+                                @onclick="() => currentProduct.HasIngredients = true">
+                            <i class="fa-solid fa-check"></i> Yes
+                        </button>
+                        <button class="btn @(!currentProduct.HasIngredients ? "btn-primary" : "btn-ghost") btn-sm" style="flex:1;justify-content:center"
+                                @onclick="() => currentProduct.HasIngredients = false">
+                            <i class="fa-solid fa-xmark"></i> No
+                        </button>
+                    </div>
+                </div>
+                }
+
+                @if (!currentProduct.HasIngredients)
+                {
+                <div class="form-group">
+                    <label class="form-label">Stock Count</label>
+                    <input class="form-control" type="number" step="1" @bind="currentProduct.StockCount" placeholder="0" />
+                </div>
+                }
+            </div>
+            <div>
+                <div class="form-group">
+                    <label class="form-label">Product Image</label>
+                    @if (!string.IsNullOrEmpty(currentProduct.ImageUrl))
                     {
-                    <div class="col-12 col-md-6">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h4>Required Ingredients</h4>
+                        <div style="width:72px;height:72px;border-radius:var(--radius-sm);overflow:hidden;margin-bottom:7px;border:1px solid var(--border)">
+                            <img src="@currentProduct.ImageUrl" style="width:100%;height:100%;object-fit:cover" />
                         </div>
-                        
-                        <!-- Add ingredient row -->
-                        <div class="d-flex gap-2 mb-4">
-                            <select @bind="selectedIngredientId" class="form-select" @bind:after="OnIngredientSelected">
-                                <option value="">-- Select Ingredient --</option>
-                                @foreach(var ing in Inventory.ActiveIngredients.Where(i => i.Type == "Ingredient"))
-                                {
-                                    <option value="@ing.Guid">@ing.Name (@ing.Stock @ing.Unit)</option>
-                                }
-                            </select>
-                            <input type="number" class="form-control" step="0.1" @bind="newQuantity" placeholder="Qty" style="width: 80px" />
-                            @{
-                                var ingCat = InventoryPlus.Services.UnitConverter.GetCategory(_selectedIngUnit);
-                                var compatUnits = InventoryPlus.Services.UnitConverter.GetUnitsForCategory(ingCat);
-                            }
-                            @if (compatUnits.Length > 0)
-                            {
-                                <select class="form-select" @bind="newUsageUnit" style="width: 90px">
-                                    @foreach (var u in compatUnits)
-                                    {
-                                        <option value="@u">@u</option>
-                                    }
-                                </select>
-                            }
-                            else
-                            {
-                                <input type="text" class="form-control" @bind="newUsageUnit" placeholder="unit" style="width: 90px" />
-                            }
-                            <button class="btn btn-outline-secondary" @onclick="AddRequirement"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                        @{
-                            var hint = InventoryPlus.Services.UnitConverter.ConversionHint(newUsageUnit, _selectedIngUnit);
-                        }
-                        @if (!string.IsNullOrEmpty(hint))
-                        {
-                            <div class="text-muted mb-2" style="font-size: 0.78rem; margin-top: -0.5rem"><i class="fa-solid fa-arrows-rotate me-1"></i>@hint</div>
-                        }
-
-                        <div style="max-height: 250px; overflow-y: auto;">
-                            @foreach(var req in currentProduct.RequiredIngredients)
-                            {
-                                <div class="glass-card d-flex justify-content-between align-items-center mb-2" style="padding: 0.5rem 1rem">
-                                    <div>
-                                        <strong>@req.Ingredient?.Name</strong>
-                                        <div class="text-muted" style="font-size:0.8rem">
-                                            @req.QuantityRequired @req.EffectiveUsageUnit
-                                            @{ var convertedCost = InventoryPlus.Services.UnitConverter.ConvertSafe(req.QuantityRequired, req.EffectiveUsageUnit, req.Ingredient?.Unit ?? "") * (req.Ingredient?.CostPerUnit ?? 0); }
-                                            <span class="text-danger">(₱@AppSettings.FormatPrice(convertedCost))</span>
-                                            @{ var reqHint = InventoryPlus.Services.UnitConverter.ConversionHint(req.EffectiveUsageUnit, req.Ingredient?.Unit ?? ""); }
-                                            @if (!string.IsNullOrEmpty(reqHint))
-                                            {
-                                                <span class="text-info ms-1" style="font-size:0.72rem">@reqHint</span>
-                                            }
-                                        </div>
-                                    </div>
-                                    <button class="btn-close" style="font-size: 1rem" @onclick="() => RemoveRequirement(req)"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            }
-                            @if(currentProduct.RequiredIngredients.Count == 0)
-                            {
-                                <p class="text-muted text-center" style="font-size: 0.9rem">No ingredients added yet.</p>
-                            }
-                        </div>
-                    </div>
+                    }
+                    else
+                    {
+                        <div style="width:72px;height:72px;background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:7px">📷</div>
+                    }
+                    <InputFile OnChange="HandleFileSelected" class="form-control" accept="image/*" style="font-size:11px" />
+                    @if (pendingImageFile != null && !isUploading)
+                    {
+                        <button class="btn btn-ghost btn-sm" style="margin-top:5px" @onclick="UploadImage"><i class="fa-solid fa-upload"></i> Upload</button>
+                    }
+                    @if (isUploading)
+                    {
+                        <p style="color:var(--fg3);font-size:11px;margin-top:5px"><i class="fa-solid fa-spinner fa-spin"></i> Uploading...</p>
                     }
                 </div>
+
+                <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;margin-top:8px">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--fg3);margin-bottom:7px">Summary</div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border)">
+                        <span style="color:var(--fg3)">Cost</span>
+                        <span class="text-red mono fw-700">₱@AppSettings.FormatPrice(currentProduct.TotalCost)</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border)">
+                        <span style="color:var(--fg3)">Selling Price</span>
+                        <span class="text-lime mono fw-700">₱@AppSettings.FormatPrice(currentProduct.SellingPrice)</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0">
+                        <span style="color:var(--fg3)">Profit</span>
+                        <span class="text-green mono fw-700">₱@AppSettings.FormatPrice(currentProduct.ProfitMargin) (@((currentProduct.SellingPrice > 0 ? (currentProduct.ProfitMargin / currentProduct.SellingPrice * 100) : 0).ToString("0"))%)</span>
+                    </div>
+                </div>
+
+                @if (currentProduct.HasIngredients)
+                {
+                <div style="margin-top:12px">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--fg3);margin-bottom:7px">Required Ingredients</div>
+                    <div style="display:flex;gap:5px;margin-bottom:8px">
+                        <select @bind="selectedIngredientId" class="form-control" @bind:after="OnIngredientSelected" style="font-size:11px">
+                            <option value="">Select…</option>
+                            @foreach(var ing in Inventory.ActiveIngredients.Where(i => i.Type == "Ingredient"))
+                            {
+                                <option value="@ing.Guid">@ing.Name (@ing.Stock @ing.Unit)</option>
+                            }
+                        </select>
+                        <input type="number" class="form-control" step="0.1" @bind="newQuantity" placeholder="Qty" style="width:60px;font-size:11px" />
+                        @{
+                            var ingCat = InventoryPlus.Services.UnitConverter.GetCategory(_selectedIngUnit);
+                            var compatUnits = InventoryPlus.Services.UnitConverter.GetUnitsForCategory(ingCat);
+                        }
+                        @if (compatUnits.Length > 0)
+                        {
+                            <select class="form-control" @bind="newUsageUnit" style="width:70px;font-size:11px">
+                                @foreach (var u in compatUnits)
+                                {
+                                    <option value="@u">@u</option>
+                                }
+                            </select>
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control" @bind="newUsageUnit" placeholder="unit" style="width:70px;font-size:11px" />
+                        }
+                        <button class="btn btn-ghost btn-sm btn-icon" @onclick="AddRequirement"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    @{
+                        var hint = InventoryPlus.Services.UnitConverter.ConversionHint(newUsageUnit, _selectedIngUnit);
+                    }
+                    @if (!string.IsNullOrEmpty(hint))
+                    {
+                        <div style="color:var(--fg3);font-size:10px;margin-bottom:6px"><i class="fa-solid fa-arrows-rotate"></i> @hint</div>
+                    }
+
+                    <div style="max-height:180px;overflow-y:auto">
+                        @foreach(var req in currentProduct.RequiredIngredients)
+                        {
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:4px">
+                                <div>
+                                    <div style="font-weight:600;font-size:11px">@req.Ingredient?.Name</div>
+                                    <div style="font-size:10px;color:var(--fg3)">
+                                        @req.QuantityRequired @req.EffectiveUsageUnit
+                                        @{ var convertedCost = InventoryPlus.Services.UnitConverter.ConvertSafe(req.QuantityRequired, req.EffectiveUsageUnit, req.Ingredient?.Unit ?? "") * (req.Ingredient?.CostPerUnit ?? 0); }
+                                        <span class="text-red">(₱@AppSettings.FormatPrice(convertedCost))</span>
+                                        @{ var reqHint = InventoryPlus.Services.UnitConverter.ConversionHint(req.EffectiveUsageUnit, req.Ingredient?.Unit ?? ""); }
+                                        @if (!string.IsNullOrEmpty(reqHint))
+                                        {
+                                            <span style="color:var(--fg3);margin-left:4px;font-size:9px">@reqHint</span>
+                                        }
+                                    </div>
+                                </div>
+                                <button class="btn btn-danger btn-sm btn-icon" @onclick="() => RemoveRequirement(req)"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        }
+                        @if(currentProduct.RequiredIngredients.Count == 0)
+                        {
+                            <p style="color:var(--fg3);text-align:center;font-size:11px;padding:8px 0">No ingredients added yet.</p>
+                        }
+                    </div>
+                </div>
+                }
+            </div>
+        </div>
     </Content>
     <Footer>
-                <button class="btn btn-outline-secondary" @onclick="CloseModal">Cancel</button>
-                <button class="btn btn-primary" @onclick="Save">Save Product</button>
+        <button class="btn btn-ghost" @onclick="CloseModal">Cancel</button>
+        <button class="btn btn-primary" @onclick="Save">Save Product</button>
     </Footer>
 </AppModal>
 

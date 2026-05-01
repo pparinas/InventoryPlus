@@ -4,15 +4,14 @@
 
 @if (AppSettings.IsPosMode)
 {
-    @* ── POS Mode: Mini daily report banner ── *@
-    <div class="page-header" style="margin-bottom: 0.5rem;">
+    <div class="page-header" style="margin-bottom:0.5rem">
         <div>
-            <h1><i class="fa-solid fa-cash-register me-2" style="color: var(--primary);"></i>POS Mode</h1>
-            <p class="text-muted mb-0">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+            <h1><i class="fa-solid fa-cash-register" style="color:var(--lime);margin-right:8px"></i>POS Mode</h1>
+            <p>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
         </div>
-        <div class="d-flex gap-2 align-items-center">
-            <button class="btn btn-outline-danger btn-sm" @onclick="RequestExitPosMode">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i><span class="d-none d-sm-inline"> Exit POS</span>
+        <div class="page-header-right">
+            <button class="btn btn-danger btn-sm" @onclick="RequestExitPosMode">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Exit POS
             </button>
         </div>
     </div>
@@ -22,179 +21,161 @@ else
     <div class="page-header">
         <div>
             <h1>Point of Sale</h1>
-            <p class="text-muted">Select products and complete sales.</p>
+            <p>Select products and complete a sale.</p>
         </div>
     </div>
 }
 
 @if (!AppSettings.IsPosMode || AppSettings.PosActiveView == "pos")
 {
-<div class="pos-layout">
-    <!-- Product Grid Side -->
-    <div class="pos-products">
-        <div class="filter-bar">
-            <div class="d-flex gap-2 flex-wrap align-items-center">
-                <div class="flex-grow-1" style="min-width:180px">
-                    <input type="text" class="form-control" @bind="searchQuery" @bind:event="oninput" placeholder="Search products..." />
-                </div>
-                <div class="d-flex gap-2 flex-wrap">
-                    <button class="pos-category-btn @(selectedCategory == "All" ? "active" : "")" @onclick='() => selectedCategory = "All"'>All</button>
+<div class="section-gap fade-in">
+    <div class="pos-grid">
+        <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="filter-bar">
+                <input class="form-control search-input" placeholder="Search products…" @bind="searchQuery" @bind:event="oninput" />
+                <div class="pill-group">
+                    <button class="pill @(selectedCategory == "All" ? "active" : "")" @onclick='() => selectedCategory = "All"'>All</button>
                     @foreach (var cat in Categories)
                     {
-                        <button class="pos-category-btn @(selectedCategory == cat ? "active" : "")" @onclick="() => selectedCategory = cat">@cat</button>
+                        <button class="pill @(selectedCategory == cat ? "active" : "")" @onclick="() => selectedCategory = cat">@cat</button>
                     }
                 </div>
             </div>
-        </div>
 
-        @if (!FilteredProducts.Any())
-        {
-            <EmptyState Icon="fa-solid fa-store" Title="No products available" 
-                        Message="@(string.IsNullOrEmpty(searchQuery) ? "Add products first to start selling." : "No products match your search.")"
-                        ActionText="Go to Products" ActionIcon="fa-solid fa-arrow-right" 
-                        OnAction="@(() => Nav.NavigateTo("products"))" />
-        }
-        else
-        {
-            <div class="pos-product-grid">
-                @foreach (var prod in FilteredProducts)
-                {
-                    bool isAvailable = prod.AvailableCount > 0;
-                    var cartItem = Cart.FirstOrDefault(c => c.Product.Guid == prod.Guid);
-                    <div class="pos-product-card @(isAvailable ? "" : "disabled") @(cartItem != null ? "in-cart" : "")"
-                         @onclick="() => { if (isAvailable) AddToCart(prod); }">
-                        @if (!string.IsNullOrEmpty(prod.ImageUrl))
-                        {
-                            <img src="@prod.ImageUrl" class="pos-product-img" alt="@prod.Name" />
-                        }
-                        else
-                        {
-                            <div class="pos-product-img-placeholder"><i class="fa-solid fa-image"></i></div>
-                        }
-                        <div class="pos-product-info">
-                            <div class="pos-product-name">@prod.Name</div>
-                            <div class="pos-product-price">₱@AppSettings.FormatPrice(prod.SellingPrice)</div>
-                            <div class="pos-product-stock text-muted">
-                                @if (!isAvailable)
-                                {
-                                    <span class="text-danger">Out of stock</span>
-                                }
-                                else
-                                {
-                                    <span>@prod.AvailableCount avail.</span>
-                                }
-                            </div>
-                        </div>
-                        @if (cartItem != null)
-                        {
-                            <div class="pos-product-qty-badge">@cartItem.Quantity</div>
-                        }
-                    </div>
-                }
-            </div>
-        }
-    </div>
-
-    <!-- Cart Side (desktop) -->
-    <div class="pos-cart-panel glass-panel">
-        <h3 style="margin-bottom: 0.5rem;"><i class="fa-solid fa-cart-shopping"></i> Current Sale</h3>
-        
-        <!-- Customer name -->
-        <div style="margin-bottom: 0.75rem;">
-            <input type="text" class="form-control" @bind="customerName" placeholder="Customer name (optional)" />
-        </div>
-
-        <!-- Cart items -->
-        <div class="pos-cart-items">
-            @if (!Cart.Any())
+            @if (!FilteredProducts.Any())
             {
-                <div class="pos-cart-empty">
-                    <i class="fa-solid fa-cart-shopping"></i>
-                    <p>Tap a product to add it</p>
-                </div>
+                <EmptyState Icon="fa-solid fa-store" Title="No products available"
+                            Message="@(string.IsNullOrEmpty(searchQuery) ? "Add products first to start selling." : "No products match your search.")"
+                            ActionText="Go to Products" ActionIcon="fa-solid fa-arrow-right"
+                            OnAction="@(() => Nav.NavigateTo("products"))" />
             }
             else
             {
-                @foreach (var item in Cart)
-                {
-                    <div class="pos-cart-item">
-                        <div class="pos-cart-item-info">
-                            <strong>@item.Product.Name</strong>
-                            <span class="text-muted" style="font-size: 0.8rem;">₱@AppSettings.FormatPrice(item.Product.SellingPrice) ea</span>
+                <div class="pos-product-grid">
+                    @foreach (var prod in FilteredProducts)
+                    {
+                        bool isAvailable = prod.AvailableCount > 0;
+                        var cartItem = Cart.FirstOrDefault(c => c.Product.Guid == prod.Guid);
+                        <div class="pos-card @(isAvailable ? "" : "disabled") @(cartItem != null ? "in-cart" : "")"
+                             @onclick="() => { if (isAvailable) AddToCart(prod); }">
+                            @if (cartItem != null)
+                            {
+                                <div class="pos-qty-badge">@cartItem.Quantity</div>
+                            }
+                            @if (!string.IsNullOrEmpty(prod.ImageUrl))
+                            {
+                                <div class="pos-card-img"><img src="@prod.ImageUrl" style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius-sm)" alt="@prod.Name" /></div>
+                            }
+                            else
+                            {
+                                <div class="pos-card-img" style="display:flex;align-items:center;justify-content:center;background:var(--bg3);border-radius:var(--radius-sm)"><i class="fa-solid fa-image" style="color:var(--fg3);font-size:18px"></i></div>
+                            }
+                            <div class="pos-card-name">@prod.Name</div>
+                            <div class="pos-card-price">₱@AppSettings.FormatPrice(prod.SellingPrice)</div>
+                            <div class="pos-card-stock">@(isAvailable ? $"{prod.AvailableCount} avail." : "Out of stock")</div>
                         </div>
-                        <div class="pos-cart-item-controls">
-                            <button class="pos-qty-btn" @onclick="() => DecreaseQty(item)"><i class="fa-solid fa-minus"></i></button>
-                            <input type="number" min="1" max="@item.Product.AvailableCount" value="@item.Quantity" 
-                                   @onchange="(e) => SetQty(item, e)" class="pos-qty-input" />
-                            <button class="pos-qty-btn" @onclick="() => IncreaseQty(item)"><i class="fa-solid fa-plus"></i></button>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="cart-panel">
+            <div class="card card-p" style="flex:none">
+                <div style="display:flex;align-items:center;gap:5px;margin-bottom:10px">
+                    <span style="font-size:10px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:.1em">Current Sale</span>
+                    @if (Cart.Any())
+                    {
+                        <span class="badge badge-lime">@Cart.Sum(c => c.Quantity) items</span>
+                    }
+                </div>
+
+                <div class="form-group" style="margin-bottom:8px">
+                    <input class="form-control" placeholder="Customer name (optional)" @bind="customerName" />
+                </div>
+
+                <div style="max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;margin-bottom:8px">
+                    @if (!Cart.Any())
+                    {
+                        <div style="text-align:center;padding:20px 0;color:var(--fg3)">
+                            <i class="fa-solid fa-cart-shopping" style="font-size:22px;opacity:.2;display:block;margin-bottom:5px"></i>
+                            <span style="font-size:11px">Tap a product to add</span>
                         </div>
-                        <div class="pos-cart-item-total">₱@AppSettings.FormatPrice(item.Product.SellingPrice * item.Quantity)</div>
-                        <button class="pos-cart-remove" @onclick="() => RemoveFromCart(item)"><i class="fa-solid fa-xmark"></i></button>
+                    }
+                    else
+                    {
+                        @foreach (var item in Cart)
+                        {
+                            <div class="cart-item">
+                                <div class="cart-item-name">
+                                    @item.Product.Name
+                                    <div style="font-size:9px;color:var(--fg3)">₱@AppSettings.FormatPrice(item.Product.SellingPrice) ea.</div>
+                                </div>
+                                <div class="qty-ctrl">
+                                    <button class="qty-btn" @onclick="() => DecreaseQty(item)"><i class="fa-solid fa-minus"></i></button>
+                                    <span class="qty-num">@item.Quantity</span>
+                                    <button class="qty-btn" @onclick="() => IncreaseQty(item)"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                                <span style="font-family:'Space Mono',monospace;font-size:11px;color:var(--fg);font-weight:700;min-width:54px;text-align:right">₱@AppSettings.FormatPrice(item.Product.SellingPrice * item.Quantity)</span>
+                                <button @onclick="() => RemoveFromCart(item)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:10px;opacity:.6;padding:0 2px"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <div class="form-group" style="margin-bottom:8px">
+                    <label class="form-label">Discount</label>
+                    <div style="display:flex;gap:5px">
+                        <select class="form-control" @bind="discountType" style="flex:0 0 100px">
+                            <option value="None">None</option>
+                            <option value="Percentage">% Off</option>
+                            <option value="Fixed">₱ Fixed</option>
+                        </select>
+                        @if (discountType != "None")
+                        {
+                            <input class="form-control" type="number" step="0.01" @bind="discountAmount" placeholder="@(discountType == "Percentage" ? "10" : "50")" />
+                        }
                     </div>
-                }
-            }
-        </div>
+                </div>
 
-        <!-- Discount -->
-        <div class="pos-discount-section">
-            <label class="form-label" style="font-size: 0.8rem; margin-bottom: 0.25rem;">Discount</label>
-            <div class="d-flex gap-2">
-                <select class="form-select" @bind="discountType" style="flex: 0 0 120px;">
-                    <option value="None">None</option>
-                    <option value="Percentage">% Off</option>
-                    <option value="Fixed">₱ Fixed</option>
-                </select>
-                @if (discountType != "None")
-                {
-                    <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="@(discountType == "Percentage" ? "e.g. 10" : "e.g. 50")" />
-                }
+                <div class="form-group" style="margin-bottom:8px">
+                    <textarea @bind="saleNote" placeholder="Sale note (optional)" rows="1" class="form-control" style="font-size:11px"></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom:10px">
+                    <label class="form-label">Payment</label>
+                    <div style="display:flex;gap:5px">
+                        <button class="pay-btn @(paymentMethod == "Cash" ? "active" : "")" @onclick='() => paymentMethod = "Cash"'>Cash</button>
+                        <button class="pay-btn @(paymentMethod == "GCash" ? "active" : "")" @onclick='() => paymentMethod = "GCash"'>GCash</button>
+                    </div>
+                </div>
+
+                <div style="padding:8px 0;border-top:1px solid var(--border)">
+                    <div class="cart-total-row"><span>Subtotal</span><span class="mono">₱@AppSettings.FormatPrice(Subtotal)</span></div>
+                    <div class="cart-total-row"><span>Tax</span><span class="mono">₱@AppSettings.FormatPrice(TaxTotal)</span></div>
+                    @if (DiscountDisplay > 0)
+                    {
+                        <div class="cart-total-row" style="color:var(--red)"><span>Discount</span><span class="mono">-₱@DiscountDisplay.ToString("0.00")</span></div>
+                    }
+                    <div class="cart-total-row grand"><span>Total</span><span class="mono">₱@AppSettings.FormatPrice(Total)</span></div>
+                </div>
+
+                <div style="display:flex;gap:5px;margin-top:6px">
+                    @if (Cart.Any())
+                    {
+                        <button class="btn btn-danger btn-icon" @onclick="ClearCart" title="Clear cart"><i class="fa-solid fa-trash"></i></button>
+                    }
+                    <button class="btn btn-primary" style="flex:1;justify-content:center;padding:10px;font-size:13px;font-weight:700" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
+                        @if (isProcessing)
+                        {
+                            <i class="fa-solid fa-spinner fa-spin"></i> <text>Processing...</text>
+                        }
+                        else
+                        {
+                            <text>Complete Sale →</text>
+                        }
+                    </button>
+                </div>
             </div>
-        </div>
-
-        <!-- Sale note -->
-        <div class="mb-2">
-            <textarea @bind="saleNote" placeholder="Sale note (optional)" rows="1" class="form-control"></textarea>
-        </div>
-
-        <!-- Payment -->
-        <div class="pos-payment-section">
-            <div class="d-flex gap-2">
-                <button class="btn @(paymentMethod == "Cash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "Cash"'>
-                    <i class="fa-solid fa-money-bill-wave"></i> Cash
-                </button>
-                <button class="btn @(paymentMethod == "GCash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "GCash"'>
-                    <i class="fa-solid fa-mobile-screen-button"></i> GCash
-                </button>
-            </div>
-        </div>
-
-        <!-- Totals -->
-        <div class="pos-totals">
-            <div class="pos-total-row"><span>Subtotal</span><span>₱@AppSettings.FormatPrice(Subtotal)</span></div>
-            <div class="pos-total-row"><span>Tax</span><span>₱@AppSettings.FormatPrice(TaxTotal)</span></div>
-            @if (DiscountDisplay > 0)
-            {
-                <div class="pos-total-row text-danger"><span>Discount</span><span>-₱@DiscountDisplay.ToString("0.00")</span></div>
-            }
-            <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@AppSettings.FormatPrice(Total)</strong></div>
-        </div>
-
-        <div class="d-flex gap-2">
-            @if (Cart.Any())
-            {
-                <button class="btn btn-outline-secondary btn-sm" @onclick="ClearCart" style="flex: 0 0 auto;"><i class="fa-solid fa-trash"></i></button>
-            }
-            <button class="btn btn-primary w-100" style="padding: 0.75rem; font-size: 1rem;" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
-                @if (isProcessing)
-                {
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                }
-                else
-                {
-                    <i class="fa-solid fa-check"></i>
-                }
-                Complete Sale
-            </button>
         </div>
     </div>
 </div>
@@ -211,65 +192,65 @@ else
 <!-- Mobile cart bottom sheet -->
 <AppOffCanvas IsOpen="showMobileCart" IsOpenChanged="@((v) => showMobileCart = v)" Placement="Bottom">
     <Header>
-        <h5 class="offcanvas-title"><i class="fa-solid fa-cart-shopping"></i> Cart (@Cart.Sum(c => c.Quantity) items)</h5>
+        <h5><i class="fa-solid fa-cart-shopping"></i> Cart (@Cart.Sum(c => c.Quantity) items)</h5>
     </Header>
     <Content>
-        <div class="mb-2">
-            <input type="text" class="form-control" @bind="customerName" placeholder="Customer name (optional)" />
+        <div style="margin-bottom:8px">
+            <input class="form-control" @bind="customerName" placeholder="Customer name (optional)" />
         </div>
 
-        <div class="pos-cart-items" style="max-height: 35vh; overflow-y: auto;">
+        <div style="max-height:35vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px">
             @foreach (var item in Cart)
             {
-                <div class="pos-cart-item">
-                    <div class="pos-cart-item-info">
-                        <strong>@item.Product.Name</strong>
-                        <span class="text-muted" style="font-size: 0.8rem;">₱@AppSettings.FormatPrice(item.Product.SellingPrice)</span>
+                <div class="cart-item">
+                    <div class="cart-item-name">
+                        @item.Product.Name
+                        <div style="font-size:9px;color:var(--fg3)">₱@AppSettings.FormatPrice(item.Product.SellingPrice)</div>
                     </div>
-                    <div class="pos-cart-item-controls">
-                        <button class="pos-qty-btn" @onclick="() => DecreaseQty(item)"><i class="fa-solid fa-minus"></i></button>
-                        <span style="min-width: 24px; text-align: center;">@item.Quantity</span>
-                        <button class="pos-qty-btn" @onclick="() => IncreaseQty(item)"><i class="fa-solid fa-plus"></i></button>
+                    <div class="qty-ctrl">
+                        <button class="qty-btn" @onclick="() => DecreaseQty(item)"><i class="fa-solid fa-minus"></i></button>
+                        <span class="qty-num">@item.Quantity</span>
+                        <button class="qty-btn" @onclick="() => IncreaseQty(item)"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <button class="pos-cart-remove" @onclick="() => RemoveFromCart(item)"><i class="fa-solid fa-xmark"></i></button>
+                    <button @onclick="() => RemoveFromCart(item)" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:10px"><i class="fa-solid fa-xmark"></i></button>
                 </div>
             }
         </div>
 
-        <div class="pos-discount-section">
-            <div class="d-flex gap-2">
-                <select class="form-select" @bind="discountType">
+        <div class="form-group" style="margin-top:8px">
+            <div style="display:flex;gap:5px">
+                <select class="form-control" @bind="discountType" style="flex:0 0 100px">
                     <option value="None">No Discount</option>
                     <option value="Percentage">% Off</option>
                     <option value="Fixed">₱ Fixed</option>
                 </select>
                 @if (discountType != "None")
                 {
-                    <input type="number" class="form-control" step="0.01" @bind="discountAmount" placeholder="Amount" style="width: 80px;" />
+                    <input class="form-control" type="number" step="0.01" @bind="discountAmount" placeholder="Amount" style="width:80px" />
                 }
             </div>
         </div>
 
-        <div class="d-flex gap-2 mb-2">
-            <button class="btn @(paymentMethod == "Cash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "Cash"'>
+        <div style="display:flex;gap:5px;margin-top:8px">
+            <button class="pay-btn @(paymentMethod == "Cash" ? "active" : "")" style="flex:1" @onclick='() => paymentMethod = "Cash"'>
                 <i class="fa-solid fa-money-bill-wave"></i> Cash
             </button>
-            <button class="btn @(paymentMethod == "GCash" ? "btn-primary" : "btn-outline-secondary") w-100 btn-sm" @onclick='() => paymentMethod = "GCash"'>
+            <button class="pay-btn @(paymentMethod == "GCash" ? "active" : "")" style="flex:1" @onclick='() => paymentMethod = "GCash"'>
                 <i class="fa-solid fa-mobile-screen-button"></i> GCash
             </button>
         </div>
 
-        <div class="pos-totals">
-            <div class="pos-total-row"><span>Subtotal</span><span>₱@AppSettings.FormatPrice(Subtotal)</span></div>
-            <div class="pos-total-row"><span>Tax</span><span>₱@AppSettings.FormatPrice(TaxTotal)</span></div>
+        <div style="padding:8px 0;border-top:1px solid var(--border);margin-top:8px">
+            <div class="cart-total-row"><span>Subtotal</span><span class="mono">₱@AppSettings.FormatPrice(Subtotal)</span></div>
+            <div class="cart-total-row"><span>Tax</span><span class="mono">₱@AppSettings.FormatPrice(TaxTotal)</span></div>
             @if (DiscountDisplay > 0)
             {
-                <div class="pos-total-row text-danger"><span>Discount</span><span>-₱@DiscountDisplay.ToString("0.00")</span></div>
+                <div class="cart-total-row" style="color:var(--red)"><span>Discount</span><span class="mono">-₱@DiscountDisplay.ToString("0.00")</span></div>
             }
-            <div class="pos-total-row pos-grand-total"><strong>Total</strong><strong>₱@AppSettings.FormatPrice(Total)</strong></div>
+            <div class="cart-total-row grand"><span>Total</span><span class="mono">₱@AppSettings.FormatPrice(Total)</span></div>
         </div>
 
-        <button class="btn btn-primary w-100" style="padding: 0.75rem;" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
+        <button class="btn btn-primary" style="width:100%;padding:10px;margin-top:6px" disabled="@(!Cart.Any() || isProcessing)" @onclick="CompleteSale">
             @if (isProcessing) { <i class="fa-solid fa-spinner fa-spin"></i> }
             <i class="fa-solid fa-check"></i> Complete Sale (₱@AppSettings.FormatPrice(Total))
         </button>
@@ -294,118 +275,87 @@ else
 @* ── POS Mode: Sales History View ── *@
 @if (AppSettings.IsPosMode && AppSettings.PosActiveView == "history")
 {
-<div class="glass-panel">
-    <h3 style="margin-bottom: 0.75rem;"><i class="fa-solid fa-clock-rotate-left"></i> Sales Summary</h3>
+<div class="section-gap fade-in">
+    <div class="card card-p">
+        <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Sales Summary</div>
 
-    <div class="d-flex gap-2 mb-3 flex-wrap">
-        @foreach (var f in new[] { "Daily", "Weekly", "Monthly" })
-        {
-            <button class="btn btn-sm @(historyFilter == f ? "btn-primary" : "btn-outline-secondary")" @onclick="() => { historyFilter = f; historyPage = 1; }">@f</button>
-        }
-    </div>
-
-    @if (HistorySales.Any())
-    {
-        @* Summary stats for selected period *@
-        <div class="row g-2 mb-3">
-            <div class="col-4">
-                <div class="text-center p-2" style="background: var(--bg-surface); border-radius: 8px;">
-                    <div class="text-muted" style="font-size: 0.7rem;">Revenue</div>
-                    <div class="fw-bold" style="color: var(--primary);">₱@AppSettings.FormatCurrency(HistorySales.Where(s => !s.IsVoided).Sum(s => s.TotalAmount))</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="text-center p-2" style="background: var(--bg-surface); border-radius: 8px;">
-                    <div class="text-muted" style="font-size: 0.7rem;">Profit</div>
-                    <div class="fw-bold text-success">₱@AppSettings.FormatCurrency(HistorySales.Where(s => !s.IsVoided).Sum(s => s.ProfitAmount))</div>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="text-center p-2" style="background: var(--bg-surface); border-radius: 8px;">
-                    <div class="text-muted" style="font-size: 0.7rem;">Sales</div>
-                    <div class="fw-bold">@HistorySales.Count()</div>
-                </div>
-            </div>
-        </div>
-
-        @* Sales table *@
-        <div class="table-responsive table-view">
-        <table class="table table-hover mb-0">
-            <thead>
-                <tr><th>Date</th><th>Product</th><th>Qty</th><th>Method</th><th>Amount</th><th class="text-end">Actions</th></tr>
-            </thead>
-            <tbody>
-                @foreach (var sale in HistorySales.OrderByDescending(s => s.Date).Skip((historyPage - 1) * HistoryPageSize).Take(HistoryPageSize))
-                {
-                    <tr style="@(sale.IsVoided ? "opacity: 0.5; text-decoration: line-through;" : "")">
-                        <td>@sale.Date.ToLocalTime().ToString("MMM dd, h:mm tt")</td>
-                        <td><strong>@sale.ProductName</strong></td>
-                        <td>@sale.QuantitySold</td>
-                        <td><span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span></td>
-                        <td style="color: var(--primary)">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
-                        <td class="text-end">
-                            @if (!sale.IsVoided)
-                            {
-                                <button class="btn btn-sm btn-outline-primary" @onclick="() => PrintHistoryReceipt(sale)" title="Receipt"><i class="fa-solid fa-print"></i></button>
-                                @if (sale.Date.ToLocalTime().Date == DateTime.Today)
-                                {
-                                    <button class="btn btn-sm btn-outline-secondary ms-1" @onclick="() => StartEditSale(sale)" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn btn-sm btn-outline-danger ms-1" @onclick="() => StartVoidSale(sale)" title="Void"><i class="fa-solid fa-ban"></i></button>
-                                }
-                            }
-                            else
-                            {
-                                <span class="badge bg-danger-subtle">Voided</span>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        </div>
-        @* Card view for mobile *@
-        <div class="card-view">
-            @foreach (var sale in HistorySales.OrderByDescending(s => s.Date).Skip((historyPage - 1) * HistoryPageSize).Take(HistoryPageSize))
+        <div class="pill-group" style="margin-bottom:10px">
+            @foreach (var f in new[] { "Daily", "Weekly", "Monthly" })
             {
-                <div class="stock-card" style="@(sale.IsVoided ? "opacity: 0.5;" : "")">
-                    <div class="stock-card-header">
-                        <div>
-                            <span class="stock-card-name">@sale.ProductName</span>
-                            <div class="text-muted" style="font-size: 0.72rem;">@sale.Date.ToLocalTime().ToString("MMM dd, h:mm tt")</div>
-                        </div>
-                        @if (sale.IsVoided)
-                        {
-                            <span class="badge bg-danger-subtle">Voided</span>
-                        }
-                        else
-                        {
-                            <span class="badge @(sale.PaymentMethod == "GCash" ? "bg-primary-subtle" : "bg-secondary")">@sale.PaymentMethod</span>
-                        }
-                    </div>
-                    <div class="stock-card-body">
-                        <div class="stock-card-row"><span class="stock-card-label">Qty</span><span>@sale.QuantitySold</span></div>
-                        <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="fw-bold" style="color: var(--primary)">₱@AppSettings.FormatCurrency(sale.TotalAmount)</span></div>
-                    </div>
-                    @if (!sale.IsVoided)
-                    {
-                        <div class="stock-card-actions">
-                            <button class="btn btn-sm btn-outline-primary" @onclick="() => PrintHistoryReceipt(sale)"><i class="fa-solid fa-print"></i> Receipt</button>
-                            @if (sale.Date.ToLocalTime().Date == DateTime.Today)
-                            {
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => StartEditSale(sale)"><i class="fa-solid fa-pen"></i> Edit</button>
-                                <button class="btn btn-sm btn-outline-danger" @onclick="() => StartVoidSale(sale)"><i class="fa-solid fa-ban"></i> Void</button>
-                            }
-                        </div>
-                    }
-                </div>
+                <button class="pill @(historyFilter == f ? "active" : "")" @onclick="() => { historyFilter = f; historyPage = 1; }">@f</button>
             }
         </div>
-        <PaginationBar Page="historyPage" PageSize="HistoryPageSize" TotalItems="HistorySales.Count()" OnPageChange="SetHistoryPage" />
-    }
-    else
-    {
-        <EmptyState Icon="fa-solid fa-receipt" Title="No sales yet" Message="Sales will appear here after you complete transactions." />
-    }
+
+        @if (HistorySales.Any())
+        {
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px">
+                <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+                    <div class="stat-card-icon si-lime"><i class="fa-solid fa-chart-line"></i></div>
+                    <div>
+                        <div class="stat-card-value" style="font-size:14px">₱@AppSettings.FormatCurrency(HistorySales.Where(s => !s.IsVoided).Sum(s => s.TotalAmount))</div>
+                        <div class="stat-card-label">Revenue</div>
+                    </div>
+                </div>
+                <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+                    <div class="stat-card-icon si-green"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+                    <div>
+                        <div class="stat-card-value" style="font-size:14px">₱@AppSettings.FormatCurrency(HistorySales.Where(s => !s.IsVoided).Sum(s => s.ProfitAmount))</div>
+                        <div class="stat-card-label">Profit</div>
+                    </div>
+                </div>
+                <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
+                    <div class="stat-card-icon si-amber"><i class="fa-solid fa-receipt"></i></div>
+                    <div>
+                        <div class="stat-card-value" style="font-size:14px">@HistorySales.Count()</div>
+                        <div class="stat-card-label">Sales</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr><th>Date</th><th>Product</th><th>Qty</th><th>Method</th><th>Amount</th><th style="text-align:right">Actions</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sale in HistorySales.OrderByDescending(s => s.Date).Skip((historyPage - 1) * HistoryPageSize).Take(HistoryPageSize))
+                        {
+                            <tr style="@(sale.IsVoided ? "opacity:0.5;text-decoration:line-through" : "")">
+                                <td style="font-size:11px">@sale.Date.ToLocalTime().ToString("MMM dd, h:mm tt")</td>
+                                <td style="font-weight:600">@sale.ProductName</td>
+                                <td>@sale.QuantitySold</td>
+                                <td><span class="badge @(sale.PaymentMethod == "GCash" ? "badge-lime" : "badge-gray")">@sale.PaymentMethod</span></td>
+                                <td class="mono text-lime" style="font-weight:700">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
+                                <td>
+                                    <div style="display:flex;gap:4px;justify-content:flex-end">
+                                        @if (!sale.IsVoided)
+                                        {
+                                            <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => PrintHistoryReceipt(sale)" title="Receipt"><i class="fa-solid fa-print"></i></button>
+                                            @if (sale.Date.ToLocalTime().Date == DateTime.Today)
+                                            {
+                                                <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => StartEditSale(sale)" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                                                <button class="btn btn-danger btn-sm btn-icon" @onclick="() => StartVoidSale(sale)" title="Void"><i class="fa-solid fa-ban"></i></button>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-red">Voided</span>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <PaginationBar Page="historyPage" PageSize="HistoryPageSize" TotalItems="HistorySales.Count()" OnPageChange="SetHistoryPage" />
+        }
+        else
+        {
+            <EmptyState Icon="fa-solid fa-receipt" Title="No sales yet" Message="Sales will appear here after you complete transactions." />
+        }
+    </div>
 </div>
 }
 
@@ -426,49 +376,49 @@ else
 @* ── Edit Sale Modal ── *@
 <AppModal IsOpen="showEditSaleModal" IsOpenChanged="@((v) => { showEditSaleModal = v; })" Size="Large">
     <Header>
-        <h5 class="modal-title">Edit Sale</h5>
+        <h5>Edit Sale</h5>
     </Header>
     <Content>
         @if (editingSale != null)
         {
-            <div class="mb-3">
+            <div class="form-group">
                 <label class="form-label">Product</label>
-                <input type="text" class="form-control" value="@editingSale.ProductName" readonly />
+                <input class="form-control" value="@editingSale.ProductName" readonly />
             </div>
-            <div class="row g-3">
-                <div class="col-6">
+            <div class="form-row">
+                <div class="form-group">
                     <label class="form-label">Quantity</label>
-                    <input type="number" class="form-control" @bind="editQty" min="1" />
+                    <input class="form-control" type="number" @bind="editQty" min="1" />
                 </div>
-                <div class="col-6">
+                <div class="form-group">
                     <label class="form-label">Payment Method</label>
-                    <select class="form-select" @bind="editPaymentMethod">
+                    <select class="form-control" @bind="editPaymentMethod">
                         <option value="Cash">Cash</option>
                         <option value="GCash">GCash</option>
                     </select>
                 </div>
             </div>
-            <div class="row g-3 mt-1">
-                <div class="col-6">
+            <div class="form-row">
+                <div class="form-group">
                     <label class="form-label">Discount Type</label>
-                    <select class="form-select" @bind="editDiscountType">
+                    <select class="form-control" @bind="editDiscountType">
                         <option value="None">None</option>
                         <option value="Percentage">% Off</option>
                         <option value="Fixed">₱ Fixed</option>
                     </select>
                 </div>
-                <div class="col-6">
+                <div class="form-group">
                     @if (editDiscountType != "None")
                     {
                         <label class="form-label">Discount Amount</label>
-                        <input type="number" class="form-control" step="0.01" @bind="editDiscountAmount" />
+                        <input class="form-control" type="number" step="0.01" @bind="editDiscountAmount" />
                     }
                 </div>
             </div>
         }
     </Content>
     <Footer>
-        <button class="btn btn-outline-secondary" @onclick="() => showEditSaleModal = false">Cancel</button>
+        <button class="btn btn-ghost" @onclick="() => showEditSaleModal = false">Cancel</button>
         <button class="btn btn-primary" @onclick="SaveEditSale">Save Changes</button>
     </Footer>
 </AppModal>
