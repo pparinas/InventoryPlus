@@ -139,14 +139,40 @@ namespace InventoryPlus.Pages
             }
             catch (Exception ex)
             {
-                ErrorMessage = ex.Message.Contains("Invalid") || ex.Message.Contains("credentials")
-                    ? "Invalid email or password."
-                    : $"Login failed: {ex.Message}";
+                ErrorMessage = ParseLoginError(ex.Message);
             }
             finally
             {
                 IsLoading = false;
             }
+        }
+
+        private static string ParseLoginError(string message)
+        {
+            var msg = message.ToLowerInvariant();
+
+            if (msg.Contains("email_not_confirmed") || msg.Contains("email not confirmed"))
+                return "Your email address has not been verified. Please check your email for a confirmation link before signing in.";
+
+            if (msg.Contains("invalid") || msg.Contains("credentials") || msg.Contains("invalid_credentials"))
+                return "Invalid email or password.";
+
+            if (msg.Contains("user_not_found") || msg.Contains("no user found"))
+                return "No account found with that email address.";
+
+            if (msg.Contains("too_many_requests") || msg.Contains("rate limit") || msg.Contains("429"))
+                return "Too many login attempts. Please wait a moment and try again.";
+
+            if (msg.Contains("user_banned") || msg.Contains("banned"))
+                return "Your account has been suspended. Please contact an administrator.";
+
+            if (msg.Contains("network") || msg.Contains("fetch") || msg.Contains("timeout"))
+                return "Unable to connect to the server. Please check your internet connection and try again.";
+
+            if (msg.Contains("server") || msg.Contains("500") || msg.Contains("internal"))
+                return "A server error occurred. Please try again later.";
+
+            return "Login failed. Please check your credentials and try again.";
         }
     }
 }
