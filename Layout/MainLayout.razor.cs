@@ -27,6 +27,7 @@ namespace InventoryPlus.Layout
         protected string? currentUserEmail;
         private string currentPath = "";
         private string? _lastAuthUserId = null;
+        private DateTime _lastHeartbeat = DateTime.MinValue;
         private ErrorBoundary? errorBoundary;
         protected Components.NotificationPanel? notificationPanel;
 
@@ -210,7 +211,30 @@ namespace InventoryPlus.Layout
                 return;
             }
 
+            // Heartbeat: update last_sign_in_at every 5 minutes
+            if ((DateTime.UtcNow - _lastHeartbeat).TotalMinutes >= 5)
+            {
+                _lastHeartbeat = DateTime.UtcNow;
+                _ = UpdateHeartbeatAsync();
+            }
+
             try { await InvokeAsync(StateHasChanged); } catch { }
+        }
+
+        private async Task UpdateHeartbeatAsync()
+        {
+            try
+            {
+                var user = Supabase.Auth.CurrentUser;
+                if (user != null)
+                {
+                    await Supabase.Rpc("update_last_sign_in", new Dictionary<string, object>
+                    {
+                        { "user_id", user.Id }
+                    });
+                }
+            }
+            catch { }
         }
 
         private string GetRelativePath()

@@ -21,7 +21,9 @@ namespace InventoryPlus.Services
         {
             try
             {
-                var resp = await _supabase.From<UserProfile>().Get();
+                var resp = await _supabase.From<UserProfile>()
+                    .Select("*")
+                    .Get();
                 Users = resp.Models
                     .Select(p => new SystemUser
                     {
