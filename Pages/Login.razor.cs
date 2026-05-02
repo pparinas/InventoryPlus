@@ -122,12 +122,15 @@ namespace InventoryPlus.Pages
                             // Update last sign-in timestamp
                             try
                             {
-                                await Supabase.From<UserProfile>()
-                                    .Where(p => p.Guid == userId)
-                                    .Set(p => p.LastSignInAt, DateTime.UtcNow)
-                                    .Update();
+                                await Supabase.Rpc("update_last_sign_in", new Dictionary<string, object>
+                                {
+                                    { "user_id", userId.ToString() }
+                                });
                             }
-                            catch { }
+                            catch (Exception signInEx)
+                            {
+                                Console.WriteLine($"Failed to update last_sign_in_at: {signInEx.Message}");
+                            }
                         }
                     }
                     NavigationManager.NavigateTo("dashboard");
