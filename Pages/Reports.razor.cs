@@ -70,14 +70,14 @@ namespace InventoryPlus.Pages
             get
             {
                 var now = DateTime.Now;
-                // Free users are restricted to 30 days max (Daily/Weekly/Monthly)
-                var effectiveFilter = !AppSettings.IsPro && selectedFilter is "Yearly" or "All"
-                    ? "Monthly"
+                // Free users are restricted to 15 days max (Daily/Weekly only)
+                var effectiveFilter = !AppSettings.IsPro && selectedFilter is "Monthly" or "Yearly" or "All"
+                    ? "Weekly"
                     : selectedFilter;
                 return effectiveFilter switch
                 {
                     "Daily" => Inventory.Sales.Where(s => s.Date.Date == now.Date),
-                    "Weekly" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-7)),
+                    "Weekly" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-15)),
                     "Monthly" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-30)),
                     "Yearly" => Inventory.Sales.Where(s => s.Date >= now.AddDays(-365)),
                     _ => Inventory.Sales

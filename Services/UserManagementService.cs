@@ -30,7 +30,8 @@ namespace InventoryPlus.Services
                         IsAdmin = p.IsAdmin,
                         IsActive = p.IsActive,
                         CreatedAt = p.CreatedAt,
-                        SubscriptionExpiry = p.SubscriptionExpiry
+                        SubscriptionExpiry = p.SubscriptionExpiry,
+                        LastSignInAt = p.LastSignInAt
                     })
                     .OrderBy(u => u.CreatedAt)
                     .ToList();

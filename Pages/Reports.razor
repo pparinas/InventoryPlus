@@ -33,7 +33,7 @@ else
     <div class="pill-group">
         @foreach (var f in new[] { "Daily", "Weekly", "Monthly", "Yearly", "All" })
         {
-            var isProOnly = f is "Yearly" or "All";
+            var isProOnly = f is "Monthly" or "Yearly" or "All";
             var isLocked = isProOnly && !AppSettings.IsPro;
             <button class="pill @(selectedFilter == f ? "active" : "")" disabled="@isLocked"
                     @onclick="() => { if (!isLocked) { selectedFilter = f; salesPage = 1; } }">
@@ -46,7 +46,7 @@ else
     @if (!AppSettings.IsPro)
     {
         <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--fg2)">
-            <i class="fa-solid fa-lock"></i> Yearly and All-time reports are <strong>Pro</strong> features. Free plan covers up to 30 days.
+            <i class="fa-solid fa-lock"></i> Monthly, Yearly and All-time reports are <strong>Pro</strong> features. Free plan covers up to 15 days.
         </div>
     }
 

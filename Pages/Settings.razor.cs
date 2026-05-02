@@ -396,6 +396,11 @@ namespace InventoryPlus.Pages
             }
         }
 
+        protected void ToggleOnboarding()
+        {
+            AppSettings.OnboardingCompleted = !AppSettings.OnboardingCompleted;
+        }
+
         protected void TogglePosMode()
         {
             AppSettings.IsPosMode = !AppSettings.IsPosMode;

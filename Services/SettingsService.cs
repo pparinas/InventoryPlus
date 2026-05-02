@@ -192,7 +192,7 @@ namespace InventoryPlus.Services
         }
 
         // OPEX tab
-        private bool _showOpexTab = false;
+        private bool _showOpexTab = true;
         public bool ShowOpexTab
         {
             get => _showOpexTab;

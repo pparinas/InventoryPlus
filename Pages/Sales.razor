@@ -198,8 +198,8 @@ else
     }
 </div>
 
-<!-- Mobile cart bottom sheet -->
-<AppOffCanvas IsOpen="showMobileCart" IsOpenChanged="@((v) => showMobileCart = v)" Placement="Bottom">
+<!-- Mobile cart modal -->
+<AppModal IsOpen="showMobileCart" IsOpenChanged="@((v) => showMobileCart = v)" Size="Default">
     <Header>
         <h5><i class="fa-solid fa-cart-shopping"></i> Cart (@Cart.Sum(c => c.Quantity) items)</h5>
     </Header>
@@ -264,7 +264,7 @@ else
             <i class="fa-solid fa-check"></i> Complete Sale (₱@AppSettings.FormatPrice(Total))
         </button>
     </Content>
-</AppOffCanvas>
+</AppModal>
 
 } @* end POS view *@
 

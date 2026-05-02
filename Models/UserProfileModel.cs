@@ -27,5 +27,8 @@ namespace InventoryPlus.Models
 
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
+
+        [Column("last_sign_in_at")]
+        public DateTime? LastSignInAt { get; set; }
     }
 }

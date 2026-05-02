@@ -11,7 +11,11 @@ namespace InventoryPlus.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? SubscriptionExpiry { get; set; }
 
+        public DateTime? LastSignInAt { get; set; }
+
         public bool IsPro =>
             SubscriptionExpiry.HasValue && SubscriptionExpiry.Value > DateTime.UtcNow;
+
+        public bool IsOnline => LastSignInAt.HasValue && (DateTime.UtcNow - LastSignInAt.Value).TotalMinutes <= 10;
     }
 }
