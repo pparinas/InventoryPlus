@@ -9,7 +9,7 @@
             <p>Manage users and invite tokens.</p>
         </div>
         <div class="page-header-right">
-            <button class="btn btn-primary" @onclick="GenerateInviteLink" disabled="@isGeneratingInvite"><i class="fa-solid fa-user-plus"></i> Invite User</button>
+            @* <button class="btn btn-primary" @onclick="GenerateInviteLink" disabled="@isGeneratingInvite"><i class="fa-solid fa-user-plus"></i> Invite User</button> *@
         </div>
     </div>
 
@@ -33,6 +33,20 @@
                     <div style="flex:1;min-width:0">
                         <div style="font-weight:700;font-size:12px">@user.Email</div>
                         <div style="font-size:10px;color:var(--fg3)">Created @user.CreatedAt.ToString("MMM dd, yyyy")</div>
+                        <div style="font-size:10px;color:var(--fg3)">
+                            @if (user.IsOnline)
+                            {
+                                <span style="color:var(--green)"><i class="fa-solid fa-circle" style="font-size:6px;vertical-align:middle"></i> Online now</span>
+                            }
+                            else if (user.LastSignInAt.HasValue)
+                            {
+                                <span>Last seen @user.LastSignInAt.Value.ToLocalTime().ToString("MMM dd, h:mm tt")</span>
+                            }
+                            else
+                            {
+                                <span>Never signed in</span>
+                            }
+                        </div>
                     </div>
                     <div style="display:flex;gap:5px;align-items:center">
                         @if (user.IsAdmin)
@@ -57,7 +71,8 @@
         }
     </div>
 
-    @* ── Invite Token Generator ── *@
+    @* ── Invite Token Generator (hidden for now) ── *@
+    @*
     <div class="card card-p">
         <div class="card-title"><i class="fa-solid fa-ticket"></i> Invite Tokens</div>
 
@@ -167,6 +182,7 @@
             </div>
         }
     </div>
+    *@
 
     @* ── System Status ── *@
     <div class="card card-p">

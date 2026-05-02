@@ -66,12 +66,21 @@
                             <div class="toggle-knob"></div>
                         </div>
                     </div>
-                    <div class="settings-row" style="border-bottom: none;">
+                    <div class="settings-row">
                         <div>
                             <div class="settings-row-label">Show Decimals</div>
                             <div class="settings-row-desc">Display centavo values</div>
                         </div>
                         <div class="toggle @(AppSettings.ShowDecimals ? "on" : "")" @onclick="() => AppSettings.ShowDecimals = !AppSettings.ShowDecimals">
+                            <div class="toggle-knob"></div>
+                        </div>
+                    </div>
+                    <div class="settings-row" style="border-bottom: none;">
+                        <div>
+                            <div class="settings-row-label">Welcome Wizard</div>
+                            <div class="settings-row-desc">Show setup wizard for new accounts</div>
+                        </div>
+                        <div class="toggle @(!AppSettings.OnboardingCompleted ? "on" : "")" @onclick="ToggleOnboarding">
                             <div class="toggle-knob"></div>
                         </div>
                     </div>
