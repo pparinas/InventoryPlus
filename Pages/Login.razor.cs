@@ -118,6 +118,16 @@ namespace InventoryPlus.Pages
                                 ErrorMessage = "Your account has been deactivated. Please contact an administrator.";
                                 return;
                             }
+
+                            // Update last sign-in timestamp
+                            try
+                            {
+                                await Supabase.From<UserProfile>()
+                                    .Where(p => p.Guid == userId)
+                                    .Set(p => p.LastSignInAt, DateTime.UtcNow)
+                                    .Update();
+                            }
+                            catch { }
                         }
                     }
                     NavigationManager.NavigateTo("dashboard");
