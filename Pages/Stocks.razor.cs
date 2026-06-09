@@ -28,11 +28,24 @@ namespace InventoryPlus.Pages
         protected UnitCategory _selectedUnitCategory = UnitCategory.Weight;
         protected string _originalUnit = "";
         protected double? _itemCount;
+        protected double? _costPerItem;
 
         protected void RecalculateStock()
         {
             if (currentIngredient.ItemSize is > 0 && _itemCount is > 0)
                 currentIngredient.Stock = Math.Round(currentIngredient.ItemSize.Value * _itemCount.Value, 4);
+        }
+
+        protected void RecalculateCost()
+        {
+            if (currentIngredient.ItemSize is > 0 && _costPerItem is >= 0)
+                currentIngredient.CostPerUnit = _costPerItem.Value / currentIngredient.ItemSize.Value;
+        }
+
+        protected void OnItemSizeChanged()
+        {
+            RecalculateStock();
+            RecalculateCost();
         }
 
         protected void SyncCountFromStock()
@@ -82,6 +95,7 @@ namespace InventoryPlus.Pages
                     currentIngredient = new Ingredient { Type = "Ingredient" };
                     isEditing = false;
                     _itemCount = null;
+                    _costPerItem = null;
                     _selectedUnitCategory = UnitCategory.Weight;
                     currentIngredient.Unit = UnitConverter.GetUnitsForCategory(UnitCategory.Weight)[0];
                     showModal = true;
@@ -94,6 +108,7 @@ namespace InventoryPlus.Pages
                 currentIngredient = new Ingredient { Type = "Ingredient" };
                 isEditing = false;
                 _itemCount = null;
+                _costPerItem = null;
                 _selectedUnitCategory = UnitCategory.Weight;
                 currentIngredient.Unit = UnitConverter.GetUnitsForCategory(UnitCategory.Weight)[0];
                 showModal = true;
@@ -134,6 +149,9 @@ namespace InventoryPlus.Pages
             _originalUnit = item.Unit;
             _itemCount = null;
             SyncCountFromStock();
+            _costPerItem = item.ItemSize is > 0
+                ? Math.Round(item.CostPerUnit * item.ItemSize.Value, 2)
+                : null;
             _selectedUnitCategory = UnitConverter.GetCategory(currentIngredient.Unit);
             showModal = true;
         }
