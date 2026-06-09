@@ -158,6 +158,23 @@ else
         </div>
         <div class="form-row">
             <div class="form-group">
+                <label class="form-label">Size per Item (@(string.IsNullOrWhiteSpace(currentIngredient.Unit) ? "unit" : currentIngredient.Unit))</label>
+                <input class="form-control" type="number" step="0.01" placeholder="e.g. 750" @bind="_itemSize" @bind:after="RecalculateStock" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">No. of Items</label>
+                <input class="form-control" type="number" step="1" placeholder="e.g. 3" @bind="_itemCount" @bind:after="RecalculateStock" />
+            </div>
+        </div>
+        @if (_itemSize is > 0 && _itemCount is > 0)
+        {
+            <div style="font-size:11px;color:var(--fg3);margin-top:-6px;margin-bottom:10px">
+                <i class="fa-solid fa-calculator"></i>
+                @_itemCount × @_itemSize @currentIngredient.Unit = <strong>@currentIngredient.Stock @currentIngredient.Unit</strong> total stock
+            </div>
+        }
+        <div class="form-row">
+            <div class="form-group">
                 <label class="form-label">Current Stock</label>
                 <input class="form-control" type="number" step="0.1" @bind="currentIngredient.Stock" />
             </div>

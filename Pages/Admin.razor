@@ -23,8 +23,13 @@
         }
         else
         {
+        <div class="pill-group" style="margin-bottom:10px">
+            <button class="pill @(userFilter == "All" ? "active" : "")" @onclick='() => SetUserFilter("All")'>All</button>
+            <button class="pill @(userFilter == "Active" ? "active" : "")" @onclick='() => SetUserFilter("Active")'>Active Now</button>
+            <button class="pill @(userFilter == "7days" ? "active" : "")" @onclick='() => SetUserFilter("7days")'>Last 7 Days</button>
+        </div>
         <div style="display:flex;flex-direction:column;gap:7px">
-            @foreach (var user in Users.Skip((_page - 1) * PageSize).Take(PageSize))
+            @foreach (var user in FilteredUsers.Skip((_page - 1) * PageSize).Take(PageSize))
             {
                 <div class="admin-user-card" style="@(!user.IsActive ? "opacity:0.6" : "")">
                     <div style="width:34px;height:34px;border-radius:50%;background:@(user.IsAdmin ? "var(--lime)" : "var(--bg4)");display:flex;align-items:center;justify-content:center;color:@(user.IsAdmin ? "#0a0a0a" : "var(--fg2)");font-size:11px;font-weight:700;flex-shrink:0;font-family:'Space Mono',monospace">
@@ -66,8 +71,14 @@
                     </div>
                 </div>
             }
+            @if (!FilteredUsers.Any())
+            {
+                <div style="text-align:center;padding:20px;color:var(--fg3);font-size:12px">
+                    @(userFilter == "Active" ? "No users are online right now." : userFilter == "7days" ? "No users signed in within the last 7 days." : "No users found.")
+                </div>
+            }
         </div>
-        <PaginationBar Page="_page" PageSize="PageSize" TotalItems="Users.Count" OnPageChange="SetPage" />
+        <PaginationBar Page="_page" PageSize="PageSize" TotalItems="FilteredUsers.Count()" OnPageChange="SetPage" />
         }
     </div>
 

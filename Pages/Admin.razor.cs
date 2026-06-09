@@ -25,6 +25,22 @@ namespace InventoryPlus.Pages
         protected const int PageSize = 10;
         protected void SetPage(int p) { _page = p; StateHasChanged(); }
 
+        protected string userFilter = "All";
+
+        protected IEnumerable<SystemUser> FilteredUsers => userFilter switch
+        {
+            "Active" => Users.Where(u => u.IsOnline),
+            "7days"  => Users.Where(u => u.LastSignInAt.HasValue
+                            && (DateTime.UtcNow - u.LastSignInAt.Value).TotalDays <= 7),
+            _        => Users
+        };
+
+        protected void SetUserFilter(string filter)
+        {
+            userFilter = filter;
+            _page = 1;
+        }
+
         protected override void OnInitialized()
         {
             UserManagement.OnStateChanged += HandleStateChanged;
