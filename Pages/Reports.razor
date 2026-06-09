@@ -271,7 +271,16 @@ else
                                             <span class="badge badge-amber" style="margin-left:5px">Low</span>
                                         }
                                     </td>
-                                    <td class="mono" style="font-size:11px;color:var(--fg2)">₱@AppSettings.FormatCurrency(item.CostPerUnit)</td>
+                                    <td class="mono" style="font-size:11px;color:var(--fg2)">
+                                        @if (item.ItemSize is > 0)
+                                        {
+                                            <text>₱@AppSettings.FormatCurrency(item.CostPerUnit * item.ItemSize.Value)/@item.ItemSize @item.Unit</text>
+                                        }
+                                        else
+                                        {
+                                            <text>₱@AppSettings.FormatCurrency(item.CostPerUnit)</text>
+                                        }
+                                    </td>
                                     <td class="mono text-lime" style="font-weight:700">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</td>
                                 </tr>
                             }

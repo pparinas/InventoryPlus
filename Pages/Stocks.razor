@@ -81,7 +81,16 @@ else
                                     <span class="badge badge-amber" style="margin-left:5px">Low</span>
                                 }
                             </td>
-                            <td class="mono" style="color:var(--fg2);font-size:11px">₱@AppSettings.FormatCurrency(item.CostPerUnit)/@item.Unit</td>
+                            <td class="mono" style="color:var(--fg2);font-size:11px">
+                                @if (item.ItemSize is > 0)
+                                {
+                                    <text>₱@AppSettings.FormatCurrency(item.CostPerUnit * item.ItemSize.Value)/@item.ItemSize @item.Unit</text>
+                                }
+                                else
+                                {
+                                    <text>₱@AppSettings.FormatCurrency(item.CostPerUnit)/@item.Unit</text>
+                                }
+                            </td>
                             <td class="mono text-lime" style="font-weight:700">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</td>
                             <td>
                                 <div style="display:flex;gap:4px;justify-content:flex-end">
@@ -159,7 +168,7 @@ else
         <div class="form-row">
             <div class="form-group">
                 <label class="form-label">Size per Item (@(string.IsNullOrWhiteSpace(currentIngredient.Unit) ? "unit" : currentIngredient.Unit))</label>
-                <input class="form-control" type="number" step="0.01" placeholder="e.g. 750" @bind="currentIngredient.ItemSize" @bind:event="oninput" @bind:after="RecalculateStock" />
+                <input class="form-control" type="number" step="0.01" placeholder="e.g. 750" @bind="currentIngredient.ItemSize" @bind:event="oninput" @bind:after="OnItemSizeChanged" />
             </div>
             <div class="form-group">
                 <label class="form-label">No. of Items</label>
@@ -171,6 +180,10 @@ else
             <div style="font-size:11px;color:var(--fg3);margin-top:-6px;margin-bottom:10px">
                 <i class="fa-solid fa-calculator"></i>
                 @_itemCount × @currentIngredient.ItemSize @currentIngredient.Unit = <strong>@currentIngredient.Stock @currentIngredient.Unit</strong> total stock
+                @if (_costPerItem is > 0)
+                {
+                    <span> · @_itemCount × ₱@_costPerItem = <strong>₱@AppSettings.FormatCurrency(currentIngredient.Stock * currentIngredient.CostPerUnit)</strong> total value</span>
+                }
             </div>
         }
         <div class="form-row">
@@ -179,8 +192,16 @@ else
                 <input class="form-control" type="number" step="0.1" @bind="currentIngredient.Stock" @bind:after="SyncCountFromStock" />
             </div>
             <div class="form-group">
-                <label class="form-label">Cost per Unit (₱)</label>
-                <input class="form-control" type="number" step="0.01" @bind="currentIngredient.CostPerUnit" />
+                @if (currentIngredient.ItemSize is > 0)
+                {
+                    <label class="form-label">Cost per Item (₱)</label>
+                    <input class="form-control" type="number" step="0.01" placeholder="e.g. 100" @bind="_costPerItem" @bind:event="oninput" @bind:after="RecalculateCost" />
+                }
+                else
+                {
+                    <label class="form-label">Cost per Unit (₱)</label>
+                    <input class="form-control" type="number" step="0.01" @bind="currentIngredient.CostPerUnit" />
+                }
             </div>
         </div>
 
