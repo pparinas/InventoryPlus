@@ -14,81 +14,51 @@ else
 <div class="section-gap fade-in">
 
 <div class="page-header">
-    <div>
-        <h1>Dashboard</h1>
-        <p>Welcome back — here's your overview.</p>
+    <div class="hero-head">
+        <div class="hero-greet">@Greeting 👋</div>
+        <div class="hero-value">
+            ₱@AppSettings.FormatCurrency(FilteredRevenue)
+            @if (TrendPct is double trend && Math.Abs(trend) >= 0.5)
+            {
+                <span class="trend-badge @(trend >= 0 ? "up" : "down")">
+                    <i class="fa-solid @(trend >= 0 ? "fa-arrow-trend-up" : "fa-arrow-trend-down")"></i>@Math.Abs(trend).ToString("0")%
+                </span>
+            }
+        </div>
+        <div class="hero-label">Revenue · @TimeRangeLabel</div>
     </div>
     <div class="page-header-right">
-        <select class="form-control" style="width: auto; min-width: 110px;" @bind="timeRange" @bind:after="Refresh">
-            <option value="today">Today</option>
-            <option value="7d">7 Days</option>
-            <option value="30d">30 Days</option>
-            @if (AppSettings.IsPro)
-            {
-                <option value="all">All Time</option>
-            }
-            else
-            {
-                <option value="all" disabled>All Time 🔒</option>
-            }
-        </select>
-        <button class="btn btn-ghost btn-sm" @onclick="Refresh"><i class="fa-solid fa-rotate-right"></i> Refresh</button>
-        <button class="btn btn-primary btn-sm" @onclick='() => Nav.NavigateTo("sales")'><i class="fa-solid fa-plus"></i> New Sale</button>
+        <SegmentedControl Options="TimeRangeOptions" @bind-Value="timeRange" />
     </div>
 </div>
 
 @* ── Quick Actions ── *@
 @if (AppSettings.ShowQuickActions)
 {
-<div class="card card-p">
-    <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 9px;">
-        <span class="badge-live" style="font-size: 8px; padding: 2px 6px; border-radius: 2px; font-family: 'Space Mono', monospace; font-weight: 700; background: var(--lime); color: #0a0a0a; letter-spacing: .07em;">QUICK</span>
-        <span style="font-size: 10px; font-weight: 700; color: var(--fg3); text-transform: uppercase; letter-spacing: .1em;">Actions</span>
-    </div>
-    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px;">
-        @foreach (var action in new[] {
-            ("fa-cart-shopping", "New Sale", "sales", "var(--lime)"),
-            ("fa-plus", "Add Product", "products", "var(--green)"),
-            ("fa-boxes-stacked", "Restock", "stocks", "var(--amber)"),
-            ("fa-file-lines", "Reports", "reports", "var(--cyan)"),
-            ("fa-gear", "Settings", "settings", "var(--fg2)")
-        })
-        {
-            <button style="display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 11px 6px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all .12s; color: var(--fg2); font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; font-family: inherit;"
-                    @onclick="() => Nav.NavigateTo(action.Item3)">
-                <i class="fa-solid @action.Item1" style="font-size: 17px; color: @action.Item4;"></i>@action.Item2
-            </button>
-        }
-    </div>
+<div class="action-row">
+    <button class="action-btn primary" @onclick='() => Nav.NavigateTo("sales")'><i class="fa-solid fa-plus"></i> New Sale</button>
+    @if (AppSettings.ShowInventoryTab)
+    {
+        <button class="action-btn ghost" @onclick='() => Nav.NavigateTo("stocks")'><i class="fa-solid fa-boxes-stacked"></i> Add Stock</button>
+    }
+    <button class="action-btn ghost" @onclick='() => Nav.NavigateTo("reports")'><i class="fa-solid fa-file-lines"></i> Reports</button>
 </div>
 }
 
 @* ── Stats ── *@
 @if (AppSettings.ShowTodaySnapshot)
 {
-<div class="stat-grid">
-    <div class="stat-card">
-        <div class="stat-card-icon si-lime"><i class="fa-solid fa-peso-sign"></i></div>
-        <div class="stat-card-value">₱@AppSettings.FormatCurrency(FilteredRevenue)</div>
-        <div class="stat-card-label">Revenue</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-icon si-green"><i class="fa-solid fa-chart-pie"></i></div>
-        <div class="stat-card-value">₱@AppSettings.FormatCurrency(FilteredProfit)</div>
-        <div class="stat-card-label">Profit</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-icon si-amber"><i class="fa-solid fa-receipt"></i></div>
-        <div class="stat-card-value">@FilteredSales.Count(s => !s.IsVoided)</div>
-        <div class="stat-card-label">Transactions</div>
-        <div class="stat-card-sub">@FilteredSales.Count() total incl. voided</div>
-    </div>
-    <div class="stat-card">
-        <div class="stat-card-icon si-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-        <div class="stat-card-value">@LowStockIngredients.Count</div>
-        <div class="stat-card-label">Low Stock</div>
-        <div class="stat-card-sub">items need restocking</div>
-    </div>
+<div class="stat-scroll">
+    <StatCard Icon="fa-solid fa-chart-pie" IconClass="si-green"
+              Value="@($"₱{AppSettings.FormatCurrency(FilteredProfit)}")" Label="Profit" />
+    <StatCard Icon="fa-solid fa-receipt" IconClass="si-lime"
+              Value="@ActiveTransactionCount.ToString()" Label="Transactions"
+              Sub="@($"{FilteredSales.Count()} total incl. voided")" />
+    <StatCard Icon="fa-solid fa-scale-balanced" IconClass="si-cyan"
+              Value="@($"₱{AppSettings.FormatCurrency(AvgSale)}")" Label="Avg Sale" />
+    <StatCard Icon="fa-solid fa-triangle-exclamation" IconClass="si-red"
+              Value="@LowStockIngredients.Count.ToString()" Label="Low Stock"
+              Sub="items need restocking" />
 </div>
 }
 
@@ -187,21 +157,6 @@ else
                     <div class="progress-value" style="font-size: 9px;">₱@AppSettings.FormatCurrency(pm.Value)</div>
                 </div>
             }
-            <div style="display: grid; grid-template-columns: repeat(@PaymentBreakdown.Count, 1fr); gap: 8px; margin-top: 10px;">
-                @{
-                    var payColors = new[] { "var(--green)", "var(--lime)", "var(--amber)", "var(--cyan)" };
-                    var ci = 0;
-                }
-                @foreach (var pm in PaymentBreakdown)
-                {
-                    var pct = pm.Value / totalPay * 100;
-                    <div style="padding: 9px; background: var(--bg3); border-radius: var(--radius-sm); text-align: center; border: 1px solid var(--border);">
-                        <div style="font-size: 18px; font-weight: 700; color: @payColors[ci % payColors.Length]; font-family: 'Space Mono', monospace;">@pct.ToString("0")%</div>
-                        <div style="font-size: 9px; color: var(--fg3); text-transform: uppercase; letter-spacing: .07em; margin-top: 2px;">@pm.Key</div>
-                    </div>
-                    ci++;
-                }
-            </div>
         }
         else
         {
@@ -222,20 +177,15 @@ else
         </div>
         @if (RecentSales.Any())
         {
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>Product</th><th>Qty</th><th>Total</th></tr></thead>
-                    <tbody>
-                        @foreach (var sale in RecentSales)
-                        {
-                            <tr>
-                                <td style="font-weight: 600;">@sale.ProductName</td>
-                                <td style="color: var(--fg2);">@sale.QuantitySold</td>
-                                <td class="td-mono" style="color: var(--lime);">₱@AppSettings.FormatCurrency(sale.TotalAmount)</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div>
+                @foreach (var sale in RecentSales)
+                {
+                    <ListRow Flat="true" Icon="fa-solid fa-receipt" IconClass="si-lime"
+                             Title="@sale.ProductName"
+                             Sub="@($"×{sale.QuantitySold} · {sale.Date:MMM d, h:mm tt}{(sale.IsVoided ? " · VOIDED" : "")}")">
+                        <Trailing><span class="text-lime mono">₱@AppSettings.FormatCurrency(sale.TotalAmount)</span></Trailing>
+                    </ListRow>
+                }
             </div>
         }
         else
@@ -254,29 +204,24 @@ else
         </div>
         @if (LowStockIngredients.Any())
         {
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>Item</th><th>Stock</th><th>Status</th></tr></thead>
-                    <tbody>
-                        @foreach (var ing in LowStockIngredients)
-                        {
-                            <tr>
-                                <td style="font-weight: 600;">@ing.Name</td>
-                                <td class="td-mono" style="color: var(--amber);">@ing.Stock @ing.Unit</td>
-                                <td>
-                                    @if (ing.Stock <= 0)
-                                    {
-                                        <span class="badge badge-red">Out</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge badge-amber">Low</span>
-                                    }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div>
+                @foreach (var ing in LowStockIngredients)
+                {
+                    <ListRow Flat="true" Icon="fa-solid fa-box" IconClass="si-amber"
+                             Title="@ing.Name"
+                             Sub="@($"{ing.Stock} {ing.Unit} left")">
+                        <Trailing>
+                            @if (ing.Stock <= 0)
+                            {
+                                <span class="badge badge-red">Out</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-amber">Low</span>
+                            }
+                        </Trailing>
+                    </ListRow>
+                }
             </div>
         }
         else

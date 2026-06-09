@@ -1,0 +1,34 @@
+@* Icon + title/sub + trailing content row. Card style by default; Flat=true for rows inside a card.
+   IconClass accepts the existing si-* classes (si-lime, si-green, si-amber, si-red, si-cyan).
+   Note: interactive elements placed in Trailing should use @onclick:stopPropagation so a
+   click doesn't also trigger the row's OnClick. *@
+
+<div class="list-row @(Flat ? "flat" : "") @(OnClick.HasDelegate ? "clickable" : "")" @onclick="HandleClick">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <div class="list-row-icon @IconClass"><i class="@Icon"></i></div>
+    }
+    <div class="list-row-body">
+        <div class="list-row-title">@Title</div>
+        @if (!string.IsNullOrEmpty(Sub))
+        {
+            <div class="list-row-sub">@Sub</div>
+        }
+    </div>
+    @if (Trailing != null)
+    {
+        <div class="list-row-trailing">@Trailing</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Icon { get; set; }
+    [Parameter] public string? IconClass { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string? Sub { get; set; }
+    [Parameter] public bool Flat { get; set; }
+    [Parameter] public RenderFragment? Trailing { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private Task HandleClick() => OnClick.HasDelegate ? OnClick.InvokeAsync() : Task.CompletedTask;
+}

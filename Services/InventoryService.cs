@@ -26,17 +26,11 @@ namespace InventoryPlus.Services
         public bool IsOffline { get; private set; }
 
         private const string CacheKeyPrefix = "inv_cache_";
-        private const string PendingKeyPrefix = "inv_pending_";
 
         public IEnumerable<Ingredient> ActiveIngredients => Ingredients.Where(i => !i.IsArchived);
         public IEnumerable<Product> ActiveProducts => Products.Where(p => !p.IsArchived);
 
         public event Action? OnStateChanged;
-
-        // Pending writes queue (in-memory; persisted to localStorage)
-        private readonly Queue<PendingWrite> _pendingWrites = new();
-
-        private record PendingWrite(string Op, string Payload, DateTime QueuedAt);
 
         public InventoryService(Client supabase)
         {
@@ -61,8 +55,6 @@ namespace InventoryPlus.Services
                         IsLoaded = true;
                         NotifyStateChanged();
                     }
-                    // Also restore any unflushed pending writes
-                    await LoadPendingQueueAsync(js, userId);
                 }
 
                 // Load all tables in parallel (5 queries → 1 round-trip window)
@@ -687,42 +679,6 @@ namespace InventoryPlus.Services
                 Console.WriteLine($"LoadFromCacheAsync error: {ex.Message}");
                 return false;
             }
-        }
-
-        // ── Pending Queue ──────────────────────────────────────────────────────
-
-        private async Task LoadPendingQueueAsync(IJSRuntime js, string userId)
-        {
-            try
-            {
-                var normalizedId = Guid.TryParse(userId, out var g) ? g.ToString("D") : userId.ToLowerInvariant();
-                var json = await js.InvokeAsync<string?>("localStorage.getItem", $"{PendingKeyPrefix}{normalizedId}");
-                if (string.IsNullOrEmpty(json)) return;
-                var items = JsonSerializer.Deserialize<List<PendingWriteDto>>(json);
-                if (items == null) return;
-                _pendingWrites.Clear();
-                foreach (var item in items)
-                    _pendingWrites.Enqueue(new PendingWrite(item.Op, item.Payload, item.QueuedAt));
-            }
-            catch { }
-        }
-
-        private async Task SavePendingQueueAsync(IJSRuntime js)
-        {
-            try
-            {
-                var list = _pendingWrites.Select(p => new PendingWriteDto { Op = p.Op, Payload = p.Payload, QueuedAt = p.QueuedAt }).ToList();
-                var json = JsonSerializer.Serialize(list);
-                await js.InvokeVoidAsync("localStorage.setItem", $"{PendingKeyPrefix}{_ownerGuid}", json);
-            }
-            catch { }
-        }
-
-        private class PendingWriteDto
-        {
-            public string Op { get; set; } = "";
-            public string Payload { get; set; } = "";
-            public DateTime QueuedAt { get; set; }
         }
 
         // ── Image URL helpers ──────────────────────────────────────────────────
