@@ -34,6 +34,9 @@ namespace InventoryPlus.Models
         [Column("low_stock_threshold")]
         public double LowStockThreshold { get; set; } = 5.0;
 
+        [Column("item_size")]
+        public double? ItemSize { get; set; }
+
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
