@@ -27,6 +27,14 @@ namespace InventoryPlus.Pages
         private Action? _pendingPinAction;
         protected UnitCategory _selectedUnitCategory = UnitCategory.Weight;
         protected string _originalUnit = "";
+        protected double? _itemSize;
+        protected double? _itemCount;
+
+        protected void RecalculateStock()
+        {
+            if (_itemSize is > 0 && _itemCount is > 0)
+                currentIngredient.Stock = Math.Round(_itemSize.Value * _itemCount.Value, 4);
+        }
 
         protected void SetPage(int p) { _page = p; StateHasChanged(); }
 
@@ -68,6 +76,8 @@ namespace InventoryPlus.Pages
                 {
                     currentIngredient = new Ingredient { Type = "Ingredient" };
                     isEditing = false;
+                    _itemSize = null;
+                    _itemCount = null;
                     _selectedUnitCategory = UnitCategory.Weight;
                     currentIngredient.Unit = UnitConverter.GetUnitsForCategory(UnitCategory.Weight)[0];
                     showModal = true;
@@ -79,6 +89,8 @@ namespace InventoryPlus.Pages
             {
                 currentIngredient = new Ingredient { Type = "Ingredient" };
                 isEditing = false;
+                _itemSize = null;
+                _itemCount = null;
                 _selectedUnitCategory = UnitCategory.Weight;
                 currentIngredient.Unit = UnitConverter.GetUnitsForCategory(UnitCategory.Weight)[0];
                 showModal = true;
@@ -116,6 +128,8 @@ namespace InventoryPlus.Pages
             };
             isEditing = true;
             _originalUnit = item.Unit;
+            _itemSize = null;
+            _itemCount = null;
             _selectedUnitCategory = UnitConverter.GetCategory(currentIngredient.Unit);
             showModal = true;
         }
