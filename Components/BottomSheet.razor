@@ -1,0 +1,29 @@
+@* Slide-up bottom sheet. Always rendered (hidden via CSS) so the slide animation works.
+   Usage: <BottomSheet @bind-IsOpen="showSheet" Title="Quick Actions">...</BottomSheet> *@
+
+<div class="sheet-overlay @(IsOpen ? "open" : "")" @onclick="Close"></div>
+<div class="sheet @(IsOpen ? "open" : "")" @onclick:stopPropagation>
+    @* Handle tap closes; swipe-to-dismiss is not implemented *@
+    <div class="sheet-handle" @onclick="Close"></div>
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <div class="sheet-header">
+            <h3>@Title</h3>
+            <button type="button" class="sheet-close" @onclick="Close" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    }
+    <div class="sheet-body">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private Task Close() => IsOpenChanged.InvokeAsync(false);
+}

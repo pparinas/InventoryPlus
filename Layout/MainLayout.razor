@@ -1,6 +1,6 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<div class="app-container @(showMobileNav ? "mobile-nav-open" : "")" @onclick="HandleGlobalClick" @onkeydown="HandleKeyDown" tabindex="0">
+<div class="app-container" @onclick="HandleGlobalClick" @onkeydown="HandleKeyDown" tabindex="0">
 
 
     @if (Inventory.IsOffline)
@@ -11,9 +11,7 @@
         </div>
     }
 
-    <div class="sidebar-overlay" @onclick="CloseMobileNav"></div>
-
-    <aside class="sidebar @(showMobileNav ? "open" : "")" @onclick:stopPropagation>
+    <aside class="sidebar">
         <div class="sidebar-logo">
             <div class="sidebar-logo-mark"><span>N</span></div>
             <span class="sidebar-logo-text">Negosyo<b>360</b></span>
@@ -23,13 +21,10 @@
 
     <div class="main">
     <header class="topbar">
-        <button class="topbar-hamburger" @onclick="ToggleMobileNav" @onclick:stopPropagation title="Menu">
-            <i class="fa-solid @(showMobileNav ? "fa-xmark" : "fa-bars")"></i>
-        </button>
         <span class="topbar-title">
             @if(!string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
             {
-                <img src="@AppSettings.CustomLogoUrl" style="height: 28px; width: auto; max-width: 100px; object-fit: contain; border-radius: 4px;" alt="@AppSettings.CompanyName" />
+                <img src="@AppSettings.CustomLogoUrl" class="topbar-logo" alt="@AppSettings.CompanyName" />
             }
             @if(!AppSettings.UseLogoForBranding || string.IsNullOrEmpty(AppSettings.CustomLogoUrl))
             {
@@ -56,7 +51,7 @@
             <button class="topbar-btn" @onclick="ToggleDropdown" title="Account">
                 <i class="fa-solid fa-circle-user"></i>
             </button>
-            
+
             @if (showDropdown)
             {
                 <div class="dropdown-menu show">
@@ -69,9 +64,9 @@
                             <div class="user-role text-truncate">@AppSettings.CompanyName</div>
                         </div>
                     </div>
-                    
+
                     <hr>
-                    
+
                     <AuthorizeView>
                         <Authorized>
                             <a class="dropdown-item" href="settings" @onclick="() => showDropdown = false">
@@ -79,7 +74,7 @@
                             </a>
                         </Authorized>
                     </AuthorizeView>
-                    
+
                     <button class="dropdown-item" style="color:var(--red);" @onclick="SignOut">
                         <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
                     </button>
@@ -89,66 +84,100 @@
         }
     </header>
 
-    <main class="page-content" @onclick="CloseMobileNav">
-        <ErrorBoundary @ref="errorBoundary">
-            <ChildContent>
-                @Body
-            </ChildContent>
-            <ErrorContent Context="ex">
-                <div class="card card-p p-4" style="max-width: 500px; margin: 2rem auto;">
-                    <i class="fa-solid fa-triangle-exclamation fa-3x mb-3" style="color: var(--warning);"></i>
-                    <h3>Something went wrong</h3>
-                    <p class="text-muted">An unexpected error occurred. Please try again.</p>
-                    <button class="btn btn-primary" @onclick="ResetError"><i class="fa-solid fa-rotate-right me-1"></i> Try Again</button>
-                </div>
-            </ErrorContent>
-        </ErrorBoundary>
+    <main class="page-content">
+        <div class="page-inner">
+            <ErrorBoundary @ref="errorBoundary">
+                <ChildContent>
+                    @Body
+                </ChildContent>
+                <ErrorContent Context="ex">
+                    <div class="card card-p p-4" style="max-width: 500px; margin: 2rem auto;">
+                        <i class="fa-solid fa-triangle-exclamation fa-3x mb-3" style="color: var(--warning);"></i>
+                        <h3>Something went wrong</h3>
+                        <p class="text-muted">An unexpected error occurred. Please try again.</p>
+                        <button class="btn btn-primary" @onclick="ResetError"><i class="fa-solid fa-rotate-right me-1"></i> Try Again</button>
+                    </div>
+                </ErrorContent>
+            </ErrorBoundary>
+        </div>
     </main>
     </div> @* end .main *@
 
-    @* ── Mobile Bottom Bar ── *@
-    <nav class="mobile-bottom-bar d-md-none">
+    @* ── Mobile Tab Bar ── *@
+    <nav class="tab-bar">
         @if (AppSettings.IsPosMode)
         {
-            <a href="sales" class="bottom-bar-item @(IsActive("sales") ? "active" : "")">
+            <button class="tab-item @(AppSettings.PosActiveView == "pos" ? "active" : "")" @onclick="SetPosView">
                 <i class="fa-solid fa-cash-register"></i>
                 <span>POS</span>
-            </a>
+            </button>
+            <button class="tab-item @(AppSettings.PosActiveView == "history" ? "active" : "")" @onclick="SetPosHistoryView">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>History</span>
+            </button>
         }
         else
         {
-        <a href="dashboard" class="bottom-bar-item @(IsActive("dashboard") ? "active" : "")">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>Home</span>
-        </a>
-        <a href="sales" class="bottom-bar-item @(IsActive("sales") ? "active" : "")">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span>Sales</span>
-        </a>
-        @if (AppSettings.ShowInventoryTab)
-        {
-        <a href="stocks" class="bottom-bar-item @(IsActive("stocks") ? "active" : "")">
-            <i class="fa-solid fa-boxes-stacked"></i>
-            <span>Stocks</span>
-        </a>
-        }
-        <a href="products" class="bottom-bar-item @(IsActive("products") ? "active" : "")">
-            <i class="fa-solid fa-leaf"></i>
-            <span>Products</span>
-        </a>
-        @if (AppSettings.ShowOpexTab)
-        {
-        <a href="expenses" class="bottom-bar-item @(IsActive("expenses") ? "active" : "")">
-            <i class="fa-solid fa-file-invoice-dollar"></i>
-            <span>OPEX</span>
-        </a>
-        }
-        <a href="reports" class="bottom-bar-item @(IsActive("reports") ? "active" : "")">
-            <i class="fa-solid fa-file-lines"></i>
-            <span>Reports</span>
-        </a>
+            <a href="dashboard" class="tab-item @(IsActive("dashboard") ? "active" : "")">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </a>
+            <a href="sales" class="tab-item @(IsActive("sales") ? "active" : "")">
+                <i class="fa-solid fa-cash-register"></i>
+                <span>Sales</span>
+            </a>
+            <div class="tab-fab-slot">
+                <button class="tab-fab" @onclick="OpenQuickActions" @onclick:stopPropagation aria-label="Quick actions">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+            </div>
+            <a href="products" class="tab-item @(IsActive("products") ? "active" : "")">
+                <i class="fa-solid fa-leaf"></i>
+                <span>Products</span>
+            </a>
+            <button class="tab-item @(showMoreSheet ? "active" : "")" @onclick="OpenMoreSheet" @onclick:stopPropagation>
+                <i class="fa-solid fa-ellipsis"></i>
+                <span>More</span>
+            </button>
         }
     </nav>
+
+    @* ── Quick Actions Sheet (FAB) ── *@
+    <BottomSheet @bind-IsOpen="showQuickSheet" Title="Quick Actions">
+        <div class="sheet-menu">
+            <ListRow Icon="fa-solid fa-cart-shopping" IconClass="si-lime" Title="New Sale" Sub="Ring up a sale" OnClick='() => GoTo("sales")' />
+            @if (AppSettings.ShowInventoryTab)
+            {
+                <ListRow Icon="fa-solid fa-boxes-stacked" IconClass="si-amber" Title="Add Stock" Sub="Restock ingredients & materials" OnClick='() => GoTo("stocks")' />
+            }
+            <ListRow Icon="fa-solid fa-leaf" IconClass="si-green" Title="New Product" Sub="Create a product to sell" OnClick='() => GoTo("products")' />
+            @if (AppSettings.ShowOpexTab)
+            {
+                <ListRow Icon="fa-solid fa-file-invoice-dollar" IconClass="si-red" Title="New Expense" Sub="Record an operating expense" OnClick='() => GoTo("expenses")' />
+            }
+        </div>
+    </BottomSheet>
+
+    @* ── More Sheet ── *@
+    <BottomSheet @bind-IsOpen="showMoreSheet" Title="More">
+        <div class="sheet-menu">
+            @if (AppSettings.ShowInventoryTab)
+            {
+                <ListRow Icon="fa-solid fa-boxes-stacked" IconClass="si-amber" Title="Inventory" Sub="Stock levels & raw materials" OnClick='() => GoTo("stocks")' />
+            }
+            @if (AppSettings.ShowOpexTab)
+            {
+                <ListRow Icon="fa-solid fa-file-invoice-dollar" IconClass="si-red" Title="Expenses" Sub="Operating expenses" OnClick='() => GoTo("expenses")' />
+            }
+            <ListRow Icon="fa-solid fa-file-lines" IconClass="si-cyan" Title="Reports" Sub="Sales trends & exports" OnClick='() => GoTo("reports")' />
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <ListRow Icon="fa-solid fa-shield-halved" IconClass="si-lime" Title="Admin" Sub="Users & invites" OnClick='() => GoTo("admin")' />
+                </Authorized>
+            </AuthorizeView>
+            <ListRow Icon="fa-solid fa-gear" Title="Settings" Sub="App configuration" OnClick='() => GoTo("settings")' />
+        </div>
+    </BottomSheet>
 
     <ToastContainer />
     <NotificationPanel @ref="notificationPanel" />
@@ -158,4 +187,3 @@
 {
     <OnboardingWizard IsVisible="true" OnComplete="OnboardingDone" />
 }
-

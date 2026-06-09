@@ -22,7 +22,8 @@ namespace InventoryPlus.Layout
 
         protected bool showDropdown = false;
         protected bool isLightMode = false;
-        protected bool showMobileNav = false;
+        protected bool showQuickSheet = false;
+        protected bool showMoreSheet = false;
         protected bool showOnboarding = false;
         protected string? currentUserEmail;
         private string currentPath = "";
@@ -41,15 +42,27 @@ namespace InventoryPlus.Layout
             errorBoundary?.Recover();
         }
 
-        protected void ToggleMobileNav()
+        protected void OpenQuickActions()
         {
-            showMobileNav = !showMobileNav;
+            showMoreSheet = false;
+            showQuickSheet = true;
         }
 
-        protected void CloseMobileNav()
+        protected void OpenMoreSheet()
         {
-            showMobileNav = false;
+            showQuickSheet = false;
+            showMoreSheet = true;
         }
+
+        protected void GoTo(string page)
+        {
+            showQuickSheet = false;
+            showMoreSheet = false;
+            NavManager.NavigateTo(page);
+        }
+
+        protected void SetPosView() => AppSettings.PosActiveView = "pos";
+        protected void SetPosHistoryView() => AppSettings.PosActiveView = "history";
 
         protected void HandleGlobalClick()
         {
@@ -61,7 +74,8 @@ namespace InventoryPlus.Layout
             if (e.Key == "Escape")
             {
                 showDropdown = false;
-                showMobileNav = false;
+                showQuickSheet = false;
+                showMoreSheet = false;
             }
         }
 

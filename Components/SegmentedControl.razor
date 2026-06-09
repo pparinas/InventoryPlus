@@ -1,0 +1,24 @@
+@* Thumb-friendly segmented switcher.
+   Usage: <SegmentedControl Options="opts" @bind-Value="selected" />
+   where opts is List<SegmentedControl.SegOption>. *@
+
+<div class="seg-control" role="tablist">
+    @foreach (var opt in Options)
+    {
+        var value = opt.Value;
+        <button type="button" class="seg-item @(value == Value ? "active" : "")"
+                disabled="@opt.Disabled" role="tab" aria-selected="@(value == Value ? "true" : "false")"
+                @onclick="() => SelectAsync(value)">@opt.Label</button>
+    }
+</div>
+
+@code {
+    public record SegOption(string Value, string Label, bool Disabled = false);
+
+    [Parameter] public List<SegOption> Options { get; set; } = new();
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    private Task SelectAsync(string value) =>
+        value == Value ? Task.CompletedTask : ValueChanged.InvokeAsync(value);
+}

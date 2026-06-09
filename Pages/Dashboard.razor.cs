@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
+using InventoryPlus.Components;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
 
@@ -26,8 +27,6 @@ namespace InventoryPlus.Pages
             Inventory.OnStateChanged -= HandleStateChanged;
         }
 
-        protected void Refresh() => StateHasChanged();
-
         private IEnumerable<Sale> FilteredSales
         {
             get
@@ -48,6 +47,58 @@ namespace InventoryPlus.Pages
         private IEnumerable<Sale> ActiveFilteredSales => FilteredSales.Where(s => !s.IsVoided);
         protected double FilteredRevenue => ActiveFilteredSales.Sum(s => s.TotalAmount);
         protected double FilteredProfit => ActiveFilteredSales.Sum(s => s.ProfitAmount);
+
+        protected string Greeting
+        {
+            get
+            {
+                var h = DateTime.Now.Hour;
+                return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+            }
+        }
+
+        protected string TimeRangeLabel => timeRange switch
+        {
+            "today" => "Today",
+            "7d" => "Last 7 days",
+            "30d" => "Last 30 days",
+            _ => "All time"
+        };
+
+        protected List<SegmentedControl.SegOption> TimeRangeOptions => new()
+        {
+            new("today", "1D"),
+            new("7d", "7D"),
+            new("30d", "30D"),
+            new("all", AppSettings.IsPro ? "All" : "All 🔒", !AppSettings.IsPro),
+        };
+
+        protected int ActiveTransactionCount => ActiveFilteredSales.Count();
+
+        protected double AvgSale => ActiveTransactionCount > 0 ? FilteredRevenue / ActiveTransactionCount : 0;
+
+        // Revenue change vs the equivalent previous period; null when not comparable
+        // (all-time range, or no revenue in the previous period).
+        protected double? TrendPct
+        {
+            get
+            {
+                var now = DateTime.Now;
+                (DateTime Start, DateTime End)? prev = timeRange switch
+                {
+                    "today" => (now.Date.AddDays(-1), now.Date.AddDays(-1).Add(now.TimeOfDay)),
+                    "7d" => (now.AddDays(-14), now.AddDays(-7)),
+                    "30d" => (now.AddDays(-60), now.AddDays(-30)),
+                    _ => ((DateTime, DateTime)?)null
+                };
+                if (prev is not { } p) return null;
+                var prevRevenue = Inventory.Sales
+                    .Where(s => !s.IsVoided && s.Date >= p.Start && s.Date < p.End)
+                    .Sum(s => s.TotalAmount);
+                if (prevRevenue <= 0) return null;
+                return (FilteredRevenue - prevRevenue) / prevRevenue * 100;
+            }
+        }
 
         protected List<Ingredient> LowStockIngredients => Inventory.ActiveIngredients
             .Where(i => i.Stock <= i.LowStockThreshold).ToList();

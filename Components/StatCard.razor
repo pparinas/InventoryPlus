@@ -1,0 +1,19 @@
+@* KPI card reusing the existing .stat-card CSS. *@
+
+<div class="stat-card">
+    <div class="stat-card-icon @IconClass"><i class="@Icon"></i></div>
+    <div class="stat-card-value">@Value</div>
+    <div class="stat-card-label">@Label</div>
+    @if (!string.IsNullOrEmpty(Sub))
+    {
+        <div class="stat-card-sub">@Sub</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = "fa-solid fa-chart-line";
+    [Parameter] public string IconClass { get; set; } = "si-lime";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string? Sub { get; set; }
+}
