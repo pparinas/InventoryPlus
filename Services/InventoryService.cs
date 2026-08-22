@@ -682,10 +682,12 @@ namespace InventoryPlus.Services
         }
 
         // ── Image URL helpers ──────────────────────────────────────────────────
-
-        // Cache signed URLs to avoid re-signing on every load (path → {url, expiry})
-        private readonly Dictionary<string, (string Url, DateTime Expiry)> _signedUrlCache = new();
-        private static readonly TimeSpan SignedUrlTtl = TimeSpan.FromDays(6); // re-sign before 7-day expiry
+        // The product-images bucket is public, so GetPublicUrl is a permanent,
+        // non-expiring URL -- no signing or caching needed. This also self-heals
+        // any product whose ImageUrl still holds an old, now-expired signed URL
+        // from before the bucket was made public: the path is extracted from
+        // whatever was stored (bare path, public URL, or legacy signed URL) and
+        // re-resolved to a fresh public URL on every load.
 
         private static string? ExtractProductImagePath(string? urlOrPath)
         {
@@ -704,40 +706,24 @@ namespace InventoryPlus.Services
             return null;
         }
 
-        private async Task RefreshProductImageUrlsAsync()
+        private Task RefreshProductImageUrlsAsync()
         {
-            var productsWithImages = Products
-                .Where(p => !string.IsNullOrEmpty(p.ImageUrl))
-                .ToList();
-            if (productsWithImages.Count == 0) return;
-
-            var tasks = productsWithImages.Select(async product =>
+            foreach (var product in Products)
             {
+                if (string.IsNullOrEmpty(product.ImageUrl)) continue;
                 var path = ExtractProductImagePath(product.ImageUrl);
-                if (string.IsNullOrEmpty(path)) return;
+                if (string.IsNullOrEmpty(path)) continue;
                 try
                 {
-                    product.ImageUrl = await GetOrCreateSignedUrlAsync("product-images", path);
+                    product.ImageUrl = _supabase.Storage.From("product-images").GetPublicUrl(path);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Failed to refresh image URL for {product.Name}: {ex.Message}");
+                    Console.WriteLine($"Failed to resolve image URL for {product.Name}: {ex.Message}");
                 }
-            });
-            await Task.WhenAll(tasks);
+            }
+            return Task.CompletedTask;
         }
 
-        private async Task<string> GetOrCreateSignedUrlAsync(string bucket, string path)
-        {
-            var cacheKey = $"{bucket}/{path}";
-            if (_signedUrlCache.TryGetValue(cacheKey, out var cached) && cached.Expiry > DateTime.UtcNow)
-                return cached.Url;
-
-            var url = await _supabase.Storage
-                .From(bucket)
-                .CreateSignedUrl(path, 60 * 60 * 24 * 7);
-            _signedUrlCache[cacheKey] = (url, DateTime.UtcNow + SignedUrlTtl);
-            return url;
-        }
     }
 }

@@ -129,9 +129,15 @@ namespace InventoryPlus.Layout
                 }
                 catch { }
 
-                // Show onboarding wizard on first setup (no products/ingredients yet)
-                if (Inventory.IsLoaded && !AppSettings.OnboardingCompleted
-                    && !Inventory.ActiveProducts.Any() && !Inventory.ActiveIngredients.Any())
+                // Show the onboarding wizard for a genuinely new account, or when the
+                // user explicitly re-enabled it via Settings -- OnboardingCompleted only
+                // ever becomes false in those two cases (there's no other code path that
+                // resets it), so no extra "do they have data yet" guard is needed. An
+                // earlier version of this check also required zero products/ingredients,
+                // which meant toggling "Welcome Wizard" back on in Settings could never
+                // actually show the wizard again for any account that already had data --
+                // it looked like a working toggle but silently did nothing.
+                if (Inventory.IsLoaded && !AppSettings.OnboardingCompleted)
                 {
                     showOnboarding = true;
                 }
