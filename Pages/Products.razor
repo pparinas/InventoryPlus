@@ -20,6 +20,7 @@ else
             <p>Bundles of ingredients ready for sale.</p>
         </div>
         <div class="page-header-right">
+            <button class="btn btn-ghost" @onclick="() => showImportModal = true"><i class="fa-solid fa-file-arrow-up"></i> Import CSV</button>
             <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Product</button>
         </div>
     </div>
@@ -35,7 +36,58 @@ else
         </select>
     </div>
 
-    <div class="card" style="overflow:hidden">
+    <div class="card-view">
+        @foreach (var item in FilteredProducts.Skip((_page - 1) * PageSize).Take(PageSize))
+        {
+            <div class="stock-card">
+                <div class="stock-card-header">
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" style="width:32px;height:32px;border-radius:var(--radius-sm);object-fit:cover;border:1px solid var(--border);flex-shrink:0" alt="@item.Name" />
+                    }
+                    else
+                    {
+                        <div style="width:32px;height:32px;border-radius:var(--radius-sm);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;border:1px solid var(--border)">
+                            <i class="fa-solid fa-image" style="color:var(--fg3)"></i>
+                        </div>
+                    }
+                    <div class="stock-card-name">@item.Name</div>
+                    @if (item.HasIngredients && item.RequiredIngredients.Count == 0)
+                    {
+                        <span class="badge badge-gray">Not tracked</span>
+                    }
+                    else if (item.AvailableCount <= 0)
+                    {
+                        <span class="badge badge-red">Out</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-green">@item.AvailableCount avail.</span>
+                    }
+                </div>
+                <div class="stock-card-body">
+                    <div class="stock-card-row"><span class="stock-card-label">Price</span><span class="mono text-lime fw-700">₱@AppSettings.FormatPrice(item.SellingPrice)</span></div>
+                    <div class="stock-card-row"><span class="stock-card-label">Cost</span><span class="mono text-red">₱@AppSettings.FormatPrice(item.TotalCost)</span></div>
+                    <div class="stock-card-row">
+                        <span class="stock-card-label">Margin</span>
+                        <span class="badge @(item.ProfitMargin > 0 ? "badge-green" : "badge-red")">₱@AppSettings.FormatPrice(item.ProfitMargin) (@((item.ProfitMarginPercentage * 100).ToString("0"))%)</span>
+                    </div>
+                </div>
+                <div class="stock-card-actions">
+                    <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" @onclick="() => viewingRecipeProduct = item" title="View recipe"><i class="fa-solid fa-book-open"></i></button>
+                    <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" @onclick="() => Duplicate(item)" title="Duplicate"><i class="fa-solid fa-clone"></i></button>
+                    <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="btn btn-danger btn-sm" style="flex:1;justify-content:center" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        }
+        @if (!FilteredProducts.Any())
+        {
+            <p style="text-align:center;color:var(--fg3);padding:2rem 0">No products configured yet.</p>
+        }
+    </div>
+
+    <div class="card table-view" style="overflow:hidden">
         <div class="table-wrap">
             <table>
                 <thead>
@@ -87,7 +139,11 @@ else
                                 </span>
                             </td>
                             <td>
-                                @if (item.AvailableCount <= 0)
+                                @if (item.HasIngredients && item.RequiredIngredients.Count == 0)
+                                {
+                                    <span class="badge badge-gray" title="Add ingredients to start tracking stock for this product">Not tracked</span>
+                                }
+                                else if (item.AvailableCount <= 0)
                                 {
                                     <span class="badge badge-red">Out</span>
                                 }
@@ -98,6 +154,8 @@ else
                             </td>
                             <td>
                                 <div style="display:flex;gap:4px;justify-content:flex-end">
+                                    <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => viewingRecipeProduct = item" title="View recipe"><i class="fa-solid fa-book-open"></i></button>
+                                    <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => Duplicate(item)" title="Duplicate"><i class="fa-solid fa-clone"></i></button>
                                     <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
                                     <button class="btn btn-danger btn-sm btn-icon" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
                                 </div>
@@ -273,12 +331,18 @@ else
                         }
                         @if(currentProduct.RequiredIngredients.Count == 0)
                         {
-                            <p style="color:var(--fg3);text-align:center;font-size:11px;padding:8px 0">No ingredients added yet.</p>
+                            <p style="color:var(--fg3);text-align:center;font-size:11px;padding:8px 0">No ingredients added yet — this product will show as "Not tracked" until you add at least one, or switch "Uses Ingredients?" to No.</p>
                         }
                     </div>
                 </div>
                 }
             </div>
+        </div>
+
+        <div class="form-group" style="margin-top:8px">
+            <label class="form-label">Recipe / Preparation Steps</label>
+            <textarea class="form-control" rows="5" @bind="currentProduct.Recipe" placeholder="e.g. 1. Brew 1 shot espresso&#10;2. Add 20g sugar syrup&#10;3. Top with ice and stir"></textarea>
+            <p style="color:var(--fg3);font-size:10px;margin-top:4px">Optional. Visible to anyone who opens this product — handy for staff making it the same way every time.</p>
         </div>
     </Content>
     <Footer>
@@ -301,5 +365,45 @@ else
     IsVisibleChanged="@((v) => showPinPrompt = v)"
     OnVerified="OnPinVerified" />
 
+<InventoryPlus.Components.ImportProductsModal
+    IsVisible="showImportModal"
+    IsVisibleChanged="@((v) => showImportModal = v)"
+    OnImported="StateHasChanged" />
+
+<AppModal IsOpen="viewingRecipeProduct != null" IsOpenChanged="@((v) => { if (!v) viewingRecipeProduct = null; })" Size="Large">
+    <Header>
+        <h5><i class="fa-solid fa-book-open"></i> @viewingRecipeProduct?.Name</h5>
+    </Header>
+    <Content>
+        @if (viewingRecipeProduct != null)
+        {
+            @if (viewingRecipeProduct.RequiredIngredients.Any())
+            {
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--fg3);margin-bottom:7px">Ingredients</div>
+                <ul style="margin:0 0 14px 0;padding-left:18px;font-size:13px;color:var(--fg2)">
+                    @foreach (var req in viewingRecipeProduct.RequiredIngredients)
+                    {
+                        <li>@req.QuantityRequired @req.EffectiveUsageUnit @req.Ingredient?.Name</li>
+                    }
+                </ul>
+            }
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--fg3);margin-bottom:7px">Preparation</div>
+            @if (string.IsNullOrWhiteSpace(viewingRecipeProduct.Recipe))
+            {
+                <p style="color:var(--fg3);font-size:13px">No recipe added yet. Open Edit to add preparation steps.</p>
+            }
+            else
+            {
+                <p style="white-space:pre-wrap;font-size:13px;color:var(--fg);line-height:1.6">@viewingRecipeProduct.Recipe</p>
+            }
+        }
+    </Content>
+    <Footer>
+        <button class="btn btn-ghost" @onclick="() => viewingRecipeProduct = null">Close</button>
+    </Footer>
+</AppModal>
+
 @code {
+    protected bool showImportModal;
+    protected Product? viewingRecipeProduct;
 }

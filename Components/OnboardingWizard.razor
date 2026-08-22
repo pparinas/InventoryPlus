@@ -204,6 +204,8 @@
     private double stockQty = 10;
     private double stockCost = 0;
 
+    private InventoryPlus.Models.Product? createdProduct;
+
     private void NextStep()
     {
         step++;
@@ -259,7 +261,28 @@
             };
             await Inventory.AddIngredientAsync(ing);
             Toast.Show($"\"{stockName}\" added to stock!");
+
+            // Link this stock item to the product created in the previous step,
+            // so it doesn't sit at 0 available with nothing tracked.
+            if (createdProduct != null)
+            {
+                createdProduct.RequiredIngredients.Add(new InventoryPlus.Models.ProductIngredient
+                {
+                    Guid = Guid.NewGuid(),
+                    ProductId = createdProduct.Guid,
+                    IngredientId = ing.Guid,
+                    QuantityRequired = 1,
+                    Ingredient = ing
+                });
+                await Inventory.UpdateProductAsync(createdProduct);
+            }
+
             NextStep();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Onboarding stock save error: {ex.Message}");
+            Toast.Show("Couldn't save that stock item — check your connection and try again.", "error");
         }
         finally { isSaving = false; }
     }
@@ -286,8 +309,14 @@
             }
 
             await Inventory.AddProductAsync(product);
+            createdProduct = product;
             Toast.Show($"\"{productName}\" created!");
             NextStep();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Onboarding product save error: {ex.Message}");
+            Toast.Show("Couldn't save that product — check your connection and try again.", "error");
         }
         finally { isSaving = false; }
     }

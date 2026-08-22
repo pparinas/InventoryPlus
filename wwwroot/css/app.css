@@ -191,6 +191,7 @@ body{background-color:var(--bg);color:var(--fg)}
 /* ── STAT CARDS ── */
 .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 @media(min-width:1024px){.stat-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}
 .stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px}
 .stat-card:hover{transform:none;box-shadow:none}
 .stat-card-icon,.stat-icon{width:32px;height:32px;border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;font-size:13px;margin-bottom:10px;flex-shrink:0}
@@ -234,7 +235,9 @@ tbody tr:hover td,.table-hover>tbody>tr:hover>*{background:var(--bg3);--bs-table
 .form-control:focus,.form-select:focus{border-color:var(--lime);box-shadow:0 0 0 2px var(--lime-dim)}
 .form-control::placeholder{color:var(--fg3)}
 select.form-control option,.form-select option{background:var(--bg3);color:var(--fg)}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
+.form-row>*{min-width:0}
+@media(max-width:640px){.form-row{grid-template-columns:1fr}}
 .form-check{display:flex;align-items:center;gap:6px}
 .form-check-input{width:14px;height:14px;accent-color:var(--lime)}
 .form-check-label{font-size:12px;color:var(--fg3)}
@@ -483,7 +486,7 @@ select.form-control option,.form-select option{background:var(--bg3);color:var(-
 .onboarding-tip{display:flex;align-items:center;gap:.75rem;padding:.6rem .8rem;background:var(--bg3);border-radius:var(--radius-sm);font-size:.9rem}
 
 /* ── ADMIN ── */
-.admin-user-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;display:flex;align-items:center;gap:10px}
+.admin-user-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
 /* ── REPORTS ── */
 .report-section-header{cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;padding:.5rem 0;-webkit-text-fill-color:unset;background:none}

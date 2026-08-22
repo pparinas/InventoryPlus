@@ -1,0 +1,176 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using InventoryPlus.Models
+@inject InventoryPlus.Services.InventoryService Inventory
+@inject InventoryPlus.Services.ToastService Toast
+
+<AppModal IsOpen="IsVisible" IsOpenChanged="@((v) => { if (!v) Close(); })" Size="Large">
+    <Header>
+        <h5>Import Stock from CSV</h5>
+    </Header>
+    <Content>
+        @if (rows == null)
+        {
+            <p style="color:var(--fg2)">Upload a CSV of your raw materials or supplies. Not sure of the format?</p>
+            <a class="btn btn-ghost btn-sm" href="templates/stock_template.csv" download>
+                <i class="fa-solid fa-download"></i> Download template
+            </a>
+            <div style="margin-top:14px">
+                <InputFile OnChange="HandleFile" class="form-control" accept=".csv" />
+            </div>
+            @if (!string.IsNullOrEmpty(parseError))
+            {
+                <p class="text-red" style="margin-top:8px;font-size:12px">@parseError</p>
+            }
+        }
+        else
+        {
+            <p style="color:var(--fg2);font-size:12px">
+                @rows.Count row(s) found. @(errorCount > 0 ? $"{errorCount} will be skipped — fix them and re-upload to include those too." : "All rows look good.")
+            </p>
+            <div class="table-wrap" style="max-height:340px">
+                <table>
+                    <thead>
+                        <tr><th>Name</th><th>Type</th><th>Unit</th><th>Stock</th><th>Cost/Unit</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in rows)
+                        {
+                            <tr>
+                                <td>@r.Name</td>
+                                <td>@r.Type</td>
+                                <td>@r.Unit</td>
+                                <td class="mono">@r.Stock</td>
+                                <td class="mono">₱@r.CostPerUnit</td>
+                                <td>
+                                    @if (r.Error == null)
+                                    {
+                                        <span class="badge badge-green">OK</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-red" title="@r.Error">@r.Error</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </Content>
+    <Footer>
+        @if (rows == null)
+        {
+            <button class="btn btn-ghost" @onclick="Close">Cancel</button>
+        }
+        else
+        {
+            <button class="btn btn-ghost" @onclick="Reset">Choose different file</button>
+            <button class="btn btn-primary" disabled="@(rows.Count == errorCount || isImporting)" @onclick="DoImport">
+                @if (isImporting) { <i class="fa-solid fa-spinner fa-spin"></i> }
+                Import @(rows.Count - errorCount) item(s)
+            </button>
+        }
+    </Footer>
+</AppModal>
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsVisibleChanged { get; set; }
+    [Parameter] public EventCallback OnImported { get; set; }
+
+    private class StockRow
+    {
+        public string Name = "";
+        public string Type = "Ingredient";
+        public string Unit = "";
+        public double Stock;
+        public double CostPerUnit;
+        public double LowStockThreshold = 5;
+        public string? Error;
+    }
+
+    private List<StockRow>? rows;
+    private string? parseError;
+    private bool isImporting;
+    private int errorCount => rows?.Count(r => r.Error != null) ?? 0;
+
+    private async Task HandleFile(InputFileChangeEventArgs e)
+    {
+        parseError = null;
+        try
+        {
+            using var stream = e.File.OpenReadStream(maxAllowedSize: 2 * 1024 * 1024);
+            using var reader = new StreamReader(stream);
+            var text = await reader.ReadToEndAsync();
+            var parsed = InventoryPlus.Services.CsvParser.ParseWithHeader(text);
+
+            if (parsed.Count == 0)
+            {
+                parseError = "No rows found in that file.";
+                return;
+            }
+
+            rows = parsed.Select(d =>
+            {
+                var row = new StockRow
+                {
+                    Name = d.GetValueOrDefault("Name", ""),
+                    Type = d.GetValueOrDefault("Type", "Ingredient"),
+                    Unit = d.GetValueOrDefault("Unit", ""),
+                };
+                double.TryParse(d.GetValueOrDefault("Stock", "0"), out row.Stock);
+                double.TryParse(d.GetValueOrDefault("CostPerUnit", "0"), out row.CostPerUnit);
+                if (double.TryParse(d.GetValueOrDefault("LowStockThreshold", ""), out var lst)) row.LowStockThreshold = lst;
+
+                if (string.IsNullOrWhiteSpace(row.Name)) row.Error = "Missing name";
+                else if (string.IsNullOrWhiteSpace(row.Unit)) row.Error = "Missing unit";
+                else if (row.Type != "Ingredient" && row.Type != "Necessity") row.Error = "Type must be Ingredient or Necessity";
+
+                return row;
+            }).ToList();
+        }
+        catch (Exception)
+        {
+            parseError = "Couldn't read that file. Make sure it's a CSV exported from the template.";
+        }
+    }
+
+    private async Task DoImport()
+    {
+        if (rows == null) return;
+        isImporting = true;
+        try
+        {
+            foreach (var r in rows.Where(r => r.Error == null))
+            {
+                await Inventory.AddIngredientAsync(new Ingredient
+                {
+                    Name = r.Name,
+                    Type = r.Type,
+                    Unit = r.Unit,
+                    Stock = r.Stock,
+                    CostPerUnit = r.CostPerUnit,
+                    LowStockThreshold = r.LowStockThreshold
+                });
+            }
+            Toast.Show($"Imported {rows.Count(r => r.Error == null)} stock item(s)!");
+            await OnImported.InvokeAsync();
+            await Close();
+        }
+        finally { isImporting = false; }
+    }
+
+    private void Reset()
+    {
+        rows = null;
+        parseError = null;
+    }
+
+    private async Task Close()
+    {
+        Reset();
+        IsVisible = false;
+        await IsVisibleChanged.InvokeAsync(false);
+    }
+}

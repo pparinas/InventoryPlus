@@ -115,6 +115,7 @@ namespace InventoryPlus.Pages
                 TaxRate = item.TaxRate,
                 ImageUrl = item.ImageUrl,
                 Category = item.Category,
+                Recipe = item.Recipe,
                 HasIngredients = AppSettings.ShowInventoryTab && item.HasIngredients,
                 StockCount = item.StockCount,
                 RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
@@ -128,6 +129,59 @@ namespace InventoryPlus.Pages
             taxRatePercent = item.TaxRate * 100;
             isEditing = true;
             showModal = true;
+        }
+
+        protected void Duplicate(Product item)
+        {
+            if (AppSettings.IsPinRequired(PinScope.Products))
+            {
+                _pendingPinAction = () =>
+                {
+                    _ = DoDuplicate(item);
+                };
+                showPinPrompt = true;
+            }
+            else
+            {
+                _ = DoDuplicate(item);
+            }
+        }
+
+        private async Task DoDuplicate(Product item)
+        {
+            var clone = new Product
+            {
+                Guid = Guid.NewGuid(),
+                Name = $"{item.Name} (Copy)",
+                SellingPrice = item.SellingPrice,
+                TaxRate = item.TaxRate,
+                ImageUrl = item.ImageUrl,
+                Category = item.Category,
+                Recipe = item.Recipe,
+                HasIngredients = item.HasIngredients,
+                StockCount = item.StockCount,
+                RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
+                {
+                    Guid = Guid.NewGuid(),
+                    IngredientId = r.IngredientId,
+                    QuantityRequired = r.QuantityRequired,
+                    UsageUnit = r.UsageUnit,
+                    Ingredient = r.Ingredient
+                }).ToList()
+            };
+
+            try
+            {
+                await Inventory.AddProductAsync(clone, JS);
+                Toast.Show($"\"{item.Name}\" duplicated — adjust the name/price and save.");
+                DoEdit(clone);
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Duplicate error: {ex.Message}");
+                Toast.Show("Failed to duplicate product.", "error");
+            }
         }
 
         protected void OnPinVerified()
@@ -286,6 +340,7 @@ namespace InventoryPlus.Pages
                         existing.TaxRate = currentProduct.TaxRate;
                         existing.ImageUrl = currentProduct.ImageUrl;
                         existing.Category = currentProduct.Category;
+                        existing.Recipe = currentProduct.Recipe;
                         existing.HasIngredients = currentProduct.HasIngredients;
                         existing.StockCount = currentProduct.StockCount;
                         existing.RequiredIngredients = currentProduct.HasIngredients ? currentProduct.RequiredIngredients : new();

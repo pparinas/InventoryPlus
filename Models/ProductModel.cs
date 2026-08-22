@@ -36,6 +36,9 @@ namespace InventoryPlus.Models
         [Column("has_ingredients")]
         public bool HasIngredients { get; set; } = true;
 
+        [Column("recipe")]
+        public string Recipe { get; set; } = string.Empty;
+
         [Column("stock_count")]
         public double StockCount { get; set; }
 

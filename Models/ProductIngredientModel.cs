@@ -1,4 +1,5 @@
 using System;
+using Newtonsoft.Json;
 using Supabase.Postgrest.Attributes;
 using Supabase.Postgrest.Models;
 
@@ -36,6 +37,7 @@ namespace InventoryPlus.Models
         /// The unit actually used for this requirement.
         /// Defaults to the ingredient's own unit if no override is set.
         /// </summary>
+        [JsonIgnore]
         public string EffectiveUsageUnit =>
             string.IsNullOrEmpty(UsageUnit)
                 ? (Ingredient?.Unit ?? string.Empty)

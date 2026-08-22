@@ -13,6 +13,7 @@ namespace InventoryPlus.Pages
         [Inject] public ToastService Toast { get; set; } = default!;
         [Inject] public Microsoft.JSInterop.IJSRuntime JS { get; set; } = default!;
         protected bool showModal;
+        protected bool showImportModal;
         protected bool isEditing;
         protected Ingredient currentIngredient = new();
         protected int _page = 1;
