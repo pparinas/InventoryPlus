@@ -10,6 +10,7 @@ namespace InventoryPlus.Pages
     public partial class Sales : ComponentBase, IDisposable
     {
         [Inject] public InventoryService Inventory { get; set; } = default!;
+        [Inject] public OrderService Orders { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public ToastService Toast { get; set; } = default!;
         [Inject] public NavigationManager Nav { get; set; } = default!;
@@ -71,6 +72,8 @@ namespace InventoryPlus.Pages
         {
             Inventory.OnStateChanged += HandleStateChanged;
             AppSettings.OnStateChanged += HandleStateChanged;
+            Orders.OnStateChanged += HandleStateChanged;
+            Orders.SubscribeRealtime(() => InvokeAsync(StateHasChanged));
         }
 
         private void HandleStateChanged() => InvokeAsync(StateHasChanged);
@@ -79,6 +82,7 @@ namespace InventoryPlus.Pages
         {
             Inventory.OnStateChanged -= HandleStateChanged;
             AppSettings.OnStateChanged -= HandleStateChanged;
+            Orders.OnStateChanged -= HandleStateChanged;
         }
 
         protected IEnumerable<string> Categories => Inventory.ActiveProducts

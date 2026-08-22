@@ -59,13 +59,30 @@ namespace InventoryPlus.Services
         public void SubscribeRealtime(Action onChange)
         {
             if (_channel != null) return; // already subscribed
-            _channel = _supabase.Realtime.Channel("realtime", "public", "orders", "owner_guid", $"owner_guid=eq.{_ownerGuid}");
-            _channel.AddPostgresChangeHandler(Supabase.Realtime.PostgresChanges.PostgresChangesOptions.ListenType.All, async (_, __) =>
+            // Fire-and-forget: realtime is a nice-to-have live update, not a page
+            // dependency. A connection failure (or the "orders" table/realtime
+            // publication not existing yet) must never crash the page it's called
+            // from -- Pending Orders still works via the normal load-on-open path.
+            _ = SubscribeRealtimeAsync(onChange);
+        }
+
+        private async Task SubscribeRealtimeAsync(Action onChange)
+        {
+            try
             {
-                await LoadAsync(_ownerGuid.ToString());
-                onChange();
-            });
-            _ = _channel.Subscribe();
+                _channel = _supabase.Realtime.Channel("realtime", "public", "orders", "owner_guid", $"owner_guid=eq.{_ownerGuid}");
+                _channel.AddPostgresChangeHandler(Supabase.Realtime.PostgresChanges.PostgresChangesOptions.ListenType.All, async (_, __) =>
+                {
+                    await LoadAsync(_ownerGuid.ToString());
+                    onChange();
+                });
+                await _channel.Subscribe();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"OrderService realtime subscribe failed (falling back to load-on-open): {ex.Message}");
+                _channel = null;
+            }
         }
 
         public void UnsubscribeRealtime()

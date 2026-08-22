@@ -16,7 +16,7 @@ var supabaseKey = builder.Configuration["Supabase:Key"]
 var options = new SupabaseOptions
 {
     AutoRefreshToken = true,
-    AutoConnectRealtime = false,
+    AutoConnectRealtime = true,
 };
 
 var supabaseClient = new Supabase.Client(supabaseUrl, supabaseKey, options);
