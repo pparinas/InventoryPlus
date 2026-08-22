@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using InventoryPlus.Services;
 
 namespace InventoryPlus.Pages
@@ -12,6 +13,7 @@ namespace InventoryPlus.Pages
         [Parameter] public string Slug { get; set; } = "";
         [Inject] public Supabase.Client SupabaseClient { get; set; } = default!;
         [Inject] public NavigationManager NavManager { get; set; } = default!;
+        [Inject] public Microsoft.JSInterop.IJSRuntime JS { get; set; } = default!;
 
         private PublicMenuService service = default!;
         protected PublicMenuInfo? menu;
@@ -21,7 +23,16 @@ namespace InventoryPlus.Pages
         protected string customerName = "";
         protected string tableNote = "";
         protected string? submitError;
+        protected string selectedCategory = "All";
         protected Dictionary<Guid, int> cart = new();
+
+        protected IEnumerable<string> Categories => menu!.Products
+            .Select(p => string.IsNullOrEmpty(p.Category) ? "Other" : p.Category)
+            .Distinct().OrderBy(c => c);
+
+        protected IEnumerable<Models.Product> FilteredProducts => selectedCategory == "All"
+            ? menu!.Products
+            : menu!.Products.Where(p => (string.IsNullOrEmpty(p.Category) ? "Other" : p.Category) == selectedCategory);
 
         protected double CartTotal => cart.Sum(kv => menu!.Products.First(p => p.Guid == kv.Key).SellingPrice * kv.Value);
 
@@ -38,6 +49,12 @@ namespace InventoryPlus.Pages
                 menu = null;
             }
             isLoading = false;
+
+            if (menu != null)
+            {
+                try { await JS.InvokeVoidAsync("themeInterop.setScheme", menu.ColorScheme); }
+                catch { /* cosmetic only -- never block the menu from rendering */ }
+            }
         }
 
         protected void AddToCart(Models.Product product) => ChangeQty(product, 1);
