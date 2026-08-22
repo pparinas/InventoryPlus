@@ -1,0 +1,38 @@
+@page "/order/{Slug}/{OrderNumber:int}"
+@layout InventoryPlus.Layout.PublicMenuLayout
+@attribute [AllowAnonymous]
+
+<PageTitle>Order #@OrderNumber</PageTitle>
+
+@if (isLoading)
+{
+    <div style="padding:3rem;text-align:center;color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+}
+else if (order == null)
+{
+    <div style="padding:3rem;text-align:center">
+        <h2>Order not found</h2>
+    </div>
+}
+else
+{
+    <div style="max-width:420px;margin:0 auto;padding:24px 16px;text-align:center">
+        <div style="font-size:3rem;color:var(--lime)"><i class="fa-solid fa-circle-check"></i></div>
+        <h1>Order #@order.OrderNumber</h1>
+        <p style="color:var(--fg3)">Show this screen to staff to pay.</p>
+
+        <div class="card" style="text-align:left;padding:14px;margin-top:16px">
+            @foreach (var item in order.Items)
+            {
+                <div style="display:flex;justify-content:space-between;padding:5px 0">
+                    <span>@item.ProductName × @item.Quantity</span>
+                    <span class="mono">₱@((item.UnitPrice * item.Quantity).ToString("0.00"))</span>
+                </div>
+            }
+            <div style="display:flex;justify-content:space-between;font-weight:700;padding-top:8px;border-top:1px solid var(--border);margin-top:8px">
+                <span>Total</span>
+                <span class="mono text-lime">₱@order.TotalAmount.ToString("0.00")</span>
+            </div>
+        </div>
+    </div>
+}
