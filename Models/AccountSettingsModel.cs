@@ -50,6 +50,9 @@ namespace InventoryPlus.Models
         [Column("show_decimals")]
         public bool ShowDecimals { get; set; } = true;
 
+        [Column("menu_slug")]
+        public string? MenuSlug { get; set; }
+
         [JsonIgnore] public bool IsPosMode { get; set; } = false;
     }
 }
