@@ -139,6 +139,14 @@ namespace InventoryPlus.Services
             }
         }
 
+        // Pending Orders view toggle (Pro feature)
+        private bool _showPendingOrders = false;
+        public bool ShowPendingOrders
+        {
+            get => _showPendingOrders;
+            set { if (_showPendingOrders != value) { _showPendingOrders = value; NotifyStateChanged(); } }
+        }
+
         // PIN
         private string _pinHash = string.Empty;
         private PinScope _pinScopes = PinScope.All;

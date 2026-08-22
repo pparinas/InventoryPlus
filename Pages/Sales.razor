@@ -24,6 +24,17 @@ else
             <p>Select products and complete a sale.</p>
         </div>
         <div class="page-header-right">
+            <button class="btn btn-ghost btn-sm" disabled="@(!AppSettings.IsPro)" @onclick="() => AppSettings.ShowPendingOrders = !AppSettings.ShowPendingOrders">
+                <i class="fa-solid fa-receipt"></i> Pending Orders
+                @if (Orders.PendingOrders.Count > 0)
+                {
+                    <span class="badge badge-amber" style="margin-left:4px">@Orders.PendingOrders.Count</span>
+                }
+                @if (!AppSettings.IsPro)
+                {
+                    <span style="font-size:8px;font-weight:700;color:var(--amber);margin-left:4px;background:rgba(255,193,7,0.15);padding:1px 5px;border-radius:4px">PRO</span>
+                }
+            </button>
             <button class="btn btn-primary btn-sm" disabled="@(!AppSettings.IsPro)" @onclick="EnterPosMode">
                 <i class="fa-solid fa-cash-register"></i> POS Mode
                 @if (!AppSettings.IsPro)
@@ -35,7 +46,11 @@ else
     </div>
 }
 
-@if (!AppSettings.IsPosMode || AppSettings.PosActiveView == "pos")
+@if (AppSettings.ShowPendingOrders)
+{
+    <InventoryPlus.Components.PendingOrdersView />
+}
+else if (!AppSettings.IsPosMode || AppSettings.PosActiveView == "pos")
 {
 <div class="section-gap fade-in">
     <div class="pos-grid">
