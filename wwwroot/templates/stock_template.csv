@@ -1,0 +1,3 @@
+Name,Type,Unit,Stock,CostPerUnit,LowStockThreshold
+Coffee Beans,Ingredient,kg,5,450,1
+Paper Cups,Necessity,pcs,200,3.5,50

@@ -1,0 +1,3 @@
+Name,Category,SellingPrice,TaxRate,StartingStock,Ingredient1Name,Ingredient1Qty,Ingredient1Unit,Ingredient2Name,Ingredient2Qty,Ingredient2Unit,Ingredient3Name,Ingredient3Qty,Ingredient3Unit
+Iced Coffee,Beverages,140,0,,Coffee Beans,0.02,kg,Paper Cups,1,pcs,,,
+Bottled Water,Beverages,25,0,50,,,,,,,,
