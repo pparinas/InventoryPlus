@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.JSInterop;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
+using InventoryPlus.Components;
 using System.Text;
 
 namespace InventoryPlus.Pages
@@ -17,6 +18,29 @@ namespace InventoryPlus.Pages
         [Inject] public NavigationManager Nav { get; set; } = default!;
 
         protected string selectedFilter = "Daily";
+
+        protected List<SegmentedControl.SegOption> RangeOptions => new()
+        {
+            new("Daily", "Daily"),
+            new("Weekly", "Weekly"),
+            new("Monthly", AppSettings.IsPro ? "Monthly" : "Monthly 🔒", !AppSettings.IsPro),
+            new("Yearly", AppSettings.IsPro ? "Yearly" : "Yearly 🔒", !AppSettings.IsPro),
+            new("All", AppSettings.IsPro ? "All" : "All 🔒", !AppSettings.IsPro),
+        };
+
+        protected void OnRangeChanged(string value)
+        {
+            selectedFilter = value;
+            salesPage = 1;
+        }
+
+        protected string StockValuationRowSub(Ingredient item)
+        {
+            var costLabel = item.ItemSize is > 0
+                ? $"₱{AppSettings.FormatCurrency(item.CostPerUnit * item.ItemSize.Value)}/{item.ItemSize} {item.Unit}"
+                : $"₱{AppSettings.FormatCurrency(item.CostPerUnit)}/{item.Unit}";
+            return $"{item.Type} · {item.Stock} {item.Unit} · {costLabel}";
+        }
         protected DateTime? stockDateFilter = null;
         protected HashSet<string> openSections = new() { "sales" };
 
