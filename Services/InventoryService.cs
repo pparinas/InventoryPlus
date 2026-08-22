@@ -188,14 +188,14 @@ namespace InventoryPlus.Services
                 await _supabase.From<Product>().Upsert(product);
                 product.RequiredIngredients = requirements;
 
-                var piTasks = requirements.Select(pi =>
+                var piTasks = requirements.Select(async pi =>
                 {
                     pi.ProductId = product.Guid;
                     pi.OwnerId = _ownerGuid;
                     var savedIngredient = pi.Ingredient;
                     pi.Ingredient = null;
-                    var task = _supabase.From<ProductIngredient>().Upsert(pi);
-                    return task.ContinueWith(_ => pi.Ingredient = savedIngredient);
+                    await _supabase.From<ProductIngredient>().Upsert(pi);
+                    pi.Ingredient = savedIngredient;
                 });
                 await Task.WhenAll(piTasks);
             });
@@ -220,14 +220,14 @@ namespace InventoryPlus.Services
                 var toDelete = existingPIs.Models.Where(old => !requirements.Any(r => r.Guid == old.Guid));
                 var deleteTasks = toDelete.Select(old => (Task)_supabase.From<ProductIngredient>().Delete(old));
 
-                var upsertTasks = requirements.Select(pi =>
+                var upsertTasks = requirements.Select(async pi =>
                 {
                     pi.ProductId = product.Guid;
                     pi.OwnerId = _ownerGuid;
                     var savedIngredient = pi.Ingredient;
                     pi.Ingredient = null;
-                    var task = _supabase.From<ProductIngredient>().Upsert(pi);
-                    return (Task)task.ContinueWith(_ => pi.Ingredient = savedIngredient ?? Ingredients.FirstOrDefault(i => i.Guid == pi.IngredientId));
+                    await _supabase.From<ProductIngredient>().Upsert(pi);
+                    pi.Ingredient = savedIngredient ?? Ingredients.FirstOrDefault(i => i.Guid == pi.IngredientId);
                 });
 
                 await Task.WhenAll(deleteTasks.Concat(upsertTasks));
