@@ -48,7 +48,7 @@
                             }
                         </div>
                     </div>
-                    <div style="display:flex;gap:5px;align-items:center">
+                    <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto">
                         @if (user.IsAdmin)
                         {
                             <span class="badge badge-lime">Admin</span>
@@ -190,7 +190,7 @@
         <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;font-size:11px;color:var(--green);margin-bottom:10px">
             <i class="fa-solid fa-check-circle"></i> All services are online (Supabase, Database, Hosting).
         </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+        <div class="stat-grid-3">
             <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:8px">
                 <div class="stat-card-icon si-lime"><i class="fa-solid fa-building"></i></div>
                 <div>

@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+    <div class="stat-grid-3">
         <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:10px">
             <div class="stat-card-icon si-red"><i class="fa-solid fa-peso-sign"></i></div>
             <div>
@@ -50,7 +50,39 @@
 
     @if (FilteredItems.Any())
     {
-    <div class="card" style="overflow:hidden">
+    <div class="card-view">
+        @foreach (var item in FilteredItems.Skip((currentPage - 1) * PageSize).Take(PageSize))
+        {
+            <div class="stock-card">
+                <div class="stock-card-header">
+                    <div class="stock-card-name">@item.Name</div>
+                    @if (item.IsRecurring)
+                    {
+                        <span class="badge badge-amber"><i class="fa-solid fa-rotate"></i> @item.Recurrence</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-gray">One-time</span>
+                    }
+                </div>
+                <div class="stock-card-body">
+                    @if (!string.IsNullOrEmpty(item.Note))
+                    {
+                        <div class="stock-card-row" style="color:var(--fg3);font-size:.8rem">@item.Note</div>
+                    }
+                    <div class="stock-card-row"><span class="stock-card-label">Category</span><span class="tag">@item.Category</span></div>
+                    <div class="stock-card-row"><span class="stock-card-label">Date</span><span>@item.Date.ToString("MMM dd, yyyy")</span></div>
+                    <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="mono text-red fw-700">₱@AppSettings.FormatCurrency(item.Amount)</span></div>
+                </div>
+                <div class="stock-card-actions">
+                    <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" @onclick="() => OpenEditModal(item)"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="btn btn-danger btn-sm" style="flex:1;justify-content:center" @onclick="() => StartDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="card table-view" style="overflow:hidden">
         <div class="table-wrap">
             <table>
                 <thead>

@@ -18,11 +18,12 @@ else
             <p>Manage your raw materials and shop necessities.</p>
         </div>
         <div class="page-header-right">
+            <button class="btn btn-ghost" @onclick="() => showImportModal = true"><i class="fa-solid fa-file-arrow-up"></i> Import CSV</button>
             <button class="btn btn-primary" @onclick="OpenAddModal"><i class="fa-solid fa-plus"></i> Add Item</button>
         </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px">
+    <div class="stat-grid-3">
         <div class="stat-card" style="display:flex;flex-direction:row;align-items:center;gap:10px">
             <div class="stat-card-icon si-lime"><i class="fa-solid fa-boxes-stacked"></i></div>
             <div>
@@ -55,7 +56,41 @@ else
         </div>
     </div>
 
-    <div class="card" style="overflow:hidden">
+    <div class="card-view">
+        @foreach (var item in FilteredItems.Skip((_page - 1) * PageSize).Take(PageSize))
+        {
+            <div class="stock-card">
+                <div class="stock-card-header">
+                    <div class="stock-card-name">@item.Name</div>
+                    <span class="badge @(item.Type == "Ingredient" ? "badge-lime" : "badge-gray")">@item.Type</span>
+                </div>
+                <div class="stock-card-body">
+                    <div class="stock-card-row">
+                        <span class="stock-card-label">Stock</span>
+                        <span>
+                            <span class="mono @(item.Stock <= item.LowStockThreshold ? "text-amber fw-700" : "")">@item.Stock @item.Unit</span>
+                            @if (item.Stock <= item.LowStockThreshold)
+                            {
+                                <span class="badge badge-amber" style="margin-left:5px">Low</span>
+                            }
+                        </span>
+                    </div>
+                    <div class="stock-card-row"><span class="stock-card-label">Cost/Unit</span><span class="mono">₱@AppSettings.FormatCurrency(item.CostPerUnit)/@item.Unit</span></div>
+                    <div class="stock-card-row"><span class="stock-card-label">Total Value</span><span class="mono text-lime fw-700">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</span></div>
+                </div>
+                <div class="stock-card-actions">
+                    <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
+                    <button class="btn btn-danger btn-sm" style="flex:1;justify-content:center" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
+                </div>
+            </div>
+        }
+        @if (!FilteredItems.Any())
+        {
+            <p style="text-align:center;color:var(--fg3);padding:2rem 0">No stock items found.</p>
+        }
+    </div>
+
+    <div class="card table-view" style="overflow:hidden">
         <div class="table-wrap">
             <table>
                 <thead>
@@ -195,3 +230,8 @@ else
     IsVisible="showPinPrompt"
     IsVisibleChanged="@((v) => showPinPrompt = v)"
     OnVerified="OnPinVerified" />
+
+<InventoryPlus.Components.ImportStockModal
+    IsVisible="showImportModal"
+    IsVisibleChanged="@((v) => showImportModal = v)"
+    OnImported="StateHasChanged" />
