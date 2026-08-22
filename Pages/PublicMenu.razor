@@ -17,18 +17,39 @@ else if (menu == null)
 }
 else
 {
-    <div style="max-width:520px;margin:0 auto;padding:16px;padding-bottom:120px">
-        <div style="text-align:center;margin-bottom:16px">
-            @if (!string.IsNullOrEmpty(menu.LogoUrl))
-            {
-                <img src="@menu.LogoUrl" style="width:56px;height:56px;border-radius:var(--radius-sm);object-fit:cover" />
-            }
-            <h1 style="margin-top:8px">@menu.CompanyName</h1>
-        </div>
-
-        @foreach (var group in menu.Products.GroupBy(p => string.IsNullOrEmpty(p.Category) ? "Other" : p.Category))
+    <div style="background:linear-gradient(180deg,var(--lime-dim) 0%,transparent 100%);padding:32px 16px 20px;text-align:center">
+        @if (!string.IsNullOrEmpty(menu.LogoUrl))
         {
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--fg3);margin:16px 0 8px">@group.Key</div>
+            <img src="@menu.LogoUrl" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--bg2);box-shadow:var(--shadow)" />
+        }
+        else
+        {
+            <div style="width:80px;height:80px;border-radius:50%;background:var(--lime);color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;margin:0 auto;border:3px solid var(--bg2);box-shadow:var(--shadow)">
+                @(menu.CompanyName.Length > 0 ? menu.CompanyName[0].ToString().ToUpper() : "N")
+            </div>
+        }
+        <h1 style="margin-top:12px;font-size:1.6rem">@menu.CompanyName</h1>
+        <p style="color:var(--fg3);font-size:12px">Order ahead — pay at the counter when it's ready</p>
+    </div>
+
+    <div style="max-width:520px;margin:0 auto;padding:0 16px 120px">
+        @if (Categories.Count() > 1)
+        {
+            <div class="pill-group" style="margin:14px 0;justify-content:center;display:flex;flex-wrap:wrap;gap:6px">
+                <button class="pill @(selectedCategory == "All" ? "active" : "")" @onclick='() => selectedCategory = "All"'>All</button>
+                @foreach (var cat in Categories)
+                {
+                    <button class="pill @(selectedCategory == cat ? "active" : "")" @onclick="() => selectedCategory = cat">@cat</button>
+                }
+            </div>
+        }
+
+        @foreach (var group in FilteredProducts.GroupBy(p => string.IsNullOrEmpty(p.Category) ? "Other" : p.Category))
+        {
+            @if (selectedCategory == "All")
+            {
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--fg3);margin:16px 0 8px">@group.Key</div>
+            }
             @foreach (var product in group)
             {
                 var available = product.AvailableCount > 0 || !product.HasIngredients;

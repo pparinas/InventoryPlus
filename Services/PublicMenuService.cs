@@ -12,6 +12,7 @@ namespace InventoryPlus.Services
         public Guid OwnerGuid { get; set; }
         public string CompanyName { get; set; } = string.Empty;
         public string LogoUrl { get; set; } = string.Empty;
+        public string ColorScheme { get; set; } = "lime";
         public List<Product> Products { get; set; } = new();
     }
 
@@ -47,6 +48,7 @@ namespace InventoryPlus.Services
                 OwnerGuid = settings.OwnerGuid,
                 CompanyName = settings.CompanyName,
                 LogoUrl = settings.LogoUrl,
+                ColorScheme = string.IsNullOrEmpty(settings.ColorScheme) ? "lime" : settings.ColorScheme,
                 Products = productsResp.Models
             };
         }
