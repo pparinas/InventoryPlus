@@ -115,6 +115,7 @@ namespace InventoryPlus.Pages
                 TaxRate = item.TaxRate,
                 ImageUrl = item.ImageUrl,
                 Category = item.Category,
+                Recipe = item.Recipe,
                 HasIngredients = AppSettings.ShowInventoryTab && item.HasIngredients,
                 StockCount = item.StockCount,
                 RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
@@ -286,6 +287,7 @@ namespace InventoryPlus.Pages
                         existing.TaxRate = currentProduct.TaxRate;
                         existing.ImageUrl = currentProduct.ImageUrl;
                         existing.Category = currentProduct.Category;
+                        existing.Recipe = currentProduct.Recipe;
                         existing.HasIngredients = currentProduct.HasIngredients;
                         existing.StockCount = currentProduct.StockCount;
                         existing.RequiredIngredients = currentProduct.HasIngredients ? currentProduct.RequiredIngredients : new();
