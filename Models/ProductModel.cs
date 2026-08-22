@@ -29,8 +29,7 @@ namespace InventoryPlus.Models
         [Column("image_url")]
         public string ImageUrl { get; set; } = string.Empty;
 
-        // To persist: add 'category' column to Supabase, uncomment [Column], remove [JsonIgnore]
-        [JsonIgnore]
+        [Column("category")]
         public string Category { get; set; } = "Other";
 
         [Column("has_ingredients")]
