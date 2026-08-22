@@ -70,7 +70,24 @@ namespace InventoryPlus.Services
         {
             try
             {
-                _channel = _supabase.Realtime.Channel("realtime", "public", "orders", "owner_guid", $"owner_guid=eq.{_ownerGuid}");
+                // Sales.OnInitialized() can run before MainLayout's LoadDataAsync
+                // finishes awaiting LoadAsync (child OnInitialized fires before the
+                // parent layout's OnAfterRenderAsync completes), so _ownerGuid may
+                // still be default here. Wait briefly for it to be set rather than
+                // subscribing to a filter on an empty guid.
+                var attempts = 0;
+                while (_ownerGuid == Guid.Empty && attempts < 25)
+                {
+                    await Task.Delay(200);
+                    attempts++;
+                }
+                if (_ownerGuid == Guid.Empty)
+                {
+                    Console.WriteLine("OrderService realtime subscribe skipped: owner not resolved yet.");
+                    return;
+                }
+
+                _channel = _supabase.Realtime.Channel("realtime", "public", "orders", "owner_guid", _ownerGuid.ToString());
                 _channel.AddPostgresChangeHandler(Supabase.Realtime.PostgresChanges.PostgresChangesOptions.ListenType.All, async (_, __) =>
                 {
                     await LoadAsync(_ownerGuid.ToString());
