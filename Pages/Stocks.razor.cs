@@ -19,6 +19,15 @@ namespace InventoryPlus.Pages
         protected int _page = 1;
         protected const int PageSize = 10;
 
+        protected string StockRowSub(Ingredient item)
+        {
+            var costLabel = item.ItemSize is > 0
+                ? $"₱{AppSettings.FormatCurrency(item.CostPerUnit * item.ItemSize.Value)}/{item.ItemSize} {item.Unit}"
+                : $"₱{AppSettings.FormatCurrency(item.CostPerUnit)}/{item.Unit}";
+            var lowSuffix = item.Stock <= item.LowStockThreshold ? " · Low stock" : "";
+            return $"{item.Stock} {item.Unit} · {costLabel}{lowSuffix}";
+        }
+
         protected string searchQuery = "";
         protected string typeFilter = "All";
         protected string sortBy = "name";

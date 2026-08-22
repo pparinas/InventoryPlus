@@ -56,95 +56,33 @@ else
         </div>
     </div>
 
-    <div class="card-view">
-        @foreach (var item in FilteredItems.Skip((_page - 1) * PageSize).Take(PageSize))
-        {
-            <div class="stock-card">
-                <div class="stock-card-header">
-                    <div class="stock-card-name">@item.Name</div>
-                    <span class="badge @(item.Type == "Ingredient" ? "badge-lime" : "badge-gray")">@item.Type</span>
-                </div>
-                <div class="stock-card-body">
-                    <div class="stock-card-row">
-                        <span class="stock-card-label">Stock</span>
-                        <span>
-                            <span class="mono @(item.Stock <= item.LowStockThreshold ? "text-amber fw-700" : "")">@item.Stock @item.Unit</span>
+    @if (!FilteredItems.Any())
+    {
+        <InventoryPlus.Components.EmptyState Icon="fa-solid fa-boxes-stacked" Title="No stock items found" Message="Add your first raw material or supply to start tracking." />
+    }
+    else
+    {
+        <div class="card" style="overflow:hidden">
+            @foreach (var item in FilteredItems.Skip((_page - 1) * PageSize).Take(PageSize))
+            {
+                <ListRow Flat="true" Icon="fa-solid fa-boxes-stacked" IconClass="@(item.Type == "Ingredient" ? "si-lime" : "si-cyan")"
+                         Title="@item.Name"
+                         Sub="@StockRowSub(item)">
+                    <Trailing>
+                        <div style="display:flex;align-items:center;gap:6px">
                             @if (item.Stock <= item.LowStockThreshold)
                             {
-                                <span class="badge badge-amber" style="margin-left:5px">Low</span>
+                                <span class="badge badge-amber">Low</span>
                             }
-                        </span>
-                    </div>
-                    <div class="stock-card-row"><span class="stock-card-label">Cost/Unit</span><span class="mono">₱@AppSettings.FormatCurrency(item.CostPerUnit)/@item.Unit</span></div>
-                    <div class="stock-card-row"><span class="stock-card-label">Total Value</span><span class="mono text-lime fw-700">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</span></div>
-                </div>
-                <div class="stock-card-actions">
-                    <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="btn btn-danger btn-sm" style="flex:1;justify-content:center" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
-                </div>
-            </div>
-        }
-        @if (!FilteredItems.Any())
-        {
-            <p style="text-align:center;color:var(--fg3);padding:2rem 0">No stock items found.</p>
-        }
-    </div>
-
-    <div class="card table-view" style="overflow:hidden">
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Type</th>
-                        <th>Stock</th>
-                        <th>Cost/Unit</th>
-                        <th>Total Value</th>
-                        <th style="text-align:right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in FilteredItems.Skip((_page - 1) * PageSize).Take(PageSize))
-                    {
-                        <tr>
-                            <td style="font-weight:600">@item.Name</td>
-                            <td><span class="badge @(item.Type == "Ingredient" ? "badge-lime" : "badge-gray")">@item.Type</span></td>
-                            <td class="@(item.Stock <= item.LowStockThreshold ? "text-amber fw-700" : "")">
-                                <span class="mono">@item.Stock @item.Unit</span>
-                                @if (item.Stock <= item.LowStockThreshold)
-                                {
-                                    <span class="badge badge-amber" style="margin-left:5px">Low</span>
-                                }
-                            </td>
-                            <td class="mono" style="color:var(--fg2);font-size:11px">
-                                @if (item.ItemSize is > 0)
-                                {
-                                    <text>₱@AppSettings.FormatCurrency(item.CostPerUnit * item.ItemSize.Value)/@item.ItemSize @item.Unit</text>
-                                }
-                                else
-                                {
-                                    <text>₱@AppSettings.FormatCurrency(item.CostPerUnit)/@item.Unit</text>
-                                }
-                            </td>
-                            <td class="mono text-lime" style="font-weight:700">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</td>
-                            <td>
-                                <div style="display:flex;gap:4px;justify-content:flex-end">
-                                    <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn btn-danger btn-sm btn-icon" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                    @if (!FilteredItems.Any())
-                    {
-                        <tr>
-                            <td colspan="6" style="text-align:center;color:var(--fg3);padding:3rem">No stock items found.</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                            <span class="mono text-lime fw-700">₱@AppSettings.FormatCurrency(item.Stock * item.CostPerUnit)</span>
+                            <button class="btn btn-ghost btn-sm btn-icon" @onclick:stopPropagation="true" @onclick="() => Edit(item)"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-danger btn-sm btn-icon" @onclick:stopPropagation="true" @onclick="() => ConfirmDelete(item)"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </Trailing>
+                </ListRow>
+            }
         </div>
-    </div>
+    }
 
     <PaginationBar Page="_page" PageSize="PageSize" TotalItems="FilteredItems.Count()" OnPageChange="SetPage" />
 </div>
