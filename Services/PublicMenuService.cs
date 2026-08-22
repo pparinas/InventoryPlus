@@ -43,13 +43,19 @@ namespace InventoryPlus.Services
                 .Order(p => p.Name, Supabase.Postgrest.Constants.Ordering.Ascending)
                 .Get();
 
+            var products = productsResp.Models;
+            foreach (var product in products)
+            {
+                product.ImageUrl = StorageUrlHelper.ResolvePublicUrl(_supabase, "product-images", product.ImageUrl) ?? "";
+            }
+
             return new PublicMenuInfo
             {
                 OwnerGuid = settings.OwnerGuid,
                 CompanyName = settings.CompanyName,
-                LogoUrl = settings.LogoUrl,
+                LogoUrl = StorageUrlHelper.ResolvePublicUrl(_supabase, "branding", settings.LogoUrl) ?? "",
                 ColorScheme = string.IsNullOrEmpty(settings.ColorScheme) ? "lime" : settings.ColorScheme,
-                Products = productsResp.Models
+                Products = products
             };
         }
 

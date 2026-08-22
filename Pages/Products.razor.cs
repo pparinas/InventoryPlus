@@ -239,9 +239,9 @@ namespace InventoryPlus.Pages
                 await SupabaseClient.Storage
                     .From("product-images")
                     .Upload(buffer, path, new Supabase.Storage.FileOptions { ContentType = format, Upsert = true });
-                currentProduct.ImageUrl = await SupabaseClient.Storage
+                currentProduct.ImageUrl = SupabaseClient.Storage
                     .From("product-images")
-                    .CreateSignedUrl(path, 60 * 60 * 24 * 7);
+                    .GetPublicUrl(path);
 
                 pendingImageFile = null;
                 Toast.Show("Product image uploaded!");

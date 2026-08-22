@@ -410,6 +410,8 @@ namespace InventoryPlus.Pages
         protected void ToggleOnboarding()
         {
             AppSettings.OnboardingCompleted = !AppSettings.OnboardingCompleted;
+            if (!AppSettings.OnboardingCompleted)
+                Toast.Show("The welcome wizard will show next time you open the app (after you hit Save).", "info");
         }
 
         protected void TogglePosMode()
