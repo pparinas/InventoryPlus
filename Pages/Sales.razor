@@ -213,12 +213,8 @@ else if (!AppSettings.IsPosMode || AppSettings.PosActiveView == "pos")
     }
 </div>
 
-<!-- Mobile cart modal -->
-<AppModal IsOpen="showMobileCart" IsOpenChanged="@((v) => showMobileCart = v)" Size="Default">
-    <Header>
-        <h5><i class="fa-solid fa-cart-shopping"></i> Cart (@Cart.Sum(c => c.Quantity) items)</h5>
-    </Header>
-    <Content>
+<!-- Mobile cart bottom sheet -->
+<BottomSheet @bind-IsOpen="showMobileCart" Title="@($"Cart ({Cart.Sum(c => c.Quantity)} items)")">
         <div style="margin-bottom:8px">
             <input class="form-control" @bind="customerName" placeholder="Customer name (optional)" />
         </div>
@@ -278,8 +274,7 @@ else if (!AppSettings.IsPosMode || AppSettings.PosActiveView == "pos")
             @if (isProcessing) { <i class="fa-solid fa-spinner fa-spin"></i> }
             <i class="fa-solid fa-check"></i> Complete Sale (₱@AppSettings.FormatPrice(Total))
         </button>
-    </Content>
-</AppModal>
+</BottomSheet>
 
 } @* end POS view *@
 
