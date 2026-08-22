@@ -50,86 +50,25 @@
 
     @if (FilteredItems.Any())
     {
-    <div class="card-view">
+    <div class="card" style="overflow:hidden">
         @foreach (var item in FilteredItems.Skip((currentPage - 1) * PageSize).Take(PageSize))
         {
-            <div class="stock-card">
-                <div class="stock-card-header">
-                    <div class="stock-card-name">@item.Name</div>
-                    @if (item.IsRecurring)
-                    {
-                        <span class="badge badge-amber"><i class="fa-solid fa-rotate"></i> @item.Recurrence</span>
-                    }
-                    else
-                    {
-                        <span class="badge badge-gray">One-time</span>
-                    }
-                </div>
-                <div class="stock-card-body">
-                    @if (!string.IsNullOrEmpty(item.Note))
-                    {
-                        <div class="stock-card-row" style="color:var(--fg3);font-size:.8rem">@item.Note</div>
-                    }
-                    <div class="stock-card-row"><span class="stock-card-label">Category</span><span class="tag">@item.Category</span></div>
-                    <div class="stock-card-row"><span class="stock-card-label">Date</span><span>@item.Date.ToString("MMM dd, yyyy")</span></div>
-                    <div class="stock-card-row"><span class="stock-card-label">Amount</span><span class="mono text-red fw-700">₱@AppSettings.FormatCurrency(item.Amount)</span></div>
-                </div>
-                <div class="stock-card-actions">
-                    <button class="btn btn-ghost btn-sm" style="flex:1;justify-content:center" @onclick="() => OpenEditModal(item)"><i class="fa-solid fa-pen"></i> Edit</button>
-                    <button class="btn btn-danger btn-sm" style="flex:1;justify-content:center" @onclick="() => StartDelete(item)"><i class="fa-solid fa-trash"></i> Delete</button>
-                </div>
-            </div>
+            <ListRow Flat="true" Icon="fa-solid fa-file-invoice-dollar" IconClass="@(item.IsRecurring ? "si-amber" : "si-cyan")"
+                     Title="@item.Name"
+                     Sub="@ExpenseRowSub(item)">
+                <Trailing>
+                    <div style="display:flex;align-items:center;gap:6px">
+                        @if (item.IsRecurring)
+                        {
+                            <span class="badge badge-amber"><i class="fa-solid fa-rotate"></i> @item.Recurrence</span>
+                        }
+                        <span class="mono text-red fw-700">₱@AppSettings.FormatCurrency(item.Amount)</span>
+                        <button class="btn btn-ghost btn-sm btn-icon" @onclick:stopPropagation="true" @onclick="() => OpenEditModal(item)"><i class="fa-solid fa-pen"></i></button>
+                        <button class="btn btn-danger btn-sm btn-icon" @onclick:stopPropagation="true" @onclick="() => StartDelete(item)"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                </Trailing>
+            </ListRow>
         }
-    </div>
-
-    <div class="card table-view" style="overflow:hidden">
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Category</th>
-                        <th>Date</th>
-                        <th>Recurring</th>
-                        <th>Amount</th>
-                        <th style="text-align:right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in FilteredItems.Skip((currentPage - 1) * PageSize).Take(PageSize))
-                    {
-                        <tr>
-                            <td style="font-weight:600">
-                                @item.Name
-                                @if (!string.IsNullOrEmpty(item.Note))
-                                {
-                                    <div style="font-size:10px;color:var(--fg3)">@item.Note</div>
-                                }
-                            </td>
-                            <td><span class="tag">@item.Category</span></td>
-                            <td style="font-size:11px;color:var(--fg3)">@item.Date.ToString("MMM dd, yyyy")</td>
-                            <td>
-                                @if (item.IsRecurring)
-                                {
-                                    <span class="badge badge-amber"><i class="fa-solid fa-rotate"></i> @item.Recurrence</span>
-                                }
-                                else
-                                {
-                                    <span class="badge badge-gray">One-time</span>
-                                }
-                            </td>
-                            <td class="mono text-red fw-700">₱@AppSettings.FormatCurrency(item.Amount)</td>
-                            <td>
-                                <div style="display:flex;gap:4px;justify-content:flex-end">
-                                    <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => OpenEditModal(item)"><i class="fa-solid fa-pen"></i></button>
-                                    <button class="btn btn-danger btn-sm btn-icon" @onclick="() => StartDelete(item)"><i class="fa-solid fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
     </div>
 
     <PaginationBar Page="currentPage" PageSize="PageSize" TotalItems="FilteredItems.Count()" OnPageChange="SetPage" />

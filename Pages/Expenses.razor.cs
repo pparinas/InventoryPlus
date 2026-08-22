@@ -19,6 +19,13 @@ namespace InventoryPlus.Pages
         protected int currentPage = 1;
         protected const int PageSize = 10;
 
+        protected string ExpenseRowSub(Opex item)
+        {
+            var parts = new List<string> { item.Category, item.Date.ToString("MMM dd, yyyy") };
+            if (!string.IsNullOrEmpty(item.Note)) parts.Add(item.Note);
+            return string.Join(" · ", parts);
+        }
+
         // Modal state
         protected bool showModal = false;
         protected bool isEditing = false;
