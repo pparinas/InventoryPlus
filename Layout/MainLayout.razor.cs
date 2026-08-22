@@ -15,6 +15,7 @@ namespace InventoryPlus.Layout
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
         [Inject] public SettingsService AppSettings { get; set; } = default!;
         [Inject] public InventoryService Inventory { get; set; } = default!;
+        [Inject] public OrderService Orders { get; set; } = default!;
         [Inject] public Client Supabase { get; set; } = default!;
         [Inject] public AuthenticationStateProvider AuthStateProvider { get; set; } = default!;
 
@@ -191,7 +192,8 @@ namespace InventoryPlus.Layout
                 var loadInventoryTask = !Inventory.IsLoaded && !Inventory.IsLoading
                     ? Inventory.LoadAsync(safeUserId, JSRuntime)
                     : Task.CompletedTask;
-                await Task.WhenAll(loadSettingsTask, loadInventoryTask);
+                var loadOrdersTask = Orders.LoadAsync(safeUserId, JSRuntime);
+                await Task.WhenAll(loadSettingsTask, loadInventoryTask, loadOrdersTask);
             }
             catch (Exception ex)
             {

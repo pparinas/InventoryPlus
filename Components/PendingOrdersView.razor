@@ -1,0 +1,74 @@
+@implements IDisposable
+@inject InventoryPlus.Services.OrderService Orders
+@inject InventoryPlus.Services.InventoryService Inventory
+@inject InventoryPlus.Services.ToastService Toast
+@inject Microsoft.JSInterop.IJSRuntime JS
+
+<div class="section-gap fade-in">
+    @if (!Orders.PendingOrders.Any())
+    {
+        <InventoryPlus.Components.EmptyState Icon="fa-solid fa-receipt" Title="No pending orders" Message="Orders placed through your QR menu will show up here." />
+    }
+    else
+    {
+        @foreach (var order in Orders.PendingOrders)
+        {
+            <div class="card card-p" style="margin-bottom:10px" @key="order.Guid">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                    <div>
+                        <div style="font-weight:700">Order #@order.OrderNumber — @order.CustomerName</div>
+                        @if (!string.IsNullOrEmpty(order.TableNote))
+                        {
+                            <div style="font-size:11px;color:var(--fg3)">@order.TableNote</div>
+                        }
+                    </div>
+                    <span class="mono text-lime fw-700">₱@order.TotalAmount.ToString("0.00")</span>
+                </div>
+
+                <div style="margin:10px 0">
+                    @foreach (var item in order.Items.ToList())
+                    {
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
+                            <span>@item.ProductName</span>
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => Orders.UpdateItemQuantityAsync(order, item, item.Quantity - 1)">-</button>
+                                <span class="mono">@item.Quantity</span>
+                                <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => Orders.UpdateItemQuantityAsync(order, item, item.Quantity + 1)">+</button>
+                                <button class="btn btn-danger btn-sm btn-icon" @onclick="() => Orders.RemoveItemAsync(order, item)"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div style="display:flex;gap:6px">
+                    <button class="btn btn-ghost btn-sm" @onclick="() => Orders.CancelOrderAsync(order)">Cancel</button>
+                    <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center" @onclick='() => ConfirmPayment(order, "Cash")'>Cash</button>
+                    <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center" @onclick='() => ConfirmPayment(order, "GCash")'>GCash</button>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private async Task ConfirmPayment(InventoryPlus.Models.Order order, string method)
+    {
+        var (success, failedItem) = await Orders.ConfirmPaymentAsync(order, method, Inventory, JS);
+        if (success)
+            Toast.Show($"Order #{order.OrderNumber} completed!");
+        else
+            Toast.Show($"Couldn't complete \"{failedItem}\" — check stock and try again.", "error");
+    }
+
+    protected override void OnInitialized()
+    {
+        Orders.OnStateChanged += HandleStateChanged;
+    }
+
+    private void HandleStateChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Orders.OnStateChanged -= HandleStateChanged;
+    }
+}

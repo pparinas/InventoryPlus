@@ -139,6 +139,14 @@ namespace InventoryPlus.Services
             }
         }
 
+        // Pending Orders view toggle (Pro feature)
+        private bool _showPendingOrders = false;
+        public bool ShowPendingOrders
+        {
+            get => _showPendingOrders;
+            set { if (_showPendingOrders != value) { _showPendingOrders = value; NotifyStateChanged(); } }
+        }
+
         // PIN
         private string _pinHash = string.Empty;
         private PinScope _pinScopes = PinScope.All;
@@ -221,6 +229,21 @@ namespace InventoryPlus.Services
             }
         }
 
+        // Online menu
+        private string? _menuSlug;
+        public string? MenuSlug
+        {
+            get => _menuSlug;
+            set
+            {
+                if (_menuSlug != value)
+                {
+                    _menuSlug = value;
+                    NotifyStateChanged();
+                }
+            }
+        }
+
         // Currency display
         public bool ShowDecimals { get; set; } = true;
         public string FormatCurrency(double value) => ShowDecimals ? value.ToString("N2") : value.ToString("N0");
@@ -289,6 +312,7 @@ namespace InventoryPlus.Services
                     _showInventoryTab = result.ShowInventoryTab;
                     _showOpexTab = result.ShowOpexTab;
                     _colorScheme = result.ColorScheme ?? "lime";
+                    _menuSlug = result.MenuSlug;
 
                     _dashboardWidgets = (DashboardWidgets)result.DashboardWidgetFlags;
                     _reportWidgets = (ReportWidgets)result.ReportWidgetFlags;
@@ -409,7 +433,8 @@ namespace InventoryPlus.Services
                     ReportWidgetFlags = (int)_reportWidgets,
                     OnboardingCompleted = OnboardingCompleted,
                     ShowOnboardingOnLogin = ShowOnboardingOnLogin,
-                    ShowDecimals = ShowDecimals
+                    ShowDecimals = ShowDecimals,
+                    MenuSlug = _menuSlug
                 };
                 var response = await _supabase.From<AccountSettings>().Upsert(settings);
                 if (response.Models.Count == 0)

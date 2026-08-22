@@ -1,0 +1,120 @@
+@page "/menu/{Slug}"
+@layout InventoryPlus.Layout.PublicMenuLayout
+@attribute [AllowAnonymous]
+
+<PageTitle>@(menu?.CompanyName ?? "Menu")</PageTitle>
+
+@if (isLoading)
+{
+    <div style="padding:3rem;text-align:center;color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>
+}
+else if (menu == null)
+{
+    <div style="padding:3rem;text-align:center">
+        <h2>Menu not available</h2>
+        <p style="color:var(--fg3)">This menu link isn't active right now.</p>
+    </div>
+}
+else
+{
+    <div style="max-width:520px;margin:0 auto;padding:16px;padding-bottom:120px">
+        <div style="text-align:center;margin-bottom:16px">
+            @if (!string.IsNullOrEmpty(menu.LogoUrl))
+            {
+                <img src="@menu.LogoUrl" style="width:56px;height:56px;border-radius:var(--radius-sm);object-fit:cover" />
+            }
+            <h1 style="margin-top:8px">@menu.CompanyName</h1>
+        </div>
+
+        @foreach (var group in menu.Products.GroupBy(p => string.IsNullOrEmpty(p.Category) ? "Other" : p.Category))
+        {
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--fg3);margin:16px 0 8px">@group.Key</div>
+            @foreach (var product in group)
+            {
+                var available = product.AvailableCount > 0 || !product.HasIngredients;
+                <div class="card" style="padding:10px 12px;margin-bottom:8px;display:flex;gap:12px;align-items:center;opacity:@(available ? "1" : "0.5")">
+                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                    {
+                        <img src="@product.ImageUrl" style="width:64px;height:64px;border-radius:var(--radius-sm);object-fit:cover;flex-shrink:0;border:1px solid var(--border)" alt="@product.Name" />
+                    }
+                    else
+                    {
+                        <div style="width:64px;height:64px;border-radius:var(--radius-sm);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:1px solid var(--border)">
+                            <i class="fa-solid fa-image" style="color:var(--fg3)"></i>
+                        </div>
+                    }
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:600">@product.Name</div>
+                        <div class="mono text-lime" style="font-size:12px">₱@product.SellingPrice.ToString("0.00")</div>
+                        @if (!available)
+                        {
+                            <div style="font-size:10px;color:var(--fg3)">Currently unavailable</div>
+                        }
+                    </div>
+                    @if (available)
+                    {
+                        var qty = cart.TryGetValue(product.Guid, out var c) ? c : 0;
+                        if (qty == 0)
+                        {
+                            <button class="btn btn-primary btn-sm" @onclick="() => AddToCart(product)">Add</button>
+                        }
+                        else
+                        {
+                            <div style="display:flex;align-items:center;gap:6px">
+                                <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => ChangeQty(product, -1)">-</button>
+                                <span class="mono">@qty</span>
+                                <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => ChangeQty(product, 1)">+</button>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        }
+    </div>
+
+    @if (cart.Count > 0)
+    {
+        <div style="position:fixed;bottom:0;left:0;right:0;background:var(--bg2);border-top:1px solid var(--border);padding:12px 16px">
+            <button class="btn btn-primary" style="width:100%;justify-content:center" @onclick="() => showCheckout = true">
+                View Cart (@cart.Values.Sum()) — ₱@CartTotal.ToString("0.00")
+            </button>
+        </div>
+    }
+
+    <AppModal IsOpen="showCheckout" IsOpenChanged="@((v) => showCheckout = v)" Size="Large">
+        <Header><h5>Your Order</h5></Header>
+        <Content>
+            @foreach (var (productId, qty) in cart)
+            {
+                var p = menu.Products.First(x => x.Guid == productId);
+                <div style="display:flex;justify-content:space-between;padding:6px 0">
+                    <span>@p.Name × @qty</span>
+                    <span class="mono">₱@((p.SellingPrice * qty).ToString("0.00"))</span>
+                </div>
+            }
+            <div style="display:flex;justify-content:space-between;font-weight:700;padding-top:8px;border-top:1px solid var(--border);margin-top:8px">
+                <span>Total</span>
+                <span class="mono text-lime">₱@CartTotal.ToString("0.00")</span>
+            </div>
+            <div class="form-group" style="margin-top:14px">
+                <label class="form-label">Your Name <span class="req">*</span></label>
+                <input class="form-control" @bind="customerName" placeholder="e.g. Juan" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Table / Note (optional)</label>
+                <input class="form-control" @bind="tableNote" placeholder="e.g. Table 4" />
+            </div>
+            @if (!string.IsNullOrEmpty(submitError))
+            {
+                <p class="text-red" style="font-size:12px">@submitError</p>
+            }
+        </Content>
+        <Footer>
+            <button class="btn btn-ghost" @onclick="() => showCheckout = false">Back</button>
+            <button class="btn btn-primary" disabled="@(string.IsNullOrWhiteSpace(customerName) || isSubmitting)" @onclick="SubmitOrder">
+                @if (isSubmitting) { <i class="fa-solid fa-spinner fa-spin"></i> }
+                Place Order
+            </button>
+        </Footer>
+    </AppModal>
+}

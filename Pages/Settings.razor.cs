@@ -73,6 +73,7 @@ namespace InventoryPlus.Pages
         // Inventory toggle
         protected bool showInventoryTab = true;
         protected bool showOpexTab = false;
+        protected string menuSlugInput = "";
 
         // Install App
         protected bool showInstallSection = false;
@@ -103,6 +104,7 @@ namespace InventoryPlus.Pages
             selectedColorScheme = AppSettings.ColorScheme;
             showInventoryTab = AppSettings.ShowInventoryTab;
             showOpexTab = AppSettings.ShowOpexTab;
+            menuSlugInput = AppSettings.MenuSlug ?? "";
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -383,6 +385,8 @@ namespace InventoryPlus.Pages
         {
             AppSettings.ShowInventoryTab = showInventoryTab;
             AppSettings.ShowOpexTab = showOpexTab;
+            if (AppSettings.IsPro)
+                AppSettings.MenuSlug = string.IsNullOrWhiteSpace(menuSlugInput) ? null : menuSlugInput.Trim().ToLowerInvariant();
             try
             {
                 if (currentUser != null)
@@ -394,6 +398,13 @@ namespace InventoryPlus.Pages
                 Console.WriteLine($"SaveNavPreferences error: {ex.Message}");
                 Toast.Show("Failed to save navigation preferences.", "error");
             }
+        }
+
+        protected async Task CopyMenuLink()
+        {
+            var url = $"{Nav.BaseUri}menu/{AppSettings.MenuSlug}";
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", url);
+            Toast.Show("Menu link copied!");
         }
 
         protected void ToggleOnboarding()
