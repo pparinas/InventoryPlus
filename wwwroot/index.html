@@ -61,6 +61,24 @@
                 return document.documentElement.getAttribute('data-scheme') || 'lime';
             }
         };
+
+        // Reads Supabase's implicit-flow tokens (#access_token=...&refresh_token=...)
+        // off the URL fragment, since the fragment never reaches the server and
+        // Blazor's NavigationManager doesn't reliably surface it.
+        window.authInterop = {
+            getHashParams: function() {
+                var hash = window.location.hash.startsWith('#') ? window.location.hash.substring(1) : window.location.hash;
+                var params = new URLSearchParams(hash);
+                return {
+                    accessToken: params.get('access_token'),
+                    refreshToken: params.get('refresh_token'),
+                    error: params.get('error_description') || params.get('error')
+                };
+            },
+            clearHash: function() {
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+        };
     </script>
 </head>
 

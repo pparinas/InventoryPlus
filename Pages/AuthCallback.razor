@@ -1,0 +1,22 @@
+@page "/auth/callback"
+@layout InventoryPlus.Layout.AuthLayout
+@attribute [AllowAnonymous]
+
+<div class="auth-wrap">
+    <div class="auth-card" style="text-align:center">
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <div class="auth-brand">
+                <div class="mark"><span>N</span></div>
+                <h2>Sign-in Link Failed</h2>
+            </div>
+            <div class="alert alert-danger">@ErrorMessage</div>
+            <a href="/login" class="btn btn-primary w-100">Back to Login</a>
+        }
+        else
+        {
+            <div class="loader-pulse" style="margin:0 auto 1rem"></div>
+            <p class="text-muted">Signing you in&hellip;</p>
+        }
+    </div>
+</div>
