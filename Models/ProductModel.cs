@@ -44,6 +44,9 @@ namespace InventoryPlus.Models
         [Column("is_archived")]
         public bool IsArchived { get; set; } = false;
 
+        [Column("show_on_menu")]
+        public bool ShowOnMenu { get; set; } = true;
+
         [Reference(typeof(ProductIngredient), includeInQuery: false)]
         public List<ProductIngredient> RequiredIngredients { get; set; } = new();
 

@@ -118,6 +118,7 @@ namespace InventoryPlus.Pages
                 Recipe = item.Recipe,
                 HasIngredients = AppSettings.ShowInventoryTab && item.HasIngredients,
                 StockCount = item.StockCount,
+                ShowOnMenu = item.ShowOnMenu,
                 RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
                 {
                     IngredientId = r.IngredientId,
@@ -160,6 +161,7 @@ namespace InventoryPlus.Pages
                 Recipe = item.Recipe,
                 HasIngredients = item.HasIngredients,
                 StockCount = item.StockCount,
+                ShowOnMenu = item.ShowOnMenu,
                 RequiredIngredients = item.RequiredIngredients.Select(r => new ProductIngredient
                 {
                     Guid = Guid.NewGuid(),
@@ -343,6 +345,7 @@ namespace InventoryPlus.Pages
                         existing.Recipe = currentProduct.Recipe;
                         existing.HasIngredients = currentProduct.HasIngredients;
                         existing.StockCount = currentProduct.StockCount;
+                        existing.ShowOnMenu = currentProduct.ShowOnMenu;
                         existing.RequiredIngredients = currentProduct.HasIngredients ? currentProduct.RequiredIngredients : new();
                         await Inventory.UpdateProductAsync(existing, JS);
                         Toast.Show($"\"{existing.Name}\" updated successfully!");
