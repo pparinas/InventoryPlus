@@ -40,6 +40,18 @@
                     }
                 </div>
 
+                <div style="display:flex;gap:6px;margin-bottom:10px">
+                    <select class="form-select form-select-sm" style="flex:1"
+                            @bind:get="GetSelection(order.Guid)" @bind:set="v => addItemSelection[order.Guid] = v">
+                        <option value="">+ Add item — customer forgot something?</option>
+                        @foreach (var product in Inventory.ActiveProducts.OrderBy(p => p.Name))
+                        {
+                            <option value="@product.Guid">@product.Name — ₱@product.SellingPrice.ToString("0.00")</option>
+                        }
+                    </select>
+                    <button class="btn btn-ghost btn-sm" @onclick="() => AddItem(order)">Add</button>
+                </div>
+
                 <div style="display:flex;gap:6px">
                     <button class="btn btn-ghost btn-sm" @onclick="() => Orders.CancelOrderAsync(order)">Cancel</button>
                     <button class="btn btn-primary btn-sm" style="flex:1;justify-content:center" @onclick='() => ConfirmPayment(order, "Cash")'>Cash</button>
@@ -51,6 +63,22 @@
 </div>
 
 @code {
+    private readonly Dictionary<Guid, string> addItemSelection = new();
+    private string GetSelection(Guid orderId) => addItemSelection.TryGetValue(orderId, out var v) ? v : "";
+
+    private async Task AddItem(InventoryPlus.Models.Order order)
+    {
+        if (!addItemSelection.TryGetValue(order.Guid, out var selected) || string.IsNullOrEmpty(selected))
+            return;
+        if (!Guid.TryParse(selected, out var productId))
+            return;
+        var product = Inventory.ActiveProducts.FirstOrDefault(p => p.Guid == productId);
+        if (product == null) return;
+
+        await Orders.AddItemAsync(order, product);
+        addItemSelection[order.Guid] = "";
+    }
+
     private async Task ConfirmPayment(InventoryPlus.Models.Order order, string method)
     {
         var (success, failedItem) = await Orders.ConfirmPaymentAsync(order, method, Inventory, JS);

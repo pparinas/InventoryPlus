@@ -155,6 +155,12 @@ body{background-color:var(--bg);color:var(--fg)}
 .topbar-dot{position:absolute;top:5px;right:5px;width:5px;height:5px;background:var(--lime);border-radius:50%;border:1.5px solid var(--bg2)}
 .notification-badge{position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;background:var(--red);color:#fff;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
 
+/* ── PENDING ORDERS PULL-TAB ── */
+.orders-pull-tab{position:fixed;top:40%;right:0;z-index:1200;display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--lime);color:#0a0a0a;border:none;padding:12px 8px;border-radius:var(--radius-sm) 0 0 var(--radius-sm);box-shadow:0 4px 18px rgba(0,0,0,.25);cursor:pointer;font-size:14px}
+.orders-pull-tab-count{min-width:16px;height:16px;background:#0a0a0a;color:var(--lime);border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px}
+[data-theme="light"] .orders-pull-tab{color:#fff}
+[data-theme="light"] .orders-pull-tab-count{color:#fff}
+
 /* ── PAGE HEADER ── */
 .page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap}
 .page-header h1{font-size:18px;font-weight:700;color:var(--fg);letter-spacing:-.3px;background:none;-webkit-text-fill-color:unset;-webkit-background-clip:unset;background-clip:unset;margin:0}

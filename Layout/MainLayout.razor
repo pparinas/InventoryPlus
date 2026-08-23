@@ -179,6 +179,18 @@
         </div>
     </BottomSheet>
 
+    @if (Orders.PendingOrders.Count > 0)
+    {
+        <button class="orders-pull-tab" @onclick="ToggleOrdersPanel" @onclick:stopPropagation title="Pending QR orders">
+            <i class="fa-solid fa-receipt"></i>
+            <span class="orders-pull-tab-count">@Orders.PendingOrders.Count</span>
+        </button>
+    }
+    <AppOffCanvas IsOpen="showOrdersPanel" IsOpenChanged="@((v) => showOrdersPanel = v)" Placement="Right">
+        <Header><h5 class="offcanvas-title" style="margin:0;">Pending Orders</h5></Header>
+        <Content><PendingOrdersView /></Content>
+    </AppOffCanvas>
+
     <ToastContainer />
     <NotificationPanel @ref="notificationPanel" />
 </div>

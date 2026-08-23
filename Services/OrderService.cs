@@ -17,15 +17,17 @@ namespace InventoryPlus.Services
     public class OrderService
     {
         private readonly Supabase.Client _supabase;
+        private readonly ToastService _toast;
         private Guid _ownerGuid;
         private RealtimeChannel? _channel;
 
         public List<Order> PendingOrders { get; private set; } = new();
         public event Action? OnStateChanged;
 
-        public OrderService(Supabase.Client supabase)
+        public OrderService(Supabase.Client supabase, ToastService toast)
         {
             _supabase = supabase;
+            _toast = toast;
         }
 
         public async Task LoadAsync(string userId, IJSRuntime? js = null)
@@ -90,7 +92,10 @@ namespace InventoryPlus.Services
                 _channel = _supabase.Realtime.Channel("realtime", "public", "orders", "owner_guid", _ownerGuid.ToString());
                 _channel.AddPostgresChangeHandler(Supabase.Realtime.PostgresChanges.PostgresChangesOptions.ListenType.All, async (_, __) =>
                 {
+                    var previousIds = PendingOrders.Select(o => o.Guid).ToHashSet();
                     await LoadAsync(_ownerGuid.ToString());
+                    foreach (var order in PendingOrders.Where(o => !previousIds.Contains(o.Guid)))
+                        _toast.Show($"New order #{order.OrderNumber} from {order.CustomerName} — ₱{order.TotalAmount:0.00}", "info");
                     onChange();
                 });
                 await _channel.Subscribe();
@@ -117,6 +122,35 @@ namespace InventoryPlus.Services
             }
             item.Quantity = newQty;
             await _supabase.From<OrderItem>().Upsert(item);
+            order.TotalAmount = order.Items.Sum(i => i.UnitPrice * i.Quantity);
+            await _supabase.From<Order>().Upsert(order);
+            OnStateChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// Adds a product the customer forgot (or now wants) to a pending order.
+        /// Bumps quantity instead of duplicating the line if it's already there.
+        /// </summary>
+        public async Task AddItemAsync(Order order, Product product)
+        {
+            var existing = order.Items.FirstOrDefault(i => i.ProductId == product.Guid);
+            if (existing != null)
+            {
+                await UpdateItemQuantityAsync(order, existing, existing.Quantity + 1);
+                return;
+            }
+
+            var item = new OrderItem
+            {
+                Guid = Guid.NewGuid(),
+                OrderId = order.Guid,
+                ProductId = product.Guid,
+                ProductName = product.Name,
+                UnitPrice = product.SellingPrice,
+                Quantity = 1
+            };
+            await _supabase.From<OrderItem>().Insert(item);
+            order.Items.Add(item);
             order.TotalAmount = order.Items.Sum(i => i.UnitPrice * i.Quantity);
             await _supabase.From<Order>().Upsert(order);
             OnStateChanged?.Invoke();
