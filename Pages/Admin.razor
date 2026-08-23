@@ -67,9 +67,35 @@
                             <span class="badge" style="background:var(--bg4);color:var(--fg3)">Free</span>
                         }
                         <span class="badge @(user.IsActive ? "badge-green" : "badge-red")">@(user.IsActive ? "Active" : "Inactive")</span>
+                        @if (user.IsActive && user.Id.ToString() != Supabase.Auth.CurrentUser?.Id)
+                        {
+                            @if (loginAsReadyUserId == user.Id && !string.IsNullOrEmpty(loginAsReadyLink))
+                            {
+                                <a class="btn btn-primary btn-sm" href="@loginAsReadyLink" target="_blank" rel="noopener" @onclick="() => { loginAsReadyUserId = null; loginAsReadyLink = null; }">
+                                    Open <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-ghost btn-sm btn-icon" title="Login as this user" disabled="@(loginAsInFlightUserId == user.Id)" @onclick="() => LoginAsUserAsync(user)">
+                                    @if (loginAsInFlightUserId == user.Id)
+                                    {
+                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-right-to-bracket"></i>
+                                    }
+                                </button>
+                            }
+                        }
                         <button class="btn btn-ghost btn-sm btn-icon" @onclick="() => EditUser(user)"><i class="fa-solid fa-pen"></i></button>
                     </div>
                 </div>
+            }
+            @if (!string.IsNullOrEmpty(loginAsError))
+            {
+                <div class="alert alert-danger" style="margin-top:8px">@loginAsError</div>
             }
             @if (!FilteredUsers.Any())
             {

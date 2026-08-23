@@ -1,5 +1,7 @@
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Configuration;
 using Microsoft.JSInterop;
 using InventoryPlus.Services;
 using InventoryPlus.Models;
@@ -15,6 +17,8 @@ namespace InventoryPlus.Pages
         [Inject] public NavigationManager NavManager { get; set; } = default!;
         [Inject] public Supabase.Client Supabase { get; set; } = default!;
         [Inject] public IJSRuntime JSRuntime { get; set; } = default!;
+        [Inject] public HttpClient Http { get; set; } = default!;
+        [Inject] public IConfiguration Configuration { get; set; } = default!;
 
         protected List<SystemUser> Users => UserManagement.Users;
         protected bool showEditModal;
@@ -127,6 +131,75 @@ namespace InventoryPlus.Pages
         {
             user.IsActive = !user.IsActive;
             await UserManagement.UpdateUserAsync(user);
+        }
+
+        // ── Login as user ──────────────────────────────────────────────────
+        //
+        // Blazor WebAssembly's JS interop always dispatches through an async
+        // boundary, so it never preserves the browser's "trusted click" state --
+        // meaning window.open() called from C#, even as the very first line of
+        // this handler, gets silently blocked as a popup. Instead of fighting
+        // that, generate the link then hand the admin a real <a target="_blank">
+        // to click themselves; a genuine anchor click is native navigation and
+        // popup blockers never touch it.
+
+        protected Guid? loginAsInFlightUserId;
+        protected Guid? loginAsReadyUserId;
+        protected string? loginAsReadyLink;
+        protected string? loginAsError;
+
+        protected async Task LoginAsUserAsync(SystemUser user)
+        {
+            loginAsInFlightUserId = user.Id;
+            loginAsError = null;
+            loginAsReadyUserId = null;
+            loginAsReadyLink = null;
+            try
+            {
+                var accessToken = Supabase.Auth.CurrentSession?.AccessToken;
+                if (string.IsNullOrEmpty(accessToken))
+                {
+                    loginAsError = "Your session has expired. Please refresh and try again.";
+                    return;
+                }
+
+                var supabaseUrl = Configuration["Supabase:Url"]!.TrimEnd('/');
+                var redirectTo = $"{NavManager.BaseUri.TrimEnd('/')}/auth/callback";
+
+                using var request = new HttpRequestMessage(HttpMethod.Post, $"{supabaseUrl}/functions/v1/login-as-user")
+                {
+                    Content = JsonContent.Create(new { targetUserId = user.Id, redirectTo })
+                };
+                request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+                var response = await Http.SendAsync(request);
+                var body = await response.Content.ReadFromJsonAsync<LoginAsResponse>();
+
+                if (!response.IsSuccessStatusCode || string.IsNullOrEmpty(body?.ActionLink))
+                {
+                    loginAsError = body?.Error ?? "Failed to generate a login link.";
+                    return;
+                }
+
+                loginAsReadyUserId = user.Id;
+                loginAsReadyLink = body.ActionLink;
+            }
+            catch (Exception ex)
+            {
+                loginAsError = $"Failed to generate a login link: {ex.Message}";
+            }
+            finally
+            {
+                loginAsInFlightUserId = null;
+            }
+        }
+
+        private class LoginAsResponse
+        {
+            [System.Text.Json.Serialization.JsonPropertyName("actionLink")]
+            public string? ActionLink { get; set; }
+            [System.Text.Json.Serialization.JsonPropertyName("error")]
+            public string? Error { get; set; }
         }
 
         // ── Invite Link ────────────────────────────────────────────────────
