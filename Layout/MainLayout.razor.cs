@@ -26,6 +26,7 @@ namespace InventoryPlus.Layout
         protected bool showQuickSheet = false;
         protected bool showMoreSheet = false;
         protected bool showOnboarding = false;
+        protected bool showOrdersPanel = false;
         protected string? currentUserEmail;
         private string currentPath = "";
         private string? _lastAuthUserId = null;
@@ -36,6 +37,11 @@ namespace InventoryPlus.Layout
         protected void ToggleNotifications()
         {
             notificationPanel?.Toggle();
+        }
+
+        protected void ToggleOrdersPanel()
+        {
+            showOrdersPanel = !showOrdersPanel;
         }
 
         protected void ResetError()
@@ -200,6 +206,10 @@ namespace InventoryPlus.Layout
                     : Task.CompletedTask;
                 var loadOrdersTask = Orders.LoadAsync(safeUserId, JSRuntime);
                 await Task.WhenAll(loadSettingsTask, loadInventoryTask, loadOrdersTask);
+
+                // Global, page-independent: QR menu orders should notify the admin
+                // no matter which page they're on, not just while Sales is open.
+                Orders.SubscribeRealtime(() => InvokeAsync(StateHasChanged));
             }
             catch (Exception ex)
             {
@@ -217,6 +227,7 @@ namespace InventoryPlus.Layout
         {
             AppSettings.OnStateChanged += HandleStateChanged;
             Inventory.OnStateChanged += HandleStateChanged;
+            Orders.OnStateChanged += HandleStateChanged;
             NavManager.LocationChanged += OnLocationChanged;
             currentPath = GetRelativePath();
             AuthStateProvider.AuthenticationStateChanged += OnAuthenticationStateChanged;
@@ -307,6 +318,7 @@ namespace InventoryPlus.Layout
         {
             AppSettings.OnStateChanged -= HandleStateChanged;
             Inventory.OnStateChanged -= HandleStateChanged;
+            Orders.OnStateChanged -= HandleStateChanged;
             NavManager.LocationChanged -= OnLocationChanged;
             AuthStateProvider.AuthenticationStateChanged -= OnAuthenticationStateChanged;
         }
