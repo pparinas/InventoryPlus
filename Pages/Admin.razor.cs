@@ -134,14 +134,26 @@ namespace InventoryPlus.Pages
         }
 
         // ── Login as user ──────────────────────────────────────────────────
+        //
+        // Blazor WebAssembly's JS interop always dispatches through an async
+        // boundary, so it never preserves the browser's "trusted click" state --
+        // meaning window.open() called from C#, even as the very first line of
+        // this handler, gets silently blocked as a popup. Instead of fighting
+        // that, generate the link then hand the admin a real <a target="_blank">
+        // to click themselves; a genuine anchor click is native navigation and
+        // popup blockers never touch it.
 
         protected Guid? loginAsInFlightUserId;
+        protected Guid? loginAsReadyUserId;
+        protected string? loginAsReadyLink;
         protected string? loginAsError;
 
         protected async Task LoginAsUserAsync(SystemUser user)
         {
             loginAsInFlightUserId = user.Id;
             loginAsError = null;
+            loginAsReadyUserId = null;
+            loginAsReadyLink = null;
             try
             {
                 var accessToken = Supabase.Auth.CurrentSession?.AccessToken;
@@ -169,7 +181,8 @@ namespace InventoryPlus.Pages
                     return;
                 }
 
-                await JSRuntime.InvokeVoidAsync("open", body.ActionLink, "_blank");
+                loginAsReadyUserId = user.Id;
+                loginAsReadyLink = body.ActionLink;
             }
             catch (Exception ex)
             {
