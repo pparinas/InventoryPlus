@@ -44,7 +44,7 @@
                     <select class="form-select form-select-sm" style="flex:1"
                             @bind:get="GetSelection(order.Guid)" @bind:set="v => addItemSelection[order.Guid] = v">
                         <option value="">+ Add item — customer forgot something?</option>
-                        @foreach (var product in Inventory.ActiveProducts.OrderBy(p => p.Name))
+                        @foreach (var product in AvailableProducts)
                         {
                             <option value="@product.Guid">@product.Name — ₱@product.SellingPrice.ToString("0.00")</option>
                         }
@@ -66,13 +66,21 @@
     private readonly Dictionary<Guid, string> addItemSelection = new();
     private string GetSelection(Guid orderId) => addItemSelection.TryGetValue(orderId, out var v) ? v : "";
 
+    // Same "can this actually be ordered right now" rule the public QR menu
+    // uses (Pages/PublicMenu.razor) -- out-of-stock items shouldn't be
+    // addable here either.
+    private IEnumerable<InventoryPlus.Models.Product> AvailableProducts =>
+        Inventory.ActiveProducts
+            .Where(p => p.AvailableCount > 0 || !p.HasIngredients)
+            .OrderBy(p => p.Name);
+
     private async Task AddItem(InventoryPlus.Models.Order order)
     {
         if (!addItemSelection.TryGetValue(order.Guid, out var selected) || string.IsNullOrEmpty(selected))
             return;
         if (!Guid.TryParse(selected, out var productId))
             return;
-        var product = Inventory.ActiveProducts.FirstOrDefault(p => p.Guid == productId);
+        var product = AvailableProducts.FirstOrDefault(p => p.Guid == productId);
         if (product == null) return;
 
         await Orders.AddItemAsync(order, product);

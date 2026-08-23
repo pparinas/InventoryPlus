@@ -39,7 +39,9 @@ namespace InventoryPlus.Services
             if (settings == null) return null;
 
             var productsResp = await _supabase.From<Product>()
-                .Where(p => p.OwnerGuid == settings.OwnerGuid && p.IsArchived == false)
+                .Where(p => p.OwnerGuid == settings.OwnerGuid)
+                .Where(p => p.IsArchived == false)
+                .Where(p => p.ShowOnMenu == true)
                 .Order(p => p.Name, Supabase.Postgrest.Constants.Ordering.Ascending)
                 .Get();
 
